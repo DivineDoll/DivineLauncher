@@ -512,4 +512,10 @@
     <string name="fork_bedrock_installed">Instalado</string>
     <string name="fork_bedrock_not_installed">No instalado</string>
     <string name="fork_bedrock_open_store">Abrir tienda</string>
+    <string name="fork_picker_brightness">Brillo</string>
+    <string name="fork_picker_hex_hint">Código hex (#RRGGBB)</string>
+    <string name="fork_picker_reset">Restablecer</string>
+    <string name="fork_bg_color_title">Color de fondo</string>
+    <string name="fork_sidebar_color_title">Color de la barra lateral</string>
+    <string name="fork_colors_reset_all">Restablecer todos los colores</string>
 </resources>

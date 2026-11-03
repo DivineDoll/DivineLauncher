@@ -48,7 +48,7 @@ public class PatchNotesFragment extends Fragment {
         Context c = requireContext();
         LinearLayout root = new LinearLayout(c);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackground(git.artdeell.mojo.utils.McStyle.screenBackground(c));
+        root.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.background());
         root.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 12), ForkUi.dp(c, 16), ForkUi.dp(c, 12));
 
         root.addView(ForkUi.pageHeader(c, requireActivity(), ForkUi.TAB_PATCH));
@@ -125,7 +125,7 @@ public class PatchNotesFragment extends Fragment {
 
             LinearLayout card = new LinearLayout(c);
             card.setOrientation(LinearLayout.VERTICAL);
-            card.setBackground(ForkUi.box(c, ForkUi.CARD, 0xFF111111, 1));
+            card.setBackground(ForkUi.box(c, git.artdeell.mojo.utils.ThemeColors.panel(), 0xFF111111, 1));
             card.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 12), ForkUi.dp(c, 10));
             card.addView(ForkUi.text(c, title != null ? title : String.valueOf(version), 16, false));
             String sub = (version != null ? version : "") + (type != null ? "  ·  " + type : "");

@@ -703,4 +703,10 @@
     <string name="fork_bedrock_installed">Installed</string>
     <string name="fork_bedrock_not_installed">Not installed</string>
     <string name="fork_bedrock_open_store">Open store</string>
+    <string name="fork_picker_brightness">Brightness</string>
+    <string name="fork_picker_hex_hint">Hex code (#RRGGBB)</string>
+    <string name="fork_picker_reset">Reset</string>
+    <string name="fork_bg_color_title">Background color</string>
+    <string name="fork_sidebar_color_title">Sidebar color</string>
+    <string name="fork_colors_reset_all">Reset all colors</string>
 </resources>

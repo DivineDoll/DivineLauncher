@@ -38,26 +38,12 @@ public class AccentColor {
         LauncherPreferences.DEFAULT_PREF.edit().putInt(PREF, color).apply();
     }
 
-    /** Shows the choices. onChanged runs after a new color is saved. */
+    /** Shows the color picker. onChanged runs after a new color is saved. */
     public static void choose(Context c, Runnable onChanged) {
-        String[] items = new String[NAME_RES.length + 2];
-        for(int i = 0; i < NAME_RES.length; i++) items[i] = c.getString(NAME_RES[i]);
-        items[NAME_RES.length] = c.getString(R.string.fork_accent_custom);
-        items[NAME_RES.length + 1] = c.getString(R.string.fork_accent_reset);
-        new AlertDialog.Builder(c)
-                .setTitle(R.string.fork_accent_title)
-                .setItems(items, (d, which) -> {
-                    if(which < PRESETS.length) {
-                        set(PRESETS[which]);
-                        onChanged.run();
-                    } else if(which == PRESETS.length) {
-                        askHex(c, onChanged);
-                    } else {
-                        set(DEFAULT);
-                        onChanged.run();
-                    }
-                })
-                .show();
+        ColorPicker.show(c, R.string.fork_accent_title, get(), DEFAULT, color -> {
+            set(color);
+            onChanged.run();
+        });
     }
 
     private static void askHex(Context c, Runnable onChanged) {

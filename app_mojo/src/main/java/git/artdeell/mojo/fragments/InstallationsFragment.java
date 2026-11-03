@@ -38,7 +38,7 @@ public class InstallationsFragment extends Fragment {
         Context c = requireContext();
         LinearLayout root = new LinearLayout(c);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackground(git.artdeell.mojo.utils.McStyle.screenBackground(c));
+        root.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.background());
         root.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 12), ForkUi.dp(c, 16), ForkUi.dp(c, 12));
 
         root.addView(ForkUi.pageHeader(c, requireActivity(), ForkUi.TAB_INSTALLS));
@@ -88,8 +88,8 @@ public class InstallationsFragment extends Fragment {
             boolean selected = i == instances.selectedIndex;
 
             LinearLayout row = ForkUi.row(c);
-            row.setBackground(ForkUi.box(c, selected ? ForkUi.CARD_SELECTED : ForkUi.CARD,
-                    selected ? ForkUi.GREEN : 0xFF111111, selected ? 2 : 1));
+            row.setBackground(ForkUi.box(c, selected ? 0xFF4E4E4E : git.artdeell.mojo.utils.ThemeColors.panel(),
+                    selected ? git.artdeell.mojo.utils.AccentColor.get() : 0xFF111111, selected ? 2 : 1));
             row.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 8), ForkUi.dp(c, 10));
 
             LinearLayout texts = new LinearLayout(c);

@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -33,6 +34,10 @@ import git.artdeell.mojo.R;
 import git.artdeell.mojo.authenticator.accounts.Account;
 import git.artdeell.mojo.authenticator.accounts.Accounts;
 import git.artdeell.mojo.lan.TerracottaManager;
+import git.artdeell.mojo.utils.AccentColor;
+import git.artdeell.mojo.utils.ForkUi;
+import git.artdeell.mojo.utils.McStyle;
+import git.artdeell.mojo.utils.ThemeColors;
 
 /**
  * "LAN" screen: host a room (Hacer LAN) or join one with a code (Entrar a LAN).
@@ -41,8 +46,6 @@ import git.artdeell.mojo.lan.TerracottaManager;
 public class LanFragment extends Fragment implements TerracottaManager.Listener {
     public static final String TAG = "LanFragment";
 
-    private View mHostPanel, mGuestPanel;
-    private Button mHostTab, mGuestTab;
     private TextView mHostStatus, mHostCode, mGuestStatus, mGuestAddress;
     private Button mCopyCode, mCopyAddress;
     private EditText mCodeInput;
@@ -66,38 +69,41 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         if(c != null) Toast.makeText(c, res, Toast.LENGTH_LONG).show();
     }
 
-    private Drawable stateDrawable(int normal, int pressed) {
-        StateListDrawable d = new StateListDrawable();
-        d.addState(new int[]{android.R.attr.state_pressed}, ContextCompat.getDrawable(requireContext(), pressed));
-        d.addState(new int[]{}, ContextCompat.getDrawable(requireContext(), normal));
-        return d;
-    }
-
     private Button button(int text, boolean primary) {
-        Button b = new Button(requireContext());
-        b.setText(text);
-        b.setAllCaps(false);
-        b.setTextColor(Color.WHITE);
-        b.setTypeface(Typeface.DEFAULT_BOLD);
-        b.setBackground(primary
-                ? stateDrawable(R.drawable.bedrock_play_normal, R.drawable.bedrock_play_pressed)
-                : stateDrawable(R.drawable.bedrock_button_normal, R.drawable.bedrock_button_pressed));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48));
+        Button b = ForkUi.button(requireContext(), getString(text), primary);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44));
         lp.topMargin = dp(8);
         b.setLayoutParams(lp);
         return b;
     }
 
-    private TextView text(CharSequence content, int sp, boolean bold) {
-        TextView t = new TextView(requireContext());
-        t.setText(content);
-        t.setTextColor(Color.WHITE);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
-        if(bold) t.setTypeface(Typeface.DEFAULT_BOLD);
+    /** heading = capitalized pixel font, otherwise the normal game font */
+    private TextView text(CharSequence content, int sp, boolean heading) {
+        TextView t = ForkUi.text(requireContext(), content, sp, heading);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.topMargin = dp(8);
         t.setLayoutParams(lp);
         return t;
+    }
+
+    /** A panel with an accent line on top, the way the other launcher screens look. */
+    private LinearLayout card(Context context, int titleRes) {
+        LinearLayout card = new LinearLayout(context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(ForkUi.box(context, ThemeColors.panel(), 0xFF111111, 1));
+        View line = new View(context);
+        line.setBackgroundColor(AccentColor.get());
+        card.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(3)));
+        LinearLayout body = new LinearLayout(context);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(14), dp(10), dp(14), dp(14));
+        card.addView(body, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        TextView title = text(getString(titleRes), 14, true);
+        title.setAllCaps(true);
+        ((LinearLayout.LayoutParams) title.getLayoutParams()).topMargin = 0;
+        body.addView(title);
+        card.setTag(body);
+        return card;
     }
 
     @Nullable
@@ -105,82 +111,93 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Context context = requireContext();
         ScrollView scroll = new ScrollView(context);
-        scroll.setBackgroundColor(ContextCompat.getColor(context, R.color.background_app));
+        scroll.setBackgroundColor(ThemeColors.background());
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(16), dp(16), dp(24));
+        root.setPadding(dp(16), dp(12), dp(16), dp(20));
         scroll.addView(root);
 
-        root.addView(text(getString(R.string.fork_lan_title), 22, true));
-        root.addView(text(getString(R.string.fork_lan_intro), 14, false));
+        LinearLayout header = new LinearLayout(context);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView icon = new ImageView(context);
+        icon.setImageResource(R.drawable.ic_px_lan_friends);
+        header.addView(icon, new LinearLayout.LayoutParams(dp(40), dp(40)));
+        TextView title = text(getString(R.string.fork_lan_title), 20, true);
+        title.setAllCaps(true);
+        title.setPadding(dp(10), 0, 0, 0);
+        header.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        root.addView(header);
+        root.addView(text(getString(R.string.fork_lan_intro), 13, false));
 
-        LinearLayout tabs = new LinearLayout(context);
-        tabs.setOrientation(LinearLayout.HORIZONTAL);
-        mHostTab = button(R.string.fork_lan_host_tab, false);
-        mGuestTab = button(R.string.fork_lan_guest_tab, false);
-        LinearLayout.LayoutParams tabLp = new LinearLayout.LayoutParams(0, dp(48), 1f);
-        tabLp.topMargin = dp(12);
-        tabLp.rightMargin = dp(4);
-        mHostTab.setLayoutParams(tabLp);
-        LinearLayout.LayoutParams tabLp2 = new LinearLayout.LayoutParams(0, dp(48), 1f);
-        tabLp2.topMargin = dp(12);
-        tabLp2.leftMargin = dp(4);
-        mGuestTab.setLayoutParams(tabLp2);
-        tabs.addView(mHostTab);
-        tabs.addView(mGuestTab);
-        root.addView(tabs);
+        LinearLayout columns = new LinearLayout(context);
+        columns.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams columnsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        columnsLp.topMargin = dp(12);
+        root.addView(columns, columnsLp);
 
-        // --- Host panel ---
-        LinearLayout host = new LinearLayout(context);
-        host.setOrientation(LinearLayout.VERTICAL);
-        host.addView(text(getString(R.string.fork_lan_host_steps), 14, false));
+        // --- Host card ---
+        LinearLayout hostCard = card(context, R.string.fork_lan_host_tab);
+        LinearLayout host = (LinearLayout) hostCard.getTag();
+        host.addView(text(getString(R.string.fork_lan_host_steps), 12, false));
         Button create = button(R.string.fork_lan_host_create, true);
         host.addView(create);
-        mHostStatus = text("", 15, true);
+        mHostStatus = text("", 13, false);
         host.addView(mHostStatus);
-        mHostCode = text("", 26, true);
+        mHostCode = text("", 24, true);
         mHostCode.setGravity(Gravity.CENTER);
         mHostCode.setTextIsSelectable(true);
+        mHostCode.setBackground(ForkUi.box(context, Color.BLACK, 0xFF777777, 1));
+        mHostCode.setPadding(dp(8), dp(8), dp(8), dp(8));
+        mHostCode.setVisibility(View.GONE);
         host.addView(mHostCode);
         mCopyCode = button(R.string.fork_lan_copy_code, false);
         host.addView(mCopyCode);
         Button hostStop = button(R.string.fork_lan_stop, false);
         host.addView(hostStop);
-        mHostPanel = host;
-        root.addView(host);
+        LinearLayout.LayoutParams hostLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        hostLp.rightMargin = dp(6);
+        columns.addView(hostCard, hostLp);
 
-        // --- Guest panel ---
-        LinearLayout guest = new LinearLayout(context);
-        guest.setOrientation(LinearLayout.VERTICAL);
-        guest.addView(text(getString(R.string.fork_lan_guest_steps), 14, false));
+        // --- Guest card ---
+        LinearLayout guestCard = card(context, R.string.fork_lan_guest_tab);
+        LinearLayout guest = (LinearLayout) guestCard.getTag();
+        guest.addView(text(getString(R.string.fork_lan_guest_steps), 12, false));
         mCodeInput = new EditText(context);
         mCodeInput.setHint(R.string.fork_lan_code_hint);
-        mCodeInput.setHintTextColor(Color.LTGRAY);
+        mCodeInput.setHintTextColor(0xFF777777);
         mCodeInput.setTextColor(Color.WHITE);
         mCodeInput.setSingleLine(true);
         mCodeInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        guest.addView(mCodeInput);
+        McStyle.text(mCodeInput);
+        mCodeInput.setBackground(ForkUi.box(context, Color.BLACK, 0xFFAAAAAA, 2));
+        mCodeInput.setPadding(dp(8), 0, dp(8), 0);
+        LinearLayout.LayoutParams inputLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44));
+        inputLp.topMargin = dp(8);
+        guest.addView(mCodeInput, inputLp);
         Button join = button(R.string.fork_lan_guest_join, true);
         guest.addView(join);
-        mGuestStatus = text("", 15, true);
+        mGuestStatus = text("", 13, false);
         guest.addView(mGuestStatus);
-        mGuestAddress = text("", 22, true);
+        mGuestAddress = text("", 20, true);
         mGuestAddress.setGravity(Gravity.CENTER);
         mGuestAddress.setTextIsSelectable(true);
+        mGuestAddress.setBackground(ForkUi.box(context, Color.BLACK, 0xFF777777, 1));
+        mGuestAddress.setPadding(dp(8), dp(8), dp(8), dp(8));
+        mGuestAddress.setVisibility(View.GONE);
         guest.addView(mGuestAddress);
         mCopyAddress = button(R.string.fork_lan_copy_address, false);
         guest.addView(mCopyAddress);
         Button guestStop = button(R.string.fork_lan_stop, false);
         guest.addView(guestStop);
-        mGuestPanel = guest;
-        root.addView(guest);
+        LinearLayout.LayoutParams guestLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        guestLp.leftMargin = dp(6);
+        columns.addView(guestCard, guestLp);
 
-        TextView credit = text(getString(R.string.fork_lan_credit), 12, false);
-        credit.setTextColor(Color.LTGRAY);
+        TextView credit = text(getString(R.string.fork_lan_credit), 11, false);
+        credit.setTextColor(0xFFAAAAAA);
         root.addView(credit);
 
-        mHostTab.setOnClickListener(v -> showPanel(true));
-        mGuestTab.setOnClickListener(v -> showPanel(false));
         create.setOnClickListener(v -> startHost());
         join.setOnClickListener(v -> startGuest());
         hostStop.setOnClickListener(v -> stopAll());
@@ -188,16 +205,8 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         mCopyCode.setOnClickListener(v -> copy(mHostCode.getText().toString(), R.string.fork_lan_copied_code));
         mCopyAddress.setOnClickListener(v -> copy(mGuestAddress.getText().toString(), R.string.fork_lan_copied_address));
 
-        showPanel(true);
         render(TerracottaManager.get().getState());
         return scroll;
-    }
-
-    private void showPanel(boolean host) {
-        mHostPanel.setVisibility(host ? View.VISIBLE : View.GONE);
-        mGuestPanel.setVisibility(host ? View.GONE : View.VISIBLE);
-        mHostTab.setAlpha(host ? 1f : 0.6f);
-        mGuestTab.setAlpha(host ? 0.6f : 1f);
     }
 
     private void copy(String value, int toastRes) {
@@ -291,11 +300,16 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         boolean guest = state != null && state.isGuest();
         mHostStatus.setText(host || (state != null && state.name.equals("exception")) ? description : "");
         mHostCode.setText(hostOk ? state.room : "");
+        mHostCode.setVisibility(hostOk ? View.VISIBLE : View.GONE);
         mCopyCode.setVisibility(hostOk ? View.VISIBLE : View.GONE);
         mGuestStatus.setText(guest || (state != null && state.name.equals("exception")) ? description : "");
         mGuestAddress.setText(guestOk ? state.url : "");
+        mGuestAddress.setVisibility(guestOk ? View.VISIBLE : View.GONE);
         mCopyAddress.setVisibility(guestOk ? View.VISIBLE : View.GONE);
-        if(host) showPanel(true);
-        if(guest) showPanel(false);
+        boolean error = state != null && state.name.equals("exception");
+        int hostColor = error ? 0xFFE06060 : hostOk ? 0xFF7CD65A : Color.WHITE;
+        int guestColor = error ? 0xFFE06060 : guestOk ? 0xFF7CD65A : Color.WHITE;
+        mHostStatus.setTextColor(hostColor);
+        mGuestStatus.setTextColor(guestColor);
     }
 }

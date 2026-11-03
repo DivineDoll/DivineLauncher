@@ -90,12 +90,9 @@ public class PlayColor {
 
     /** Shows the color picker. Calls onChanged after the user picks one. */
     public static void choose(Context c, Runnable onChanged) {
-        new AlertDialog.Builder(c)
-                .setTitle(R.string.fork_play_color_title)
-                .setItems(names(c), (d, which) -> {
-                    LauncherPreferences.DEFAULT_PREF.edit().putInt(PREF, PRESETS[which]).apply();
-                    onChanged.run();
-                })
-                .show();
+        ColorPicker.show(c, R.string.fork_play_color_title, get(), PRESETS[0], color -> {
+            LauncherPreferences.DEFAULT_PREF.edit().putInt(PREF, color).apply();
+            onChanged.run();
+        });
     }
 }

@@ -73,6 +73,9 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        view.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.background());
+        View sidebar = view.findViewById(R.id.sidebar_scroll);
+        if(sidebar != null) sidebar.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.sidebar());
         Button mNewsButton = view.findViewById(R.id.news_button);
         Button mModsButton = view.findViewById(R.id.mods_button);
         Button mLanButton = view.findViewById(R.id.lan_button);
@@ -190,17 +193,31 @@ public class MainMenuFragment extends Fragment {
 
     private void showAppearanceDialog(Button playButton) {
         String[] items = {getString(R.string.fork_banner_pick_title), getString(R.string.fork_play_color_title),
-                getString(R.string.fork_accent_title)};
+                getString(R.string.fork_accent_title), getString(R.string.fork_bg_color_title),
+                getString(R.string.fork_sidebar_color_title), getString(R.string.fork_colors_reset_all)};
+        Runnable recreate = () -> requireActivity().recreate();
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.fork_appearance_title)
                 .setItems(items, (d, which) -> {
+                    Context c = requireContext();
                     if(which == 0) {
-                        BannerManager.showChooser(requireContext(), () -> mBannerPicker.launch("image/*"), this::refreshBanner);
+                        BannerManager.showChooser(c, () -> mBannerPicker.launch("image/*"), this::refreshBanner);
                     } else if(which == 1) {
-                        git.artdeell.mojo.utils.PlayColor.choose(requireContext(), () ->
-                                playButton.setBackground(git.artdeell.mojo.utils.PlayColor.background(requireContext())));
+                        git.artdeell.mojo.utils.PlayColor.choose(c, () ->
+                                playButton.setBackground(git.artdeell.mojo.utils.PlayColor.background(c)));
+                    } else if(which == 2) {
+                        git.artdeell.mojo.utils.AccentColor.choose(c, recreate);
+                    } else if(which == 3) {
+                        git.artdeell.mojo.utils.ColorPicker.show(c, R.string.fork_bg_color_title,
+                                git.artdeell.mojo.utils.ThemeColors.background(), git.artdeell.mojo.utils.ThemeColors.DEFAULT_BACKGROUND,
+                                color -> { git.artdeell.mojo.utils.ThemeColors.set(git.artdeell.mojo.utils.ThemeColors.PREF_BACKGROUND, color); recreate.run(); });
+                    } else if(which == 4) {
+                        git.artdeell.mojo.utils.ColorPicker.show(c, R.string.fork_sidebar_color_title,
+                                git.artdeell.mojo.utils.ThemeColors.sidebar(), git.artdeell.mojo.utils.ThemeColors.DEFAULT_SIDEBAR,
+                                color -> { git.artdeell.mojo.utils.ThemeColors.set(git.artdeell.mojo.utils.ThemeColors.PREF_SIDEBAR, color); recreate.run(); });
                     } else {
-                        git.artdeell.mojo.utils.AccentColor.choose(requireContext(), () -> requireActivity().recreate());
+                        git.artdeell.mojo.utils.ThemeColors.resetAll();
+                        recreate.run();
                     }
                 })
                 .show();

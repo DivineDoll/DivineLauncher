@@ -102,7 +102,7 @@ public class SkinsFragment extends Fragment {
         Context c = requireContext();
         LinearLayout root = new LinearLayout(c);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(PANEL);
+        root.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.panel());
         root.addView(ForkUi.pageHeader(c, requireActivity(), ForkUi.TAB_SKINS));
 
         LinearLayout main = new LinearLayout(c);

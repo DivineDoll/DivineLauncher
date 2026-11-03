@@ -66,6 +66,7 @@
         app:layout_constraintTop_toTopOf="@id/bedrock_banner" />
 
     <ScrollView
+        android:id="@+id/sidebar_scroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#262626"
