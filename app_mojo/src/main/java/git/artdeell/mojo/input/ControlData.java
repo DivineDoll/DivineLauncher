@@ -64,6 +64,14 @@ public class ControlData {
     public boolean displayInGame;
     public boolean displayInMenu;
     public String bitmapTag;
+    /** Text color, 0 = default (white) */
+    public int textColor;
+    /** Text size in sp, 0 = default */
+    public float textSize;
+    /** Color of the pressed or toggled layer, 0 = default */
+    public int pressedColor;
+    /** Color mixed into the background image, 0 = no tint */
+    public int imageTint;
     private float width;         //Dp instead of Px now
     private float height;        //Dp instead of Px now
 
@@ -152,6 +160,30 @@ public class ControlData {
                 controlData.passThruEnabled,
                 controlData.bitmapTag
         );
+        this.textColor = controlData.textColor;
+        this.textSize = controlData.textSize;
+        this.pressedColor = controlData.pressedColor;
+        this.imageTint = controlData.imageTint;
+    }
+
+    /** Copies only the look of another button: text, colors and effects */
+    public void copyStyleFrom(ControlData other) {
+        this.textColor = other.textColor;
+        this.textSize = other.textSize;
+        this.pressedColor = other.pressedColor;
+        this.imageTint = other.imageTint;
+        this.opacity = other.opacity;
+        this.bgColor = other.bgColor;
+        this.strokeColor = other.strokeColor;
+        this.strokeWidth = other.strokeWidth;
+        this.cornerRadius = other.cornerRadius;
+    }
+
+    public void resetTextAndEffects() {
+        this.textColor = 0;
+        this.textSize = 0;
+        this.pressedColor = 0;
+        this.imageTint = 0;
     }
 
     public static ControlData[] getSpecialButtons() {

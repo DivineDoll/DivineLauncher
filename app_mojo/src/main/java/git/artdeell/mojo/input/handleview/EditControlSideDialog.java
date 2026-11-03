@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
@@ -32,6 +33,7 @@ import git.artdeell.mojo.input.ControlLayout;
 import git.artdeell.mojo.input.LayoutBitmaps;
 import git.artdeell.mojo.input.buttons.ControlDrawer;
 import git.artdeell.mojo.input.buttons.ControlInterface;
+import git.artdeell.mojo.input.buttons.ControlSubButton;
 import git.artdeell.mojo.utils.CropperUtils;
 import git.artdeell.mojo.utils.interfaces.SimpleItemSelectedListener;
 import git.artdeell.mojo.utils.interfaces.SimpleSeekBarListener;
@@ -80,6 +82,12 @@ public class EditControlSideDialog extends SideDialogView {
     private TextView mOrientationTextView, mMappingTextView, mNameTextView,
             mCornerRadiusTextView, mVisibilityTextView, mSizeTextview,
             mSizeXTextView, mStrokeWidthTextView, mColorSelectWarningTextView;
+
+    // Text and effects section
+    private View mStyleGroup;
+    private TextView mSelectTextColor, mSelectPressedColor, mSelectImageTint, mTextSizeValue;
+    private TextView mResetStyle, mApplyStyleToAll;
+    private SeekBar mTextSizeSeekbar;
 
     // Color selector related stuff
     private ColorSelector mColorSelector;
@@ -177,6 +185,8 @@ public class EditControlSideDialog extends SideDialogView {
         mHeightEditText.setText(String.valueOf(data.getHeight()));
 
         mAlphaSeekbar.setProgress((int) (data.opacity * 100));
+        mTextSizeSeekbar.setProgress(Math.round(data.textSize));
+        updateTextSizeLabel(Math.round(data.textSize));
         mStrokeWidthSeekbar.setProgress((int) data.strokeWidth * 10);
         mCornerRadiusSeekbar.setProgress((int) data.cornerRadius);
 
@@ -246,6 +256,7 @@ public class EditControlSideDialog extends SideDialogView {
 
         mNameTextView.setVisibility(GONE);
         mNameEditText.setVisibility(GONE);
+        mStyleGroup.setVisibility(GONE);
 
         mCornerRadiusTextView.setVisibility(GONE);
         mCornerRadiusSeekbar.setVisibility(GONE);
@@ -337,6 +348,9 @@ public class EditControlSideDialog extends SideDialogView {
 
         // Show the warning that will notify the user that color selection will reset the bitmap
         mColorSelectWarningTextView.setVisibility(visibilityOpposite);
+
+        // The tint only affects background images
+        mSelectImageTint.setVisibility(visibilityOpposite);
     }
 
     private void bindLayout() {
@@ -370,6 +384,14 @@ public class EditControlSideDialog extends SideDialogView {
         mStrokePercentTextView = mDialogContent.findViewById(R.id.editStrokeWidth_textView_percent);
         mAlphaPercentTextView = mDialogContent.findViewById(R.id.editButtonOpacity_textView_percent);
         mCornerRadiusPercentTextView = mDialogContent.findViewById(R.id.editCornerRadius_textView_percent);
+        mStyleGroup = mDialogContent.findViewById(R.id.editStyle_group);
+        mSelectTextColor = mDialogContent.findViewById(R.id.editTextColor_textView);
+        mSelectPressedColor = mDialogContent.findViewById(R.id.editPressedColor_textView);
+        mSelectImageTint = mDialogContent.findViewById(R.id.editImageTint_textView);
+        mTextSizeValue = mDialogContent.findViewById(R.id.editTextSize_textView_value);
+        mTextSizeSeekbar = mDialogContent.findViewById(R.id.editTextSize_seekbar);
+        mResetStyle = mDialogContent.findViewById(R.id.editStyleReset_textView);
+        mApplyStyleToAll = mDialogContent.findViewById(R.id.editStyleApplyAll_textView);
         mDisplayInGameCheckbox = mDialogContent.findViewById(R.id.visibility_game_checkbox);
         mDisplayInMenuCheckbox = mDialogContent.findViewById(R.id.visibility_menu_checkbox);
 
@@ -635,6 +657,102 @@ public class EditControlSideDialog extends SideDialogView {
             });
             appearColor(isAtRight(), mCurrentlyEditedButton.getProperties().bgColor);
         });
+
+        setupStyleListeners();
+    }
+
+    private void updateTextSizeLabel(int sp) {
+        mTextSizeValue.setText(sp <= 0 ? mDialogContent.getContext().getString(R.string.fork_ctl_text_size_auto) : sp + " sp");
+    }
+
+    /** Re-applies the properties of the edited button so text and tints are redrawn */
+    private void refreshEditedButton() {
+        mCurrentlyEditedButton.setProperties(mCurrentlyEditedButton.getProperties(), false);
+        mCurrentlyEditedButton.setBackground();
+    }
+
+    private void applyStyleTo(ControlInterface target, ControlData source) {
+        ControlData properties = target.getProperties();
+        if(properties == source || properties instanceof ControlJoystickData) return;
+        // Keep the image of buttons that have one, the colors would not be visible anyway
+        boolean hasBitmap = Tools.isValidString(properties.bitmapTag);
+        String bitmap = properties.bitmapTag;
+        properties.copyStyleFrom(source);
+        properties.bitmapTag = bitmap;
+        if(hasBitmap) properties.imageTint = source.imageTint;
+        target.getControlView().setAlpha(properties.opacity);
+        target.setProperties(properties, false);
+        target.setBackground();
+    }
+
+    private void applyStyleToAll() {
+        ControlData source = mCurrentlyEditedButton.getProperties();
+        ControlLayout layout = mCurrentlyEditedButton.getControlLayoutParent();
+        if(layout == null) return;
+        for(ControlInterface button : layout.getButtonChildren()) {
+            applyStyleTo(button, source);
+            if(button instanceof ControlDrawer) {
+                for(ControlSubButton sub : ((ControlDrawer) button).buttons) applyStyleTo(sub, source);
+            }
+        }
+        layout.setModified(true);
+        Toast.makeText(mDialogContent.getContext(), R.string.fork_ctl_apply_all_done, Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupStyleListeners() {
+        mSelectTextColor.setOnClickListener(v -> {
+            mColorSelector.setAlphaEnabled(false);
+            mColorSelector.setColorSelectionListener(color -> {
+                mCurrentlyEditedButton.getProperties().textColor = color | 0xFF000000;
+                refreshEditedButton();
+            });
+            int current = mCurrentlyEditedButton.getProperties().textColor;
+            appearColor(isAtRight(), current == 0 ? Color.WHITE : current);
+        });
+
+        mSelectPressedColor.setOnClickListener(v -> {
+            mColorSelector.setAlphaEnabled(true);
+            mColorSelector.setColorSelectionListener(color -> {
+                // 0 means "default", so a fully transparent pick is stored as almost transparent
+                mCurrentlyEditedButton.getProperties().pressedColor = color == 0 ? 0x01000000 : color;
+                refreshEditedButton();
+            });
+            int current = mCurrentlyEditedButton.getProperties().pressedColor;
+            appearColor(isAtRight(), current == 0 ? 0x80FFFFFF : current);
+        });
+
+        mSelectImageTint.setOnClickListener(v -> {
+            mColorSelector.setAlphaEnabled(true);
+            mColorSelector.setColorSelectionListener(color -> {
+                mCurrentlyEditedButton.getProperties().imageTint = color == 0 ? 0x01000000 : color;
+                refreshEditedButton();
+            });
+            int current = mCurrentlyEditedButton.getProperties().imageTint;
+            appearColor(isAtRight(), current == 0 ? 0x80FFFFFF : current);
+        });
+
+        mTextSizeSeekbar.setOnSeekBarChangeListener((SimpleSeekBarListener) (seekBar, progress, fromUser) -> {
+            if (internalChanges) return;
+            // Below 6 sp the text is unreadable, so the low end means "automatic"
+            int sp = progress < 6 ? 0 : progress;
+            mCurrentlyEditedButton.getProperties().textSize = sp;
+            updateTextSizeLabel(sp);
+            refreshEditedButton();
+        });
+
+        mResetStyle.setOnClickListener(v -> {
+            mCurrentlyEditedButton.getProperties().resetTextAndEffects();
+            mTextSizeSeekbar.setProgress(0);
+            updateTextSizeLabel(0);
+            refreshEditedButton();
+        });
+
+        mApplyStyleToAll.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(mDialogContent.getContext())
+                .setTitle(R.string.fork_ctl_apply_all_title)
+                .setMessage(R.string.fork_ctl_apply_all_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (d, w) -> applyStyleToAll())
+                .show());
     }
 
     private float safeParseFloat(String string) {

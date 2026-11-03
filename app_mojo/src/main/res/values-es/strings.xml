@@ -518,4 +518,15 @@
     <string name="fork_bg_color_title">Color de fondo</string>
     <string name="fork_sidebar_color_title">Color de la barra lateral</string>
     <string name="fork_colors_reset_all">Restablecer todos los colores</string>
+    <string name="fork_ctl_style_title">Texto y efectos</string>
+    <string name="fork_ctl_text_color">Color del texto</string>
+    <string name="fork_ctl_text_size">Tamaño del texto</string>
+    <string name="fork_ctl_text_size_auto">Automático</string>
+    <string name="fork_ctl_pressed_color">Color al presionar</string>
+    <string name="fork_ctl_image_tint">Tinte de la imagen</string>
+    <string name="fork_ctl_reset_style">Restablecer texto y efectos</string>
+    <string name="fork_ctl_apply_all">Aplicar este estilo a todos los botones</string>
+    <string name="fork_ctl_apply_all_title">Aplicar estilo</string>
+    <string name="fork_ctl_apply_all_message">El texto, los colores, el borde y la opacidad de este botón se copiarán a todos los botones de este diseño. Los nombres, tamaños, posiciones e imágenes no cambian.</string>
+    <string name="fork_ctl_apply_all_done">Estilo aplicado a todos los botones</string>
 </resources>

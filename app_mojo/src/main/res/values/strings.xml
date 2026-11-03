@@ -709,4 +709,15 @@
     <string name="fork_bg_color_title">Background color</string>
     <string name="fork_sidebar_color_title">Sidebar color</string>
     <string name="fork_colors_reset_all">Reset all colors</string>
+    <string name="fork_ctl_style_title">Text and effects</string>
+    <string name="fork_ctl_text_color">Text color</string>
+    <string name="fork_ctl_text_size">Text size</string>
+    <string name="fork_ctl_text_size_auto">Auto</string>
+    <string name="fork_ctl_pressed_color">Pressed color</string>
+    <string name="fork_ctl_image_tint">Image tint</string>
+    <string name="fork_ctl_reset_style">Reset text and effects</string>
+    <string name="fork_ctl_apply_all">Apply this style to all buttons</string>
+    <string name="fork_ctl_apply_all_title">Apply style</string>
+    <string name="fork_ctl_apply_all_message">Text, colors, border and opacity of this button will be copied to every button in this layout. Names, sizes, positions and images stay as they are.</string>
+    <string name="fork_ctl_apply_all_done">Style applied to all buttons</string>
 </resources>

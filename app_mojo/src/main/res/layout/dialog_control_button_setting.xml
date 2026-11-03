@@ -543,13 +543,109 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/editButtonOpacity_textView" />
 
+    <!-- TEXT AND EFFECTS SECTION -->
+    <LinearLayout
+        android:id="@+id/editStyle_group"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editButtonOpacity_seekbar">
+
+        <TextView
+            android:id="@+id/editStyle_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="@string/fork_ctl_style_title"
+            android:textStyle="bold" />
+
+        <fr.spse.extended_view.ExtendedTextView
+            android:id="@+id/editTextColor_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableEnd="@drawable/spinner_arrow_right"
+            android:gravity="center_vertical"
+            android:paddingEnd="5dp"
+            android:text="@string/fork_ctl_text_color"
+            app:drawableEndIntegerScaling="true"
+            app:drawableEndSize="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/fork_ctl_text_size" />
+
+            <TextView
+                android:id="@+id/editTextSize_textView_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="8dp"
+                android:text="@string/fork_ctl_text_size_auto" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/editTextSize_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_36sdp"
+            android:max="40" />
+
+        <fr.spse.extended_view.ExtendedTextView
+            android:id="@+id/editPressedColor_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableEnd="@drawable/spinner_arrow_right"
+            android:gravity="center_vertical"
+            android:paddingEnd="5dp"
+            android:text="@string/fork_ctl_pressed_color"
+            app:drawableEndIntegerScaling="true"
+            app:drawableEndSize="20dp" />
+
+        <fr.spse.extended_view.ExtendedTextView
+            android:id="@+id/editImageTint_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableEnd="@drawable/spinner_arrow_right"
+            android:gravity="center_vertical"
+            android:paddingEnd="5dp"
+            android:text="@string/fork_ctl_image_tint"
+            app:drawableEndIntegerScaling="true"
+            app:drawableEndSize="20dp" />
+
+        <TextView
+            android:id="@+id/editStyleReset_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:text="@string/fork_ctl_reset_style" />
+
+        <TextView
+            android:id="@+id/editStyleApplyAll_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:text="@string/fork_ctl_apply_all" />
+    </LinearLayout>
+
     <!-- Button visibility -->
     <TextView
         android:id="@+id/visibility_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/customctrl_visibility_title"
-        app:layout_constraintTop_toBottomOf="@+id/editButtonOpacity_seekbar"
+        app:layout_constraintTop_toBottomOf="@+id/editStyle_group"
         tools:layout_editor_absoluteX="6dp" />
 
     <CheckBox

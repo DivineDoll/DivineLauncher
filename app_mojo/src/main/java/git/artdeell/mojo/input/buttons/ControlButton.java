@@ -72,6 +72,14 @@ public class ControlButton extends TextView implements ControlInterface {
     private void setupBitmapTint() {
         BackgroundTint.applyToggleTint(getContext());
         ColorStateList tintStateList = mProperties.isToggle ? TOGGLE_TINT_LIST : DEFAULT_TINT_LIST;
+        if(mProperties.imageTint != 0 || mProperties.pressedColor != 0) {
+            int pressed = mProperties.pressedColor != 0 ? mProperties.pressedColor
+                    : tintStateList.getColorForState(new int[]{android.R.attr.state_activated}, Color.TRANSPARENT);
+            int idle = mProperties.imageTint != 0 ? mProperties.imageTint : Color.TRANSPARENT;
+            tintStateList = new ColorStateList(
+                    new int[][]{new int[]{android.R.attr.state_activated}, new int[]{}},
+                    new int[]{pressed, idle});
+        }
         setBackgroundTintList(tintStateList);
         setBackgroundTintMode(PorterDuff.Mode.SRC_ATOP);
     }
@@ -89,6 +97,7 @@ public class ControlButton extends TextView implements ControlInterface {
             mRectPaint.setColor(Color.WHITE);
             mRectPaint.setAlpha(BackgroundTint.BACKGROUND_DEFAULT_TINT_ALPHA);
         }
+        if(mProperties.pressedColor != 0) mRectPaint.setColor(mProperties.pressedColor);
     }
 
     public void setProperties(ControlData properties, boolean changePos) {
@@ -101,6 +110,8 @@ public class ControlButton extends TextView implements ControlInterface {
         else setupNormalTint();
 
         setText(properties.name);
+        setTextColor(properties.textColor != 0 ? properties.textColor : Color.WHITE);
+        setTextSize(properties.textSize > 0 ? properties.textSize : 14);
     }
 
     @Override
