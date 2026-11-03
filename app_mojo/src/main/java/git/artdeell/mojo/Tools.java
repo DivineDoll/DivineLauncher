@@ -267,7 +267,8 @@ public final class Tools {
 
         // On API 35 onwards, apps are edge-to-edge by default and are controlled entirely though the
         // inset API. On levels below, we still need to set the correct cutout mode.
-        if(SDK_INT >= Build.VERSION_CODES.P) setCutoutMode(window, ignoreNotch);
+        boolean paintCutout = activity instanceof BaseActivity && ((BaseActivity) activity).drawIntoCutout();
+        if(SDK_INT >= Build.VERSION_CODES.P) setCutoutMode(window, ignoreNotch || paintCutout);
 
         // The AppCompat APIs don't work well, and break when opening alert dialogs on older Android
         // versions. Use the legacy fullscreen flags for lower APIs. (notch is already handled above)

@@ -134,25 +134,58 @@ public class MainMenuFragment extends Fragment {
         });
     }
 
-    /** Bedrock is a separate app: open it if installed, otherwise its store page. */
+    private static final String BEDROCK_PACKAGE = "com.mojang.minecraftpe";
+
+    private boolean isBedrockInstalled(Context context) {
+        return context.getPackageManager().getLaunchIntentForPackage(BEDROCK_PACKAGE) != null;
+    }
+
+    /** Shows "Installed" or "Not installed" under the Bedrock button. */
+    private void updateBedrockStatus() {
+        View root = getView();
+        Context context = getContext();
+        if(root == null || context == null) return;
+        Button button = root.findViewById(R.id.bedrock_button);
+        if(button == null) return;
+        boolean installed = isBedrockInstalled(context);
+        String title = getString(R.string.fork_bedrock_button);
+        String status = getString(installed ? R.string.fork_bedrock_installed : R.string.fork_bedrock_not_installed);
+        android.text.SpannableStringBuilder text = new android.text.SpannableStringBuilder(title + "\n" + status);
+        int start = title.length() + 1;
+        text.setSpan(new android.text.style.RelativeSizeSpan(0.75f), start, text.length(), 0);
+        text.setSpan(new android.text.style.ForegroundColorSpan(installed ? 0xFF7CD65A : 0xFFE08A5A), start, text.length(), 0);
+        button.setText(text);
+    }
+
+    /** Bedrock is a separate app: open it if installed, otherwise offer its store page. */
     private void openBedrock() {
         Context context = requireContext();
-        Intent launch = context.getPackageManager().getLaunchIntentForPackage("com.mojang.minecraftpe");
-        try {
-            if(launch != null) {
-                startActivity(launch);
-            } else {
-                Toast.makeText(context, R.string.fork_bedrock_missing, Toast.LENGTH_LONG).show();
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.mojang.minecraftpe")));
-            }
-        } catch (Exception e) {
+        Intent launch = context.getPackageManager().getLaunchIntentForPackage(BEDROCK_PACKAGE);
+        if(launch != null) {
             try {
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://play.google.com/store/apps/details?id=com.mojang.minecraftpe")));
-            } catch (Exception ignored) {
+                startActivity(launch);
+            } catch (Exception e) {
                 Toast.makeText(context, R.string.fork_bedrock_missing, Toast.LENGTH_LONG).show();
             }
+            return;
         }
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle(R.string.fork_bedrock_button)
+                .setMessage(R.string.fork_bedrock_missing)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.fork_bedrock_open_store, (d, w) -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + BEDROCK_PACKAGE)));
+                    } catch (Exception e) {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=" + BEDROCK_PACKAGE)));
+                        } catch (Exception ignored) {
+                            Toast.makeText(context, R.string.fork_bedrock_missing, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .show();
     }
 
     private void showAppearanceDialog(Button playButton) {
@@ -190,6 +223,7 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        updateBedrockStatus();
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
     }
 

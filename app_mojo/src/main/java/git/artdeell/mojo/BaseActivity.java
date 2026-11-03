@@ -27,6 +27,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         Tools.getDisplayMetrics(this);
     }
 
+    /** @return Whether the window may extend into the display cutout (the area stays padded, only its color is drawn) */
+    public boolean drawIntoCutout() {
+        return false;
+    }
+
     /** @return Whether the activity should be set as a fullscreen one */
     public boolean setFullscreen(){
         return true;

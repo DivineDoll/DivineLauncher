@@ -154,6 +154,11 @@ public class LauncherActivity extends BaseActivity {
     }
 
     @Override
+    public boolean drawIntoCutout() {
+        return true;
+    }
+
+    @Override
     public boolean setFullscreen() {
         return false;
     }

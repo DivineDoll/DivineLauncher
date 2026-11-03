@@ -436,7 +436,7 @@
     <string name="fork_patch_loading">Cargando…</string>
     <string name="fork_patch_error">No se pudieron cargar las notas. Revisa tu conexión.</string>
     <string name="fork_bedrock_button">Bedrock Edition</string>
-    <string name="fork_bedrock_missing">Bedrock no está instalado. Abriendo la tienda…</string>
+    <string name="fork_bedrock_missing">Bedrock no está instalado en este dispositivo.</string>
     <string name="fork_appearance_title">Apariencia</string>
     <string name="fork_joy_stick_size">Tamaño de la bolita</string>
     <string name="fork_color_green">Verde</string>
@@ -509,4 +509,7 @@
     <string name="fork_credits_license">Licencia</string>
     <string name="fork_credits_text">Este es un fork no oficial. No está hecho, aprobado ni afiliado a Mojang Studios ni a Microsoft.\n\nMinecraft es una marca de Mojang Studios. Minecraft: Java Edition y Minecraft: Bedrock Edition pertenecen a Mojang Studios y Microsoft. Necesitas tu propia copia del juego para jugar.\n\nGracias al equipo y a los colaboradores de MojoLauncher, cuyo launcher es la base de este fork (github.com/MojoLauncher/MojoLauncher), y al equipo de PojavLauncher, cuyo trabajo continúa MojoLauncher.\n\nLicencia: MojoLauncher usa la licencia GNU LGPL v3. Los cambios de este fork se publican con la misma licencia y su código fuente está en el repositorio del fork.\n\nComponentes de terceros: GL4ES (MIT), Mesa 3D (MIT), OpenJDK (GPLv2 + Classpath Exception), GLFW y SDL (zlib), LWJGL (BSD-3), mojoexec (MIT), bhook (MIT), authlib-injector (AGPL-3.0), OpenAL Soft (LGPL), oboe (Apache 2.0) y Terracotta. Sus archivos de licencia vienen incluidos en la app.</string>
     <string name="fork_credits_commit">Si Mojang, Microsoft o los desarrolladores de MojoLauncher nos piden cambiar o quitar algo (nombres, imágenes, fuentes, texto o cualquier otro contenido), lo haremos.</string>
+    <string name="fork_bedrock_installed">Instalado</string>
+    <string name="fork_bedrock_not_installed">No instalado</string>
+    <string name="fork_bedrock_open_store">Abrir tienda</string>
 </resources>
