@@ -10,7 +10,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -39,6 +38,12 @@ public class PixelArtEditor {
         File d = new File(c.getFilesDir(), "pixelart");
         if(!d.isDirectory()) d.mkdirs();
         return d;
+    }
+
+    /** The gray button as a 32x33 grid, every cell can be edited. */
+    private static Bitmap buttonTemplate(Context c) {
+        Bitmap bmp = BitmapFactory.decodeResource(c.getResources(), R.drawable.pixel_template_button);
+        return bmp.copy(Bitmap.Config.ARGB_8888, true);
     }
 
     private static String cleanName(String raw) {
@@ -122,27 +127,20 @@ public class PixelArtEditor {
         side.addView(custom);
         canvas.setListener(color -> { });
 
-        CheckBox base = new CheckBox(c);
-        base.setText(R.string.fork_pixel_base);
-        base.setTextColor(Color.WHITE);
-        McStyle.text(base);
-        base.setChecked(true);
-        base.setOnCheckedChangeListener((b, on) -> canvas.setBase(on));
-        side.addView(base);
-
-        LinearLayout sizes = ForkUi.row(c);
-        int[] opts = {16, 32};
-        for(int n : opts) {
-            Button b = ForkUi.button(c, n + "x" + n, n == 16);
-            b.setOnClickListener(v -> {
-                canvas.setGridSize(n);
-                for(int k = 0; k < sizes.getChildCount(); k++) {
-                    McStyle.button((Button) sizes.getChildAt(k), opts[k] == n);
+        Button template = ForkUi.button(c, c.getString(R.string.fork_pixel_template), false);
+        template.setOnClickListener(v -> {
+            String[] names = {c.getString(R.string.fork_pixel_tpl_button), c.getString(R.string.fork_pixel_tpl_blank16),
+                    c.getString(R.string.fork_pixel_tpl_blank32), c.getString(R.string.fork_pixel_tpl_blank64)};
+            new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_template).setItems(names, (d, which) -> {
+                if(which == 0) canvas.load(buttonTemplate(c));
+                else {
+                    int n = which == 1 ? 16 : which == 2 ? 32 : 64;
+                    canvas.setGridSize(n, n);
                 }
-            });
-            sizes.addView(b, ForkUi.weight(1f));
-        }
-        side.addView(sizes);
+            }).show();
+        });
+        side.addView(template);
+        canvas.load(buttonTemplate(c));
 
         EditText name = new EditText(c);
         name.setHint(R.string.fork_pixel_name_hint);
@@ -169,7 +167,7 @@ public class PixelArtEditor {
         export.setOnClickListener(v -> {
             try {
                 Bitmap src = canvas.toBitmap();
-                int scale = Math.max(1, 256 / src.getWidth());
+                int scale = Math.max(1, 256 / Math.max(src.getWidth(), src.getHeight()));
                 Bitmap big = Bitmap.createScaledBitmap(src, src.getWidth() * scale, src.getHeight() * scale, false);
                 File tmp = new File(c.getCacheDir(), cleanName(name.getText().toString()) + "_x" + scale + ".png");
                 writePng(big, tmp);
@@ -193,12 +191,11 @@ public class PixelArtEditor {
             for(int i = 0; i < files.length; i++) names[i] = files[i].getName();
             new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_open).setItems(names, (d, which) -> {
                 Bitmap bmp = BitmapFactory.decodeFile(files[which].getAbsolutePath());
-                if(bmp == null || bmp.getWidth() != bmp.getHeight() || bmp.getWidth() > 64) {
+                if(bmp == null || bmp.getWidth() > 128 || bmp.getHeight() > 128) {
                     Toast.makeText(c, R.string.fork_pixel_error, Toast.LENGTH_LONG).show();
                     return;
                 }
                 canvas.load(bmp.copy(Bitmap.Config.ARGB_8888, false));
-                base.setChecked(false);
                 name.setText(names[which].replace(".png", ""));
             }).show();
         });

@@ -108,7 +108,7 @@ public class MainMenuFragment extends Fragment {
             modsArgs.putBoolean(SearchModFragment.ARG_MODPACK, false);
             Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, modsArgs);
         });
-        mBedrockButton.setOnClickListener(v -> openBedrock());
+        mBedrockButton.setOnClickListener(v -> Tools.swapFragment(requireActivity(), BedrockFragment.class, BedrockFragment.TAG, null));
         // Skins, Installations and Patch notes are tabs in the header
         ViewGroup tabsContainer = view.findViewById(R.id.launcher_tabs_container);
         if(tabsContainer != null) {

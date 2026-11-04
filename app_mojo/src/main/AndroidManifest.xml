@@ -120,6 +120,16 @@
             android:screenOrientation="sensorLandscape" />
 
         <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.bedrockfiles"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/bedrock_paths" />
+        </provider>
+
+        <provider
             android:name=".utils.scoped.FolderProvider"
             android:authorities="@string/storageProviderAuthorities"
             android:exported="true"
