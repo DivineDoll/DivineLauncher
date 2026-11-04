@@ -572,4 +572,7 @@
     <string name="fork_bedrock_skin_hint">Nombre del jugador</string>
     <string name="fork_bedrock_skin_download">Descargar</string>
     <string name="fork_bedrock_skin_info">Escribe un nombre de jugador o instala una skin de tu biblioteca. Se empaqueta como pack de skins de Bedrock y se abre en Bedrock.</string>
+    <string name="fork_bedrock_import">Importar pack</string>
+    <string name="fork_bedrock_appinfo">Info de la app Bedrock</string>
+    <string name="fork_bedrock_downloads">Carpeta Descargas</string>
 </resources>

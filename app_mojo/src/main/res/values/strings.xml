@@ -763,4 +763,7 @@
     <string name="fork_bedrock_skin_hint">Player name</string>
     <string name="fork_bedrock_skin_download">Download</string>
     <string name="fork_bedrock_skin_info">Type a player name, or install one of your library skins. It is packed as a Bedrock skin pack and opened in Bedrock.</string>
+    <string name="fork_bedrock_import">Import pack</string>
+    <string name="fork_bedrock_appinfo">Bedrock app info</string>
+    <string name="fork_bedrock_downloads">Downloads folder</string>
 </resources>

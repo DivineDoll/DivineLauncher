@@ -195,6 +195,22 @@ public class BedrockContent {
         zip.closeEntry();
     }
 
+    /** Copies a picked pack into the cache so the file provider can share it. Blocking. */
+    public static File copyToCache(Context c, Uri uri) throws IOException {
+        String name = "pack.mcpack";
+        try(android.database.Cursor cur = c.getContentResolver().query(uri, new String[]{android.provider.OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if(cur != null && cur.moveToFirst() && cur.getString(0) != null) name = cur.getString(0).replaceAll("[^A-Za-z0-9._ -]", "_");
+        }
+        File out = new File(cacheDir(c), name);
+        try(InputStream in = c.getContentResolver().openInputStream(uri); OutputStream os = new FileOutputStream(out)) {
+            if(in == null) throw new IOException("Cannot open the file");
+            byte[] buf = new byte[16384];
+            int n;
+            while((n = in.read(buf)) > 0) os.write(buf, 0, n);
+        }
+        return out;
+    }
+
     public static boolean isInstalled(Context c) {
         return c.getPackageManager().getLaunchIntentForPackage(BEDROCK_PACKAGE) != null;
     }

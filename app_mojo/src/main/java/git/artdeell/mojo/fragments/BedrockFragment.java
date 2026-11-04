@@ -36,7 +36,11 @@ import git.artdeell.mojo.utils.AccentColor;
 import git.artdeell.mojo.utils.BedrockContent;
 import git.artdeell.mojo.utils.ForkUi;
 import git.artdeell.mojo.utils.McStyle;
+import git.artdeell.mojo.utils.BannerManager;
+import git.artdeell.mojo.utils.ColorPicker;
 import git.artdeell.mojo.utils.OnlineSkins;
+import git.artdeell.mojo.utils.PixelArtEditor;
+import git.artdeell.mojo.utils.PlayColor;
 import git.artdeell.mojo.utils.ThemeColors;
 
 /** Bedrock section laid out like the Java one: play, add-ons, textures and skins. */
@@ -45,54 +49,124 @@ public class BedrockFragment extends Fragment {
     private static final int TAB_PLAY = 0, TAB_ADDONS = 1, TAB_TEXTURES = 2, TAB_SKINS = 3;
 
     private FrameLayout mContent;
-    private LinearLayout mTabs;
+    private FrameLayout mHeaderHost;
+    private View mBanner;
     private int mTab = TAB_PLAY;
     private int mLoadId = 0;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Context c = requireContext();
-        LinearLayout root = new LinearLayout(c);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(ThemeColors.background());
-        root.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 12), ForkUi.dp(c, 16), ForkUi.dp(c, 12));
-
-        LinearLayout top = ForkUi.row(c);
-        TextView title = ForkUi.text(c, getString(R.string.fork_header_bedrock), 12, true);
-        title.setAllCaps(true);
-        title.setLetterSpacing(0.06f);
-        title.setPadding(ForkUi.dp(c, 8), ForkUi.dp(c, 6), 0, 0);
-        top.addView(title, ForkUi.weight(1f));
-        Button back = ForkUi.button(c, getString(R.string.fork_bedrock_back), false);
-        back.setOnClickListener(v -> Tools.backToMainMenu(requireActivity()));
-        top.addView(back);
-        root.addView(top);
-
-        mTabs = new LinearLayout(c);
-        mTabs.setOrientation(LinearLayout.HORIZONTAL);
-        root.addView(mTabs);
-
-        mContent = new FrameLayout(c);
-        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
-        cp.topMargin = ForkUi.dp(c, 8);
-        root.addView(mContent, cp);
-
-        select(TAB_PLAY);
-        return root;
+    public BedrockFragment() {
+        super(R.layout.fragment_bedrock);
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Context c = requireContext();
+        view.setBackgroundColor(ThemeColors.background());
+        view.findViewById(R.id.bd_sidebar_scroll).setBackgroundColor(ThemeColors.sidebar());
+        mContent = view.findViewById(R.id.bd_overlay);
+        mContent.setBackgroundColor(ThemeColors.background());
+        mHeaderHost = view.findViewById(R.id.launcher_tabs_container);
+        mBanner = view.findViewById(R.id.bd_banner);
+        boolean custom = BannerManager.apply(c, (android.widget.ImageView) mBanner);
+        BannerManager.setTitleVisible(view.findViewById(R.id.bd_banner_title), custom);
+
+        TextView status = view.findViewById(R.id.bd_status);
+        boolean installed = BedrockContent.isInstalled(c);
+        status.setText(installed ? R.string.fork_bedrock_installed : R.string.fork_bedrock_not_installed);
+        status.setTextColor(installed ? 0xFF7CD65A : 0xFFE08A5A);
+        McStyle.text(status);
+
+        Button play = view.findViewById(R.id.bd_play_button);
+        McStyle.headingText(play);
+        play.setBackground(PlayColor.background(c));
+        play.setOnClickListener(v -> openBedrockOrStore());
+
+        view.findViewById(R.id.bd_wiki_button).setOnClickListener(v -> Tools.openURL(requireActivity(), "https://minecraft.wiki/w/Bedrock_Edition"));
+        view.findViewById(R.id.bd_java_button).setOnClickListener(v -> Tools.backToMainMenu(requireActivity()));
+        view.findViewById(R.id.bd_addons_button).setOnClickListener(v -> select(TAB_ADDONS));
+        view.findViewById(R.id.bd_textures_button).setOnClickListener(v -> select(TAB_TEXTURES));
+        view.findViewById(R.id.bd_skins_button).setOnClickListener(v -> select(TAB_SKINS));
+        view.findViewById(R.id.bd_pixel_button).setOnClickListener(v -> PixelArtEditor.show(requireContext()));
+        view.findViewById(R.id.bd_import_button).setOnClickListener(v -> mPackPicker.launch("*/*"));
+        view.findViewById(R.id.bd_appearance_button).setOnClickListener(v -> showAppearance());
+        view.findViewById(R.id.bd_appinfo_button).setOnClickListener(v -> openAppInfo());
+        view.findViewById(R.id.bd_downloads_button).setOnClickListener(v -> openDownloads());
+
+        select(TAB_PLAY);
+    }
+
+    private final androidx.activity.result.ActivityResultLauncher<String> mPackPicker =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.GetContent(), uri -> {
+                if(uri == null || !isAdded()) return;
+                Context c = requireContext();
+                MojoApplication.sExecutorService.execute(() -> {
+                    try {
+                        File file = BedrockContent.copyToCache(c, uri);
+                        Tools.runOnUiThread(() -> {
+                            if(isAdded() && !BedrockContent.openWithBedrock(requireContext(), file)) toast(R.string.fork_bedrock_open_failed);
+                        });
+                    } catch(Exception e) {
+                        Tools.runOnUiThread(() -> toast(getString(R.string.fork_bedrock_error, String.valueOf(e.getMessage()))));
+                    }
+                });
+            });
+
+    private void showAppearance() {
+        Context c = requireContext();
+        String[] items = {getString(R.string.fork_accent_title), getString(R.string.fork_bg_color_title),
+                getString(R.string.fork_sidebar_color_title), getString(R.string.fork_play_color_title)};
+        new AlertDialog.Builder(c).setTitle(R.string.fork_appearance_title).setItems(items, (d, which) -> {
+            Runnable recreate = () -> requireActivity().recreate();
+            if(which == 0) AccentColor.choose(c, recreate);
+            else if(which == 1) ColorPicker.show(c, R.string.fork_bg_color_title, ThemeColors.background(),
+                    ThemeColors.DEFAULT_BACKGROUND, color -> { ThemeColors.set(ThemeColors.PREF_BACKGROUND, color); recreate.run(); });
+            else if(which == 2) ColorPicker.show(c, R.string.fork_sidebar_color_title, ThemeColors.sidebar(),
+                    ThemeColors.DEFAULT_SIDEBAR, color -> { ThemeColors.set(ThemeColors.PREF_SIDEBAR, color); recreate.run(); });
+            else PlayColor.choose(c, recreate);
+        }).show();
+    }
+
+    private void openAppInfo() {
+        try {
+            startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + BedrockContent.BEDROCK_PACKAGE)));
+        } catch(Exception e) {
+            toast(R.string.fork_bedrock_missing);
+        }
+    }
+
+    private void openDownloads() {
+        try {
+            startActivity(new Intent(android.app.DownloadManager.ACTION_VIEW_DOWNLOADS));
+        } catch(Exception e) {
+            toast(R.string.fork_bedrock_open_failed);
+        }
+    }
+
+    /** The header has the same title and tabs as the Java one. Play shows the banner, the rest open a panel. */
     private void select(int tab) {
         mTab = tab;
         mLoadId++;
         Context c = requireContext();
-        mTabs.removeAllViews();
+        LinearLayout box = new LinearLayout(c);
+        box.setOrientation(LinearLayout.VERTICAL);
+        TextView title = ForkUi.text(c, getString(R.string.fork_header_bedrock), 12, true);
+        title.setAllCaps(true);
+        title.setLetterSpacing(0.06f);
+        title.setPadding(ForkUi.dp(c, 8), ForkUi.dp(c, 6), 0, 0);
+        box.addView(title);
+        LinearLayout tabs = new LinearLayout(c);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        box.addView(tabs);
+        mHeaderHost.removeAllViews();
+        mHeaderHost.addView(box);
         int[] labels = {R.string.fork_tab_play, R.string.fork_bedrock_addons, R.string.fork_bedrock_textures, R.string.fork_skin_title};
         for(int i = 0; i < labels.length; i++) {
             final int index = i;
             TextView t = ForkUi.text(c, getString(labels[i]), 15, false);
             t.setTextColor(i == tab ? Color.WHITE : ForkUi.TAB_IDLE);
             t.setPadding(ForkUi.dp(c, 14), ForkUi.dp(c, 8), ForkUi.dp(c, 14), ForkUi.dp(c, 8));
+            t.setGravity(Gravity.CENTER);
             if(i == tab) {
                 android.graphics.drawable.GradientDrawable line = new android.graphics.drawable.GradientDrawable();
                 line.setColor(AccentColor.get());
@@ -103,12 +177,18 @@ public class BedrockFragment extends Fragment {
             } else {
                 t.setOnClickListener(v -> select(index));
             }
-            mTabs.addView(t);
+            tabs.addView(t);
         }
         mContent.removeAllViews();
-        if(tab == TAB_PLAY) mContent.addView(buildPlay(c));
-        else if(tab == TAB_SKINS) mContent.addView(buildSkins(c));
-        else mContent.addView(buildBrowser(c, tab == TAB_ADDONS ? "addon" : "texture"));
+        if(tab == TAB_PLAY) {
+            mContent.setVisibility(View.GONE);
+            return;
+        }
+        mContent.setVisibility(View.VISIBLE);
+        int pad = ForkUi.dp(c, 12);
+        View pane = tab == TAB_SKINS ? buildSkins(c) : buildBrowser(c, tab == TAB_ADDONS ? "addon" : "texture");
+        pane.setPadding(pad, pad, pad, pad);
+        mContent.addView(pane);
     }
 
     private LinearLayout card(Context c) {
@@ -132,27 +212,6 @@ public class BedrockFragment extends Fragment {
     }
 
     // Play
-
-    private View buildPlay(Context c) {
-        LinearLayout box = new LinearLayout(c);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setGravity(Gravity.CENTER);
-        boolean installed = BedrockContent.isInstalled(c);
-        TextView status = ForkUi.text(c, getString(installed ? R.string.fork_bedrock_installed : R.string.fork_bedrock_not_installed), 16, false);
-        status.setTextColor(installed ? 0xFF7CD65A : 0xFFE08A5A);
-        status.setGravity(Gravity.CENTER);
-        box.addView(status);
-        TextView info = ForkUi.text(c, getString(R.string.fork_bedrock_info), 13, false);
-        info.setTextColor(ForkUi.TAB_IDLE);
-        info.setGravity(Gravity.CENTER);
-        info.setPadding(0, ForkUi.dp(c, 8), 0, ForkUi.dp(c, 16));
-        box.addView(info);
-        Button play = ForkUi.button(c, getString(installed ? R.string.fork_bedrock_open : R.string.fork_bedrock_open_store), true);
-        play.setTextSize(18);
-        play.setOnClickListener(v -> openBedrockOrStore());
-        box.addView(play, new LinearLayout.LayoutParams(ForkUi.dp(c, 280), ForkUi.dp(c, 56)));
-        return box;
-    }
 
     private void openBedrockOrStore() {
         Context context = requireContext();
