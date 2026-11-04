@@ -31,6 +31,7 @@ import android.view.ViewPropertyAnimator;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +52,9 @@ import git.artdeell.mojo.utils.GpuUtils;
 import git.artdeell.mojo.utils.KeycodeUtils;
 import git.artdeell.mojo.Logger;
 import git.artdeell.mojo.Tools;
+import git.artdeell.mojo.utils.AccentColor;
+import git.artdeell.mojo.utils.ThemeColors;
+import git.artdeell.mojo.utils.McStyle;
 import git.artdeell.mojo.authenticator.accounts.Accounts;
 import git.artdeell.mojo.input.ControlButtonMenuListener;
 import git.artdeell.mojo.input.ControlData;
@@ -194,8 +198,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             return insets;
         });
 
-        ingameControlsEditorArrayAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.menu_customcontrol));
+        ingameControlsEditorArrayAdapter = McStyle.menuAdapter(this, getResources().getStringArray(R.array.menu_customcontrol));
         ingameControlsEditorListener = (parent, view, position, id) -> {
             switch(position) {
                 case 0: mControlLayout.addControlButton(new ControlData("New")); break;
@@ -249,8 +252,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             setTitle("MojoLauncher (" + version + ")");
 
             // Menu
-            gameActionArrayAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.menu_ingame));
+            gameActionArrayAdapter = McStyle.menuAdapter(this, getResources().getStringArray(R.array.menu_ingame));
             gameActionClickListener = (parent, view, position, id) -> {
                 switch(position) {
                      case 0: dialogForceClose(GameActivity.this); break;
@@ -323,6 +325,20 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         mDrawerPullButton = findViewById(R.id.drawer_button);
         mHotbarView = findViewById(R.id.hotbar_view);
         mLoadingScreen = findViewById(R.id.main_loading_screen);
+        styleGameChrome();
+    }
+
+    /** Applies the launcher theme to the side menu and the waiting screen. */
+    private void styleGameChrome() {
+        navDrawer.setBackgroundColor(ThemeColors.sidebar());
+        navDrawer.setDividerHeight(0);
+        TextView title = findViewById(R.id.main_loading_screen_text);
+        TextView warning = findViewById(R.id.main_loading_screen_warning);
+        McStyle.headingText(title);
+        McStyle.text(warning);
+        title.setTextColor(AccentColor.light());
+        ProgressBar progress = findViewById(R.id.main_loading_screen_progress);
+        progress.getIndeterminateDrawable().setColorFilter(AccentColor.get(), android.graphics.PorterDuff.Mode.SRC_IN);
     }
 
     @Override

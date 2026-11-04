@@ -59,7 +59,7 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat impleme
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        view.setBackground(git.artdeell.mojo.utils.McStyle.screenBackground(requireContext()));
+        view.setBackgroundColor(git.artdeell.mojo.utils.ThemeColors.background());
         super.onViewCreated(view, savedInstanceState);
         setDivider(null);
         setDividerHeight(0);

@@ -13,6 +13,9 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -97,6 +100,45 @@ public class McStyle {
         t.setTypeface(font(t.getContext()));
         float d = t.getContext().getResources().getDisplayMetrics().density;
         t.setShadowLayer(1f, d, d, 0xFF3F3F3F);
+    }
+
+    /** List adapter for the in-game side menu: pixel font, accent line under each entry. */
+    public static ArrayAdapter<String> menuAdapter(Context c, String[] items) {
+        return new ArrayAdapter<String>(c, android.R.layout.simple_list_item_1, items) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                TextView t = (TextView) super.getView(position, convertView, parent);
+                text(t);
+                float d = getContext().getResources().getDisplayMetrics().density;
+                t.setTextColor(Color.WHITE);
+                t.setTextSize(15);
+                t.setPadding((int) (16 * d), (int) (14 * d), (int) (12 * d), (int) (14 * d));
+                t.setMinHeight((int) (52 * d));
+                t.setBackground(menuItemBackground(c(), d));
+                return t;
+            }
+
+            private Context c() {
+                return getContext();
+            }
+        };
+    }
+
+    private static Drawable menuItemBackground(Context c, float d) {
+        android.graphics.drawable.GradientDrawable pressed = new android.graphics.drawable.GradientDrawable();
+        pressed.setColor(AccentColor.get() & 0x00FFFFFF | 0x55000000);
+        android.graphics.drawable.GradientDrawable normal = new android.graphics.drawable.GradientDrawable();
+        normal.setColor(Color.TRANSPARENT);
+        StateListDrawable list = new StateListDrawable();
+        list.addState(new int[]{android.R.attr.state_pressed}, pressed);
+        list.addState(new int[]{}, normal);
+        android.graphics.drawable.GradientDrawable line = new android.graphics.drawable.GradientDrawable();
+        line.setColor(0x33FFFFFF);
+        android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(new Drawable[]{list, line});
+        layers.setLayerGravity(1, android.view.Gravity.BOTTOM);
+        layers.setLayerHeight(1, Math.max(1, (int) d));
+        return layers;
     }
 
     public static void headingText(TextView t) {
