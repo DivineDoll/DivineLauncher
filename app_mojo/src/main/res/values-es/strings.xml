@@ -529,4 +529,22 @@
     <string name="fork_ctl_apply_all_title">Aplicar estilo</string>
     <string name="fork_ctl_apply_all_message">El texto, los colores, el borde y la opacidad de este botón se copiarán a todos los botones de este diseño. Los nombres, tamaños, posiciones e imágenes no cambian.</string>
     <string name="fork_ctl_apply_all_done">Estilo aplicado a todos los botones</string>
+    <string name="fork_pixel_title">Pixel art</string>
+    <string name="fork_pixel_pencil">Lápiz</string>
+    <string name="fork_pixel_eraser">Borrar</string>
+    <string name="fork_pixel_fill">Relleno</string>
+    <string name="fork_pixel_pick">Gotero</string>
+    <string name="fork_pixel_undo">Deshacer</string>
+    <string name="fork_pixel_clear">Limpiar</string>
+    <string name="fork_pixel_custom_color">Color personalizado</string>
+    <string name="fork_pixel_base">Base de botón</string>
+    <string name="fork_pixel_name_hint">Nombre</string>
+    <string name="fork_pixel_save">Guardar</string>
+    <string name="fork_pixel_export">Exportar a Descargas</string>
+    <string name="fork_pixel_open">Abrir guardados</string>
+    <string name="fork_pixel_none">Aún no hay pixel art guardados</string>
+    <string name="fork_pixel_saved">Guardado %1$s</string>
+    <string name="fork_pixel_exported">%1$s exportado a Descargas</string>
+    <string name="fork_pixel_error">No se pudo leer o escribir la imagen</string>
+    <string name="fork_pixel_menu">Editor de pixel art</string>
 </resources>

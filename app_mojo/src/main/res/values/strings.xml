@@ -720,4 +720,22 @@
     <string name="fork_ctl_apply_all_title">Apply style</string>
     <string name="fork_ctl_apply_all_message">Text, colors, border and opacity of this button will be copied to every button in this layout. Names, sizes, positions and images stay as they are.</string>
     <string name="fork_ctl_apply_all_done">Style applied to all buttons</string>
+    <string name="fork_pixel_title">Pixel art</string>
+    <string name="fork_pixel_pencil">Pencil</string>
+    <string name="fork_pixel_eraser">Eraser</string>
+    <string name="fork_pixel_fill">Fill</string>
+    <string name="fork_pixel_pick">Picker</string>
+    <string name="fork_pixel_undo">Undo</string>
+    <string name="fork_pixel_clear">Clear</string>
+    <string name="fork_pixel_custom_color">Custom color</string>
+    <string name="fork_pixel_base">Button base</string>
+    <string name="fork_pixel_name_hint">Name</string>
+    <string name="fork_pixel_save">Save</string>
+    <string name="fork_pixel_export">Export to Downloads</string>
+    <string name="fork_pixel_open">Open saved</string>
+    <string name="fork_pixel_none">No saved pixel art yet</string>
+    <string name="fork_pixel_saved">Saved %1$s</string>
+    <string name="fork_pixel_exported">Exported %1$s to Downloads</string>
+    <string name="fork_pixel_error">Could not read or write the image</string>
+    <string name="fork_pixel_menu">Pixel art editor</string>
 </resources>
