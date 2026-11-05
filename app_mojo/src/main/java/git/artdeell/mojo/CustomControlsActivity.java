@@ -48,7 +48,7 @@ public class CustomControlsActivity extends BaseActivity implements EditorExitab
 		mPullDrawerButton.setOnClickListener(v -> mDrawerLayout.openDrawer(mDrawerNavigationView));
 		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-		mDrawerNavigationView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,getResources().getStringArray(R.array.menu_customcontrol_customactivity)));
+		mDrawerNavigationView.setAdapter(git.artdeell.mojo.utils.McStyle.menuAdapter(this, getResources().getStringArray(R.array.menu_customcontrol_customactivity)));
 		mDrawerNavigationView.setOnItemClickListener((parent, view, position, id) -> {
 			switch(position) {
 				case 0: mControlLayout.addControlButton(new ControlData("New")); break;
@@ -57,6 +57,8 @@ public class CustomControlsActivity extends BaseActivity implements EditorExitab
 				case 3: mControlLayout.openLoadDialog(); break;
 				case 4: mControlLayout.openSaveDialog(this); break;
 				case 5: mControlLayout.openSetDefaultDialog(); break;
+				case 7: mControlLayout.undo(); break;
+				case 8: mControlLayout.redo(); break;
 				case 6: // Saving the currently shown control
 					try {
 						Uri contentUri = DocumentsContract.buildDocumentUri(getString(R.string.storageProviderAuthorities), mControlLayout.saveToDirectory(mControlLayout.mLayoutFileName));

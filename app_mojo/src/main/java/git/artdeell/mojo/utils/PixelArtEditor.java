@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -128,9 +129,68 @@ public class PixelArtEditor {
         return n.isEmpty() ? "pixelart" : n;
     }
 
+    private static final int[][] PALETTES = {
+            PALETTE,
+            {0xFFF9FFFE, 0xFFF9801D, 0xFFC74EBD, 0xFF3AB3DA, 0xFFFED83D, 0xFF80C71F, 0xFFF38BAA, 0xFF474F52,
+                    0xFF9D9D97, 0xFF169C9C, 0xFF8932B8, 0xFF3C44AA, 0xFF835432, 0xFF5E7C16, 0xFFB02E26, 0xFF1D1D21},
+            {0xFF1A0505, 0xFF3B0D0D, 0xFF5C1414, 0xFF7D1D1D, 0xFFA12A1A, 0xFFC4472A, 0xFFE06A3A, 0xFFF29A4A,
+                    0xFFFFD27A, 0xFF4A2A1A, 0xFF6B3E26, 0xFF8C5A38, 0xFF2B1E2E, 0xFF4D2E4D, 0xFF7A1F3D, 0xFFD9B8A0},
+            {0xFF000000, 0xFF111111, 0xFF222222, 0xFF333333, 0xFF444444, 0xFF555555, 0xFF666666, 0xFF777777,
+                    0xFF888888, 0xFF999999, 0xFFAAAAAA, 0xFFBBBBBB, 0xFFCCCCCC, 0xFFDDDDDD, 0xFFEEEEEE, 0xFFFFFFFF},
+            {0xFFFFB3BA, 0xFFFFDFBA, 0xFFFFFFBA, 0xFFBAFFC9, 0xFFBAE1FF, 0xFFD5BAFF, 0xFFFFC8DD, 0xFFCDEAC0,
+                    0xFFA0CED9, 0xFFEAD7D7, 0xFFF3E5AB, 0xFFC9E4DE, 0xFFE6CCB2, 0xFFB5C0D0, 0xFFF4A6A6, 0xFFFFFFFF}
+    };
+
+    private static File paletteDir(Context c) {
+        File d = new File(c.getFilesDir(), "palettes");
+        if(!d.isDirectory()) d.mkdirs();
+        return d;
+    }
+
+    private static void savePalette(Context c, String name, int[] colors) throws Exception {
+        org.json.JSONArray array = new org.json.JSONArray();
+        for(int color : colors) array.put(String.format("#%06X", color & 0xFFFFFF));
+        try(FileOutputStream out = new FileOutputStream(new File(paletteDir(c), name + ".json"))) {
+            out.write(array.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    private static int[] loadPalette(File f) throws Exception {
+        byte[] data = new byte[(int) f.length()];
+        try(java.io.FileInputStream in = new java.io.FileInputStream(f)) {
+            int read = 0;
+            while(read < data.length) {
+                int n = in.read(data, read, data.length - read);
+                if(n < 0) break;
+                read += n;
+            }
+        }
+        org.json.JSONArray array = new org.json.JSONArray(new String(data, java.nio.charset.StandardCharsets.UTF_8));
+        int[] colors = new int[PALETTE.length];
+        for(int i = 0; i < colors.length; i++) colors[i] = Color.parseColor(array.getString(i % array.length())) | 0xFF000000;
+        return colors;
+    }
+
+    private static androidx.activity.ComponentActivity activityOf(Context c) {
+        while(c instanceof android.content.ContextWrapper) {
+            if(c instanceof androidx.activity.ComponentActivity) return (androidx.activity.ComponentActivity) c;
+            c = ((android.content.ContextWrapper) c).getBaseContext();
+        }
+        return null;
+    }
+
+    private static Button toggle(Context c, int label, boolean on) {
+        Button b = ForkUi.button(c, c.getString(label), on);
+        b.setTextSize(11);
+        b.setPadding(0, 0, 0, 0);
+        return b;
+    }
+
     public static void show(Context c) {
         Dialog dialog = new Dialog(c, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         int pad = ForkUi.dp(c, 12);
+        int[] palette = PALETTE.clone();
+        View[] swatches = new View[PALETTE.length];
 
         LinearLayout root = new LinearLayout(c);
         root.setOrientation(LinearLayout.HORIZONTAL);
@@ -149,29 +209,63 @@ public class PixelArtEditor {
 
         side.addView(ForkUi.text(c, c.getString(R.string.fork_pixel_title), 16, true));
 
-        LinearLayout tools = ForkUi.row(c);
-        int[] toolIds = {PixelCanvasView.PENCIL, PixelCanvasView.ERASER, PixelCanvasView.FILL, PixelCanvasView.PICK};
-        int[] toolNames = {R.string.fork_pixel_pencil, R.string.fork_pixel_eraser, R.string.fork_pixel_fill, R.string.fork_pixel_pick};
-        Button[] toolButtons = new Button[4];
-        for(int i = 0; i < 4; i++) {
+        int[] toolIds = {PixelCanvasView.PENCIL, PixelCanvasView.ERASER, PixelCanvasView.FILL, PixelCanvasView.PICK,
+                PixelCanvasView.LINE, PixelCanvasView.RECT, PixelCanvasView.CIRCLE};
+        int[] toolNames = {R.string.fork_pixel_pencil, R.string.fork_pixel_eraser, R.string.fork_pixel_fill, R.string.fork_pixel_pick,
+                R.string.fork_pixel_line, R.string.fork_pixel_rect, R.string.fork_pixel_circle};
+        Button[] toolButtons = new Button[toolIds.length];
+        LinearLayout toolRow1 = ForkUi.row(c), toolRow2 = ForkUi.row(c);
+        for(int i = 0; i < toolIds.length; i++) {
             final int id = toolIds[i];
-            Button b = ForkUi.button(c, c.getString(toolNames[i]), i == 0);
-            b.setTextSize(11);
-            b.setPadding(0, 0, 0, 0);
+            Button b = toggle(c, toolNames[i], i == 0);
             toolButtons[i] = b;
             b.setOnClickListener(v -> {
                 canvas.setTool(id);
-                for(int k = 0; k < 4; k++) McStyle.button(toolButtons[k], toolIds[k] == id);
+                for(int k = 0; k < toolIds.length; k++) McStyle.button(toolButtons[k], toolIds[k] == id);
             });
-            tools.addView(b, ForkUi.weight(1f));
+            (i < 4 ? toolRow1 : toolRow2).addView(b, ForkUi.weight(1f));
         }
-        side.addView(tools);
+        side.addView(toolRow1);
+        side.addView(toolRow2);
+
+        LinearLayout options = ForkUi.row(c);
+        Button mirror = toggle(c, R.string.fork_pixel_mirror, false);
+        Button shapeFill = toggle(c, R.string.fork_pixel_shape_fill, false);
+        mirror.setOnClickListener(v -> {
+            canvas.setMirror(!canvas.isMirror());
+            McStyle.button(mirror, canvas.isMirror());
+        });
+        shapeFill.setOnClickListener(v -> {
+            canvas.setShapeFill(!canvas.isShapeFill());
+            McStyle.button(shapeFill, canvas.isShapeFill());
+        });
+        options.addView(mirror, ForkUi.weight(1f));
+        options.addView(shapeFill, ForkUi.weight(1f));
+        side.addView(options);
+
+        LinearLayout layerRow = ForkUi.row(c), showRow = ForkUi.row(c);
+        Button[] layerButtons = {toggle(c, R.string.fork_pixel_layer1, true), toggle(c, R.string.fork_pixel_layer2, false)};
+        Button[] showButtons = {toggle(c, R.string.fork_pixel_show1, true), toggle(c, R.string.fork_pixel_show2, true)};
+        for(int i = 0; i < 2; i++) {
+            final int layer = i;
+            layerButtons[i].setOnClickListener(v -> {
+                canvas.setActiveLayer(layer);
+                McStyle.button(layerButtons[0], layer == 0);
+                McStyle.button(layerButtons[1], layer == 1);
+            });
+            showButtons[i].setOnClickListener(v -> {
+                canvas.setLayerVisible(layer, !canvas.isLayerVisible(layer));
+                McStyle.button(showButtons[layer], canvas.isLayerVisible(layer));
+            });
+            layerRow.addView(layerButtons[i], ForkUi.weight(1f));
+            showRow.addView(showButtons[i], ForkUi.weight(1f));
+        }
+        side.addView(layerRow);
+        side.addView(showRow);
 
         LinearLayout actions = ForkUi.row(c);
-        Button undo = ForkUi.button(c, c.getString(R.string.fork_pixel_undo), false);
-        Button clear = ForkUi.button(c, c.getString(R.string.fork_pixel_clear), false);
-        undo.setTextSize(11);
-        clear.setTextSize(11);
+        Button undo = toggle(c, R.string.fork_pixel_undo, false);
+        Button clear = toggle(c, R.string.fork_pixel_clear, false);
         undo.setOnClickListener(v -> canvas.undo());
         clear.setOnClickListener(v -> canvas.clear());
         actions.addView(undo, ForkUi.weight(1f));
@@ -203,7 +297,6 @@ public class PixelArtEditor {
         });
         side.addView(previewButton);
 
-        Button[] swatches = new Button[PALETTE.length + 1];
         LinearLayout paletteBox = new LinearLayout(c);
         paletteBox.setOrientation(LinearLayout.VERTICAL);
         paletteBox.setPadding(0, pad, 0, pad);
@@ -213,20 +306,69 @@ public class PixelArtEditor {
                 rowView = ForkUi.row(c);
                 paletteBox.addView(rowView);
             }
-            final int color = PALETTE[i];
+            final int index = i;
             View sw = new View(c);
-            sw.setBackground(ForkUi.box(c, color, 0xFFFFFFFF, 1));
-            sw.setOnClickListener(v -> canvas.setColor(color));
+            swatches[i] = sw;
+            sw.setBackground(ForkUi.box(c, palette[i], 0xFFFFFFFF, 1));
+            sw.setOnClickListener(v -> canvas.setColor(palette[index]));
+            sw.setOnLongClickListener(v -> {
+                palette[index] = canvas.getColor();
+                sw.setBackground(ForkUi.box(c, palette[index], 0xFFFFFFFF, 1));
+                return true;
+            });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ForkUi.dp(c, 34), 1f);
             lp.setMargins(ForkUi.dp(c, 2), ForkUi.dp(c, 2), ForkUi.dp(c, 2), ForkUi.dp(c, 2));
             rowView.addView(sw, lp);
         }
         side.addView(paletteBox);
+        TextView paletteHint = ForkUi.text(c, c.getString(R.string.fork_pixel_palette_hint), 11, false);
+        paletteHint.setTextColor(ForkUi.TAB_IDLE);
+        side.addView(paletteHint);
 
-        Button custom = ForkUi.button(c, c.getString(R.string.fork_pixel_custom_color), false);
+        Runnable refreshSwatches = () -> {
+            for(int i = 0; i < swatches.length; i++) swatches[i].setBackground(ForkUi.box(c, palette[i], 0xFFFFFFFF, 1));
+        };
+        LinearLayout paletteRow = ForkUi.row(c);
+        Button palettes = toggle(c, R.string.fork_pixel_palettes, false);
+        Button custom = toggle(c, R.string.fork_pixel_custom_color, false);
+        palettes.setOnClickListener(v -> {
+            File[] saved = paletteDir(c).listFiles((d, n) -> n.endsWith(".json"));
+            if(saved == null) saved = new File[0];
+            java.util.Arrays.sort(saved);
+            final File[] savedFinal = saved;
+            String[] names = new String[PALETTES.length + savedFinal.length];
+            int[] presetNames = {R.string.fork_pixel_pal_default, R.string.fork_pixel_pal_minecraft, R.string.fork_pixel_pal_nether,
+                    R.string.fork_pixel_pal_grays, R.string.fork_pixel_pal_pastel};
+            for(int i = 0; i < PALETTES.length; i++) names[i] = c.getString(presetNames[i]);
+            for(int i = 0; i < savedFinal.length; i++) names[PALETTES.length + i] = savedFinal[i].getName().replace(".json", "");
+            new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_palettes).setItems(names, (d, which) -> {
+                try {
+                    int[] chosen = which < PALETTES.length ? PALETTES[which] : loadPalette(savedFinal[which - PALETTES.length]);
+                    System.arraycopy(chosen, 0, palette, 0, palette.length);
+                    refreshSwatches.run();
+                } catch(Exception e) {
+                    Toast.makeText(c, R.string.fork_pixel_error, Toast.LENGTH_LONG).show();
+                }
+            }).setPositiveButton(R.string.fork_pixel_palette_save, (d, w) -> {
+                EditText input = new EditText(c);
+                input.setHint(R.string.fork_pixel_name_hint);
+                input.setSingleLine();
+                new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_palette_save).setView(input)
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .setPositiveButton(android.R.string.ok, (d2, w2) -> {
+                            try {
+                                savePalette(c, cleanName(input.getText().toString()), palette);
+                            } catch(Exception e) {
+                                Toast.makeText(c, R.string.fork_pixel_error, Toast.LENGTH_LONG).show();
+                            }
+                        }).show();
+            }).setNegativeButton(android.R.string.cancel, null).show();
+        });
         custom.setOnClickListener(v -> ColorPicker.show(c, R.string.fork_pixel_custom_color, canvas.getColor(),
                 Color.WHITE, canvas::setColor));
-        side.addView(custom);
+        paletteRow.addView(palettes, ForkUi.weight(1f));
+        paletteRow.addView(custom, ForkUi.weight(1f));
+        side.addView(paletteRow);
         canvas.setListener(color -> { });
 
         Button template = ForkUi.button(c, c.getString(R.string.fork_pixel_template), false);
@@ -248,6 +390,24 @@ public class PixelArtEditor {
         });
         side.addView(template);
         canvas.load(buttonTemplate(c));
+
+        Button importImage = ForkUi.button(c, c.getString(R.string.fork_pixel_import), false);
+        importImage.setOnClickListener(v -> {
+            androidx.activity.ComponentActivity activity = activityOf(c);
+            if(activity == null) {
+                Toast.makeText(c, R.string.fork_pixel_error, Toast.LENGTH_LONG).show();
+                return;
+            }
+            @SuppressWarnings("rawtypes")
+            androidx.activity.result.ActivityResultLauncher[] launcher = new androidx.activity.result.ActivityResultLauncher[1];
+            launcher[0] = activity.getActivityResultRegistry().register("pixel_import_" + System.nanoTime(),
+                    new androidx.activity.result.contract.ActivityResultContracts.GetContent(), uri -> {
+                        launcher[0].unregister();
+                        if(uri != null) askImportOptions(c, canvas, uri, palette);
+                    });
+            launcher[0].launch("image/*");
+        });
+        side.addView(importImage);
 
         EditText name = new EditText(c);
         name.setHint(R.string.fork_pixel_name_hint);
@@ -314,6 +474,25 @@ public class PixelArtEditor {
 
         dialog.setContentView(root);
         dialog.show();
+    }
+
+    /** Asks for the size and the colors, then converts the picked image into the canvas. */
+    private static void askImportOptions(Context c, PixelCanvasView canvas, android.net.Uri uri, int[] palette) {
+        String[] sizes = {"16", "32", "64"};
+        new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import_size).setItems(sizes, (d, which) -> {
+            int side = Integer.parseInt(sizes[which]);
+            String[] modes = {c.getString(R.string.fork_pixel_import_palette), c.getString(R.string.fork_pixel_import_original)};
+            new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import).setItems(modes, (d2, mode) ->
+                    git.artdeell.mojo.MojoApplication.sExecutorService.execute(() -> {
+                        try {
+                            Bitmap result = PixelImport.convert(c, uri, side, mode == 0 ? palette.clone() : null);
+                            git.artdeell.mojo.Tools.runOnUiThread(() -> canvas.load(result));
+                        } catch(Exception e) {
+                            git.artdeell.mojo.Tools.runOnUiThread(() ->
+                                    Toast.makeText(c, R.string.fork_pixel_import_error, Toast.LENGTH_LONG).show());
+                        }
+                    })).show();
+        }).show();
     }
 
     private static void writePng(Bitmap bmp, File f) throws IOException {

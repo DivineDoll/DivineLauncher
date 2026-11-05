@@ -75,6 +75,8 @@ public class ControlLayout extends FrameLayout {
 
 
 	public void loadLayout(String jsonPath) throws IOException, JsonSyntaxException {
+		mUndoStack.clear();
+		mRedoStack.clear();
 		Point size = new Point(getWidth(), getHeight());
         try {
             CustomControls layout = LayoutConverter.loadAndConvertIfNecessary(size, jsonPath);
@@ -87,6 +89,48 @@ public class ControlLayout extends FrameLayout {
             loadLayout(customControls);
             throw e;
         }
+	}
+
+	private static final int MAX_HISTORY = 30;
+	private final java.util.ArrayDeque<String> mUndoStack = new java.util.ArrayDeque<>();
+	private final java.util.ArrayDeque<String> mRedoStack = new java.util.ArrayDeque<>();
+
+	private String snapshot() {
+		return mLayout == null ? null : Tools.GLOBAL_GSON.toJson(mLayout);
+	}
+
+	/** Remembers the layout as it is now, so the next change can be undone. */
+	public void rememberState() {
+		String state = snapshot();
+		if(state == null || state.equals(mUndoStack.peek())) return;
+		if(mUndoStack.size() >= MAX_HISTORY) mUndoStack.removeLast();
+		mUndoStack.push(state);
+		mRedoStack.clear();
+	}
+
+	private void restore(String json) {
+		CustomControls layout = Tools.GLOBAL_GSON.fromJson(json, CustomControls.class);
+		layout.mLayoutBitmaps = mLayout.mLayoutBitmaps;
+		removeEditWindow();
+		loadLayout(layout);
+		setModified(true);
+	}
+
+	/** Goes back to the state before the last change. The current one can be recovered with redo. */
+	public void undo() {
+		if(mUndoStack.isEmpty() || mLayout == null) return;
+		String current = snapshot();
+		String previous = mUndoStack.pop();
+		if(current != null && current.equals(previous) && !mUndoStack.isEmpty()) previous = mUndoStack.pop();
+		mRedoStack.push(current);
+		restore(previous);
+	}
+
+	public void redo() {
+		if(mRedoStack.isEmpty() || mLayout == null) return;
+		String current = snapshot();
+		mUndoStack.push(current);
+		restore(mRedoStack.pop());
 	}
 
 	public void loadLayout(CustomControls controlLayout) {
@@ -140,6 +184,7 @@ public class ControlLayout extends FrameLayout {
 
 	//CONTROL BUTTON
 	public void addControlButton(ControlData controlButton) {
+		rememberState();
 		mLayout.mControlDataList.add(controlButton);
 		addControlView(controlButton);
 	}
@@ -159,6 +204,7 @@ public class ControlLayout extends FrameLayout {
 
 	// CONTROL DRAWER
 	public void addDrawer(ControlDrawerData drawerData){
+		rememberState();
 		mLayout.mDrawerDataList.add(drawerData);
 		addDrawerView();
 	}
@@ -213,6 +259,7 @@ public class ControlLayout extends FrameLayout {
 
 	// JOYSTICK BUTTON
 	public void addJoystickButton(ControlJoystickData data){
+		rememberState();
 		mLayout.mJoystickDataList.add(data);
 		addJoystickView(data);
 	}
@@ -315,6 +362,7 @@ public class ControlLayout extends FrameLayout {
 	 * to the button at hand.
 	 */
 	public void editControlButton(ControlInterface button){
+		rememberState();
 		if(mControlDialog == null){
 			// When the panel is null, it needs to inflate first.
 			// So inflate it, then process it on the next frame

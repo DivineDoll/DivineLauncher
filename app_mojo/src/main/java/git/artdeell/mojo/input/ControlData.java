@@ -68,6 +68,8 @@ public class ControlData {
     public int textColor;
     /** Text size in sp, 0 = default */
     public float textSize;
+    /** Key of a small image drawn over the button color, kept with the other images of the layout */
+    public String iconTag;
     /** Color of the pressed or toggled layer, 0 = default */
     public int pressedColor;
     /** Color mixed into the background image, 0 = no tint */
@@ -164,6 +166,7 @@ public class ControlData {
         this.textSize = controlData.textSize;
         this.pressedColor = controlData.pressedColor;
         this.imageTint = controlData.imageTint;
+        this.iconTag = controlData.iconTag;
     }
 
     /** Copies only the look of another button: text, colors and effects */
@@ -184,6 +187,7 @@ public class ControlData {
         this.textSize = 0;
         this.pressedColor = 0;
         this.imageTint = 0;
+        this.iconTag = null;
     }
 
     public static ControlData[] getSpecialButtons() {

@@ -11,9 +11,12 @@ import android.view.View;
 
 import java.util.ArrayDeque;
 
-/** Pixel grid for drawing small icons. Templates are loaded as real pixels. */
+/**
+ * Pixel grid for drawing small icons. It has two layers, a mirror mode, shape tools and zoom.
+ * Templates are loaded as real pixels into the bottom layer.
+ */
 public class PixelCanvasView extends View {
-    public static final int PENCIL = 0, ERASER = 1, FILL = 2, PICK = 3;
+    public static final int PENCIL = 0, ERASER = 1, FILL = 2, PICK = 3, LINE = 4, RECT = 5, CIRCLE = 6;
     private static final int MAX_UNDO = 40;
 
     public interface Listener {
@@ -21,11 +24,14 @@ public class PixelCanvasView extends View {
     }
 
     private int gw = 16, gh = 16;
-    private int[] pixels = new int[16 * 16];
+    private int[][] layers = {new int[16 * 16], new int[16 * 16]};
+    private final boolean[] visible = {true, true};
+    private int active;
     private int tool = PENCIL;
     private int color = Color.WHITE;
+    private boolean mirror, shapeFill;
     private Listener listener;
-    private final ArrayDeque<int[]> undo = new ArrayDeque<>();
+    private final ArrayDeque<int[][]> undo = new ArrayDeque<>();
     private final Paint paint = new Paint();
     private float cell, left, top;
     private float zoom = 1f, panX, panY;
@@ -33,7 +39,8 @@ public class PixelCanvasView extends View {
     private boolean preview;
     private Runnable onPreviewTap;
     private float downX, downY;
-    private boolean strokeActive, gesture;
+    private boolean strokeActive, gesture, shaping;
+    private int sx, sy, ex, ey;
     private float lastFx, lastFy;
     private final ScaleGestureDetector scaleDetector;
 
@@ -79,8 +86,7 @@ public class PixelCanvasView extends View {
         layout();
         float gx = (fx - left) / cell, gy = (fy - top) / cell;
         zoom = Math.max(1f, Math.min(32f, zoom * factor));
-        float base = baseCell();
-        float newCell = base * zoom;
+        float newCell = baseCell() * zoom;
         panX = fx - gx * newCell - (getWidth() - gw * newCell) / 2f;
         panY = fy - gy * newCell - (getHeight() - gh * newCell) / 2f;
         invalidate();
@@ -106,11 +112,23 @@ public class PixelCanvasView extends View {
     public int getColor() { return color; }
     public int getGridWidth() { return gw; }
     public int getGridHeight() { return gh; }
+    public void setMirror(boolean on) { mirror = on; invalidate(); }
+    public boolean isMirror() { return mirror; }
+    public void setShapeFill(boolean on) { shapeFill = on; }
+    public boolean isShapeFill() { return shapeFill; }
+    public void setActiveLayer(int i) { active = i; }
+    public int getActiveLayer() { return active; }
+    public boolean isLayerVisible(int i) { return visible[i]; }
+
+    public void setLayerVisible(int i, boolean on) {
+        visible[i] = on;
+        invalidate();
+    }
 
     public void setGridSize(int w, int h) {
         gw = w;
         gh = h;
-        pixels = new int[w * h];
+        layers = new int[][]{new int[w * h], new int[w * h]};
         undo.clear();
         zoom = 1f;
         panX = 0;
@@ -121,31 +139,41 @@ public class PixelCanvasView extends View {
 
     public void clear() {
         pushUndo();
-        pixels = new int[gw * gh];
+        layers[active] = new int[gw * gh];
         invalidate();
     }
 
     public void undo() {
         if(undo.isEmpty()) return;
-        pixels = undo.pop();
+        layers = undo.pop();
         invalidate();
     }
 
     /** Replaces the drawing with the bitmap. The bitmap becomes the grid, so a template is editable pixel by pixel. */
     public void load(Bitmap bmp) {
         setGridSize(bmp.getWidth(), bmp.getHeight());
-        bmp.getPixels(pixels, 0, gw, 0, 0, gw, gh);
+        bmp.getPixels(layers[0], 0, gw, 0, 0, gw, gh);
+        active = 0;
+        visible[0] = visible[1] = true;
     }
 
     private void pushUndo() {
         if(undo.size() >= MAX_UNDO) undo.removeLast();
-        undo.push(pixels.clone());
+        undo.push(new int[][]{layers[0].clone(), layers[1].clone()});
     }
 
-    /** The finished image. */
+    private int composite(int i) {
+        int c = visible[0] ? layers[0][i] : 0;
+        if(visible[1] && layers[1][i] != 0) c = layers[1][i];
+        return c;
+    }
+
+    /** The finished image: the visible layers on top of each other. */
     public Bitmap toBitmap() {
         Bitmap bmp = Bitmap.createBitmap(gw, gh, Bitmap.Config.ARGB_8888);
-        bmp.setPixels(pixels, 0, gw, 0, 0, gw, gh);
+        int[] flat = new int[gw * gh];
+        for(int i = 0; i < flat.length; i++) flat[i] = composite(i);
+        bmp.setPixels(flat, 0, gw, 0, 0, gw, gh);
         return bmp;
     }
 
@@ -154,9 +182,12 @@ public class PixelCanvasView extends View {
         layout();
         int x0 = Math.max(0, (int) Math.floor(-left / cell)), x1 = Math.min(gw, (int) Math.ceil((getWidth() - left) / cell));
         int y0 = Math.max(0, (int) Math.floor(-top / cell)), y1 = Math.min(gh, (int) Math.ceil((getHeight() - top) / cell));
+        boolean[] shape = shaping ? shapeMask() : null;
         for(int y = y0; y < y1; y++) {
             for(int x = x0; x < x1; x++) {
-                int p = pixels[y * gw + x];
+                int i = y * gw + x;
+                int p = composite(i);
+                if(shape != null && shape[i]) p = (color & 0x00FFFFFF) | 0xFF000000;
                 if(p == 0) {
                     if(preview) continue;
                     p = ((x + y) & 1) == 0 ? 0xFF4A4A4A : 0xFF3C3C3C;
@@ -165,11 +196,19 @@ public class PixelCanvasView extends View {
                 canvas.drawRect(left + x * cell, top + y * cell, left + (x + 1) * cell + 0.5f, top + (y + 1) * cell + 0.5f, paint);
             }
         }
-        if(preview || !showGrid || cell < 4f) return;
-        paint.setColor(0x33FFFFFF);
-        paint.setStrokeWidth(1f);
-        for(int i = x0; i <= x1; i++) canvas.drawLine(left + i * cell, top + y0 * cell, left + i * cell, top + y1 * cell, paint);
-        for(int i = y0; i <= y1; i++) canvas.drawLine(left + x0 * cell, top + i * cell, left + x1 * cell, top + i * cell, paint);
+        if(preview) return;
+        if(showGrid && cell >= 4f) {
+            paint.setColor(0x33FFFFFF);
+            paint.setStrokeWidth(1f);
+            for(int i = x0; i <= x1; i++) canvas.drawLine(left + i * cell, top + y0 * cell, left + i * cell, top + y1 * cell, paint);
+            for(int i = y0; i <= y1; i++) canvas.drawLine(left + x0 * cell, top + i * cell, left + x1 * cell, top + i * cell, paint);
+        }
+        if(mirror) {
+            paint.setColor(AccentColor.get());
+            paint.setStrokeWidth(2f);
+            float mx = left + gw * cell / 2f;
+            canvas.drawLine(mx, top, mx, top + gh * cell, paint);
+        }
     }
 
     @Override
@@ -185,6 +224,7 @@ public class PixelCanvasView extends View {
             if(strokeActive) {
                 undo();
                 strokeActive = false;
+                shaping = false;
             }
             gesture = true;
             lastFx = focusX(e);
@@ -205,8 +245,11 @@ public class PixelCanvasView extends View {
                     && Math.hypot(e.getX() - downX, e.getY() - downY) < 24) {
                 onPreviewTap.run();
             }
+            if(shaping && action == MotionEvent.ACTION_UP && !gesture) commitShape();
+            shaping = false;
             strokeActive = false;
             gesture = false;
+            invalidate();
             return true;
         }
         if(gesture || preview) return true;
@@ -216,17 +259,32 @@ public class PixelCanvasView extends View {
             getParent().requestDisallowInterceptTouchEvent(true);
             if(!inside) return true;
             if(tool == PICK) {
-                int p = pixels[y * gw + x];
+                int p = composite(y * gw + x);
                 if(p != 0) { color = p; if(listener != null) listener.colorPicked(p); }
                 return true;
             }
             pushUndo();
             strokeActive = true;
             if(tool == FILL) { fill(x, y); strokeActive = false; return true; }
+            if(tool >= LINE) {
+                shaping = true;
+                sx = ex = x;
+                sy = ey = y;
+                invalidate();
+                return true;
+            }
+        }
+        if(shaping && action == MotionEvent.ACTION_MOVE) {
+            ex = Math.max(0, Math.min(gw - 1, x));
+            ey = Math.max(0, Math.min(gh - 1, y));
+            invalidate();
+            return true;
         }
         if(inside && strokeActive && (tool == PENCIL || tool == ERASER)
                 && (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE)) {
-            pixels[y * gw + x] = tool == PENCIL ? color : 0;
+            int value = tool == PENCIL ? color : 0;
+            layers[active][y * gw + x] = value;
+            if(mirror) layers[active][y * gw + (gw - 1 - x)] = value;
             invalidate();
         }
         return true;
@@ -244,7 +302,58 @@ public class PixelCanvasView extends View {
         return sum / e.getPointerCount();
     }
 
+    /** Cells covered by the shape being dragged, also on the mirrored side when the mirror is on. */
+    private boolean[] shapeMask() {
+        boolean[] mask = new boolean[gw * gh];
+        fillMask(mask, sx, sy, ex, ey);
+        if(mirror) fillMask(mask, gw - 1 - sx, sy, gw - 1 - ex, ey);
+        return mask;
+    }
+
+    private void fillMask(boolean[] mask, int ax, int ay, int bx, int by) {
+        int minX = Math.min(ax, bx), maxX = Math.max(ax, bx), minY = Math.min(ay, by), maxY = Math.max(ay, by);
+        if(tool == LINE) {
+            int dx = Math.abs(bx - ax), dy = -Math.abs(by - ay);
+            int stepX = ax < bx ? 1 : -1, stepY = ay < by ? 1 : -1;
+            int err = dx + dy, x = ax, y = ay;
+            while(true) {
+                mask[y * gw + x] = true;
+                if(x == bx && y == by) break;
+                int e2 = 2 * err;
+                if(e2 >= dy) { err += dy; x += stepX; }
+                if(e2 <= dx) { err += dx; y += stepY; }
+            }
+        } else if(tool == RECT) {
+            for(int y = minY; y <= maxY; y++) {
+                for(int x = minX; x <= maxX; x++) {
+                    boolean edge = x == minX || x == maxX || y == minY || y == maxY;
+                    if(shapeFill || edge) mask[y * gw + x] = true;
+                }
+            }
+        } else if(tool == CIRCLE) {
+            float rx = (maxX - minX + 1) / 2f, ry = (maxY - minY + 1) / 2f;
+            float cx = minX + rx, cy = minY + ry;
+            for(int y = minY; y <= maxY; y++) {
+                for(int x = minX; x <= maxX; x++) {
+                    boolean in = inEllipse(x + 0.5f - cx, y + 0.5f - cy, rx, ry);
+                    boolean hollow = rx > 1.5f && ry > 1.5f && inEllipse(x + 0.5f - cx, y + 0.5f - cy, rx - 1, ry - 1);
+                    if(in && (shapeFill || !hollow)) mask[y * gw + x] = true;
+                }
+            }
+        }
+    }
+
+    private static boolean inEllipse(float dx, float dy, float rx, float ry) {
+        return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1f;
+    }
+
+    private void commitShape() {
+        boolean[] mask = shapeMask();
+        for(int i = 0; i < mask.length; i++) if(mask[i]) layers[active][i] = color;
+    }
+
     private void fill(int x, int y) {
+        int[] pixels = layers[active];
         int target = pixels[y * gw + x];
         if(target == color) return;
         ArrayDeque<int[]> stack = new ArrayDeque<>();

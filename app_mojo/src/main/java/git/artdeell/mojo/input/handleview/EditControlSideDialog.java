@@ -86,7 +86,8 @@ public class EditControlSideDialog extends SideDialogView {
     // Text and effects section
     private View mStyleGroup;
     private TextView mSelectTextColor, mSelectPressedColor, mSelectImageTint, mTextSizeValue;
-    private TextView mResetStyle, mApplyStyleToAll, mSelectPixelArt;
+    private TextView mResetStyle, mApplyStyleToAll, mSelectPixelArt, mSelectIcon, mRemoveIcon;
+    private ControlPreviewView mPreview;
     private SeekBar mTextSizeSeekbar;
 
     // Color selector related stuff
@@ -218,8 +219,12 @@ public class EditControlSideDialog extends SideDialogView {
         if(!(viewContext instanceof CustomControlsActivity)) {
             mSelectBackgroundBitmap.setVisibility(GONE);
             mSelectPixelArt.setVisibility(GONE);
+            mSelectIcon.setVisibility(GONE);
+            mRemoveIcon.setVisibility(GONE);
         } else {
             mSelectPixelArt.setVisibility(VISIBLE);
+            mSelectIcon.setVisibility(VISIBLE);
+            mRemoveIcon.setVisibility(VISIBLE);
         }
     }
 
@@ -395,6 +400,9 @@ public class EditControlSideDialog extends SideDialogView {
         mTextSizeValue = mDialogContent.findViewById(R.id.editTextSize_textView_value);
         mTextSizeSeekbar = mDialogContent.findViewById(R.id.editTextSize_seekbar);
         mSelectPixelArt = mDialogContent.findViewById(R.id.editPixelArt_textView);
+        mSelectIcon = mDialogContent.findViewById(R.id.editIcon_textView);
+        mRemoveIcon = mDialogContent.findViewById(R.id.editIconRemove_textView);
+        mPreview = mDialogContent.findViewById(R.id.editPreview_view);
         mResetStyle = mDialogContent.findViewById(R.id.editStyleReset_textView);
         mApplyStyleToAll = mDialogContent.findViewById(R.id.editStyleApplyAll_textView);
         mDisplayInGameCheckbox = mDialogContent.findViewById(R.id.visibility_game_checkbox);
@@ -705,7 +713,7 @@ public class EditControlSideDialog extends SideDialogView {
     }
 
     /** Lists the pixel arts saved in the editor and uses the chosen one as the button image. */
-    private void choosePixelArt() {
+    private void choosePixelArt(boolean asIcon) {
         Context context = mDialogContent.getContext();
         java.io.File[] files = git.artdeell.mojo.utils.PixelArtEditor.saved(context);
         if(files.length == 0) {
@@ -719,6 +727,13 @@ public class EditControlSideDialog extends SideDialogView {
                 .setItems(names, (d, which) -> {
                     Bitmap art = android.graphics.BitmapFactory.decodeFile(files[which].getAbsolutePath());
                     if(art == null) return;
+                    ControlData iconProperties = mCurrentlyEditedButton.getProperties();
+                    if(asIcon) {
+                        LayoutBitmaps iconStorage = mCurrentlyEditedButton.getControlLayoutParent().getBitmaps();
+                        iconProperties.iconTag = iconStorage.putBitmap(art, iconProperties.iconTag);
+                        mCurrentlyEditedButton.getControlView().invalidate();
+                        return;
+                    }
                     View target = mCurrentlyEditedButton.getControlView();
                     Bitmap fitted = git.artdeell.mojo.utils.PixelArtEditor.fitTo(art,
                             Math.max(1, target.getWidth()), Math.max(1, target.getHeight()));
@@ -732,7 +747,12 @@ public class EditControlSideDialog extends SideDialogView {
     }
 
     private void setupStyleListeners() {
-        mSelectPixelArt.setOnClickListener(v -> choosePixelArt());
+        mSelectPixelArt.setOnClickListener(v -> choosePixelArt(false));
+        mSelectIcon.setOnClickListener(v -> choosePixelArt(true));
+        mRemoveIcon.setOnClickListener(v -> {
+            mCurrentlyEditedButton.getProperties().iconTag = null;
+            mCurrentlyEditedButton.getControlView().invalidate();
+        });
 
         mSelectTextColor.setOnClickListener(v -> {
             mColorSelector.setAlphaEnabled(false);
@@ -804,6 +824,7 @@ public class EditControlSideDialog extends SideDialogView {
             mCurrentlyEditedButton.getControlView().removeOnLayoutChangeListener(mLayoutChangedListener);
         mCurrentlyEditedButton = button;
         mCurrentlyEditedButton.getControlView().addOnLayoutChangeListener(mLayoutChangedListener);
+        mPreview.setTarget(button);
     }
 
 }

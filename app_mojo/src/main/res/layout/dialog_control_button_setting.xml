@@ -561,6 +561,11 @@
             android:text="@string/fork_ctl_style_title"
             android:textStyle="bold" />
 
+        <git.artdeell.mojo.input.handleview.ControlPreviewView
+            android:id="@+id/editPreview_view"
+            android:layout_width="match_parent"
+            android:layout_height="56dp" />
+
         <fr.spse.extended_view.ExtendedTextView
             android:id="@+id/editTextColor_textView"
             android:layout_width="match_parent"
@@ -629,6 +634,22 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:text="@string/fork_ctl_pixel_art" />
+
+        <TextView
+            android:id="@+id/editIcon_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:text="@string/fork_ctl_icon" />
+
+        <TextView
+            android:id="@+id/editIconRemove_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:text="@string/fork_ctl_icon_remove" />
 
         <TextView
             android:id="@+id/editStyleReset_textView"

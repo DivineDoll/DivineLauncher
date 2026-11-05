@@ -6,7 +6,9 @@ import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Bitmap;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.PorterDuff;
 import android.util.Log;
 import android.util.TypedValue;
@@ -35,6 +37,8 @@ import static git.artdeell.mojo.game.platform.Platform.PLATFORM;
 @SuppressLint({"ViewConstructor", "AppCompatCustomView"})
 public class ControlButton extends TextView implements ControlInterface {
     private final Paint mRectPaint = new Paint();
+    private final Paint mIconPaint = new Paint();
+    private final RectF mIconRect = new RectF();
     protected ControlData mProperties;
     private final ControlLayout mControlLayout;
 
@@ -114,8 +118,23 @@ public class ControlButton extends TextView implements ControlInterface {
         setTextSize(properties.textSize > 0 ? properties.textSize : 14);
     }
 
+    /** Draws the small icon over the background and under the text, with square pixels. */
+    private void drawIcon(Canvas canvas) {
+        if(!Tools.isValidString(mProperties.iconTag) || mControlLayout.getBitmaps() == null) return;
+        Bitmap icon = mControlLayout.getBitmaps().getBitmap(mProperties.iconTag);
+        if(icon == null) return;
+        float inset = Math.min(getWidth(), getHeight()) * 0.12f;
+        float scale = Math.min((getWidth() - 2 * inset) / icon.getWidth(), (getHeight() - 2 * inset) / icon.getHeight());
+        if(scale <= 0) return;
+        if(scale >= 1f) scale = (float) Math.floor(scale);
+        float w = icon.getWidth() * scale, h = icon.getHeight() * scale;
+        mIconRect.set((getWidth() - w) / 2f, (getHeight() - h) / 2f, (getWidth() + w) / 2f, (getHeight() + h) / 2f);
+        canvas.drawBitmap(icon, null, mIconRect, mIconPaint);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
+        drawIcon(canvas);
         super.onDraw(canvas);
         // Bitmap uses a tint list, so don't do any custom rendering
         if(mHasBitmap || !isActivated()) return;
