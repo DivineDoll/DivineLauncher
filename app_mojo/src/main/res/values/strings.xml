@@ -766,4 +766,26 @@
     <string name="fork_bedrock_import">Import pack</string>
     <string name="fork_bedrock_appinfo">Bedrock app info</string>
     <string name="fork_bedrock_downloads">Downloads folder</string>
+    <string name="fork_ctl_pixel_art">Use one of my pixel arts</string>
+    <string name="fork_ctl_pixel_none">You have no saved pixel art. Draw one in Appearance, Pixel art editor.</string>
+    <string name="fork_theme_menu">Themes</string>
+    <string name="fork_theme_save">Save current</string>
+    <string name="fork_theme_import">Import</string>
+    <string name="fork_theme_apply">Apply</string>
+    <string name="fork_theme_export">Export to Downloads</string>
+    <string name="fork_theme_delete">Delete</string>
+    <string name="fork_theme_saved">Saved %1$s</string>
+    <string name="fork_theme_exported">%1$s exported to Downloads</string>
+    <string name="fork_theme_error">The theme could not be read or written</string>
+    <string name="fork_theme_imported">Imported</string>
+    <string name="fork_theme_classic">Classic green</string>
+    <string name="fork_theme_nether">Nether</string>
+    <string name="fork_theme_end">The End</string>
+    <string name="fork_theme_ocean">Ocean</string>
+    <string name="fork_theme_desert">Desert</string>
+    <string name="fork_backup_export">Backup: export everything</string>
+    <string name="fork_backup_done">Backup exported: %1$s</string>
+    <string name="fork_pixel_tpl_pressed">Pressed button</string>
+    <string name="fork_pixel_tpl_slot">Inventory slot</string>
+    <string name="fork_pixel_tpl_heart">Heart</string>
 </resources>

@@ -94,11 +94,16 @@ public class OnlineSkins {
 
     /** Copies the PNG to the public Downloads folder so it can be picked in the Ely.by upload page. Blocking. */
     public static String exportToDownloads(Context context, File png) throws IOException {
+        return exportToDownloads(context, png, "image/png");
+    }
+
+    /** Same as above for any file type, the mime type decides how Android names and shows it. */
+    public static String exportToDownloads(Context context, File png, String mime) throws IOException {
         String fileName = png.getName();
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
-            values.put(MediaStore.Downloads.MIME_TYPE, "image/png");
+            values.put(MediaStore.Downloads.MIME_TYPE, mime);
             values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
             Uri uri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             if(uri == null) throw new IOException("Cannot create the file");

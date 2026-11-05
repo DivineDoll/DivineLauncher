@@ -34,6 +34,83 @@ public class PixelArtEditor {
             0xFF3C8527, 0xFF29B6C5, 0xFF2E8BE6, 0xFF9B59E8,
             0xFFE86AB5, 0xFF8B5A2B, 0xFF5B3A1A, 0xFFF2D6A8};
 
+    /** The saved drawings, newest first. */
+    public static File[] saved(Context c) {
+        File[] files = dir(c).listFiles((d, n) -> n.endsWith(".png"));
+        if(files == null) return new File[0];
+        java.util.Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        return files;
+    }
+
+    /**
+     * Scales a drawing up by a whole number without blurring and centers it in a transparent
+     * image of the given size, so it keeps its square pixels on any button shape.
+     */
+    public static Bitmap fitTo(Bitmap art, int width, int height) {
+        int scale = Math.max(1, Math.min(width / art.getWidth(), height / art.getHeight()));
+        Bitmap big = Bitmap.createScaledBitmap(art, art.getWidth() * scale, art.getHeight() * scale, false);
+        Bitmap out = Bitmap.createBitmap(Math.max(width, big.getWidth()), Math.max(height, big.getHeight()), Bitmap.Config.ARGB_8888);
+        new android.graphics.Canvas(out).drawBitmap(big, (out.getWidth() - big.getWidth()) / 2f, (out.getHeight() - big.getHeight()) / 2f, null);
+        return out;
+    }
+
+    public static File directory(Context c) {
+        return dir(c);
+    }
+
+    private static Bitmap fromRows(String[] rows, int[] colors, String keys) {
+        Bitmap bmp = Bitmap.createBitmap(rows[0].length(), rows.length, Bitmap.Config.ARGB_8888);
+        for(int y = 0; y < rows.length; y++) {
+            for(int x = 0; x < rows[y].length(); x++) {
+                int i = keys.indexOf(rows[y].charAt(x));
+                bmp.setPixel(x, y, i < 0 ? 0 : colors[i]);
+            }
+        }
+        return bmp;
+    }
+
+    /** Button template with the dark bottom edge removed and a darker face, like a pressed button. */
+    private static Bitmap pressedButton(Context c) {
+        Bitmap bmp = buttonTemplate(c);
+        for(int y = 0; y < bmp.getHeight(); y++) {
+            for(int x = 0; x < bmp.getWidth(); x++) {
+                int p = bmp.getPixel(x, y);
+                if(p == 0xFF39393C) bmp.setPixel(x, y, 0xFF686868);
+                else if(p == 0xFF808080) bmp.setPixel(x, y, 0xFF6F6F6F);
+            }
+        }
+        return bmp;
+    }
+
+    private static Bitmap inventorySlot() {
+        int n = 18;
+        Bitmap bmp = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888);
+        for(int y = 0; y < n; y++) {
+            for(int x = 0; x < n; x++) {
+                int color = 0xFF8B8B8B;
+                if(x == 0 || y == 0) color = 0xFF373737;
+                else if(x == n - 1 || y == n - 1) color = 0xFFFFFFFF;
+                if((x == n - 1 && y == 0) || (x == 0 && y == n - 1)) color = 0xFF8B8B8B;
+                bmp.setPixel(x, y, color);
+            }
+        }
+        return bmp;
+    }
+
+    private static Bitmap heart() {
+        String[] rows = {
+                "..##.##..",
+                ".#RR#RR#.",
+                "#RWRRRRR#",
+                "#RRRRRRR#",
+                "#RRRRRRR#",
+                ".#RRRRR#.",
+                "..#RRR#..",
+                "...#R#...",
+                "....#...."};
+        return fromRows(rows, new int[]{0xFF000000, 0xFFE02020, 0xFFFFFFFF}, "#RW");
+    }
+
     private static File dir(Context c) {
         File d = new File(c.getFilesDir(), "pixelart");
         if(!d.isDirectory()) d.mkdirs();
@@ -130,9 +207,14 @@ public class PixelArtEditor {
         Button template = ForkUi.button(c, c.getString(R.string.fork_pixel_template), false);
         template.setOnClickListener(v -> {
             String[] names = {c.getString(R.string.fork_pixel_tpl_button), c.getString(R.string.fork_pixel_tpl_blank16),
-                    c.getString(R.string.fork_pixel_tpl_blank32), c.getString(R.string.fork_pixel_tpl_blank64)};
+                    c.getString(R.string.fork_pixel_tpl_blank32), c.getString(R.string.fork_pixel_tpl_blank64),
+                    c.getString(R.string.fork_pixel_tpl_pressed), c.getString(R.string.fork_pixel_tpl_slot),
+                    c.getString(R.string.fork_pixel_tpl_heart)};
             new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_template).setItems(names, (d, which) -> {
                 if(which == 0) canvas.load(buttonTemplate(c));
+                else if(which == 4) canvas.load(pressedButton(c));
+                else if(which == 5) canvas.load(inventorySlot());
+                else if(which == 6) canvas.load(heart());
                 else {
                     int n = which == 1 ? 16 : which == 2 ? 32 : 64;
                     canvas.setGridSize(n, n);

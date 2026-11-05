@@ -86,7 +86,7 @@ public class EditControlSideDialog extends SideDialogView {
     // Text and effects section
     private View mStyleGroup;
     private TextView mSelectTextColor, mSelectPressedColor, mSelectImageTint, mTextSizeValue;
-    private TextView mResetStyle, mApplyStyleToAll;
+    private TextView mResetStyle, mApplyStyleToAll, mSelectPixelArt;
     private SeekBar mTextSizeSeekbar;
 
     // Color selector related stuff
@@ -215,8 +215,12 @@ public class EditControlSideDialog extends SideDialogView {
 
         // Don't allow editing the bitmap in-game (i don't want to bother with implementing that,
         // and it has potential to kill the game during icon selection)
-        if(!(viewContext instanceof CustomControlsActivity))
+        if(!(viewContext instanceof CustomControlsActivity)) {
             mSelectBackgroundBitmap.setVisibility(GONE);
+            mSelectPixelArt.setVisibility(GONE);
+        } else {
+            mSelectPixelArt.setVisibility(VISIBLE);
+        }
     }
 
     /**
@@ -390,6 +394,7 @@ public class EditControlSideDialog extends SideDialogView {
         mSelectImageTint = mDialogContent.findViewById(R.id.editImageTint_textView);
         mTextSizeValue = mDialogContent.findViewById(R.id.editTextSize_textView_value);
         mTextSizeSeekbar = mDialogContent.findViewById(R.id.editTextSize_seekbar);
+        mSelectPixelArt = mDialogContent.findViewById(R.id.editPixelArt_textView);
         mResetStyle = mDialogContent.findViewById(R.id.editStyleReset_textView);
         mApplyStyleToAll = mDialogContent.findViewById(R.id.editStyleApplyAll_textView);
         mDisplayInGameCheckbox = mDialogContent.findViewById(R.id.visibility_game_checkbox);
@@ -699,7 +704,36 @@ public class EditControlSideDialog extends SideDialogView {
         Toast.makeText(mDialogContent.getContext(), R.string.fork_ctl_apply_all_done, Toast.LENGTH_SHORT).show();
     }
 
+    /** Lists the pixel arts saved in the editor and uses the chosen one as the button image. */
+    private void choosePixelArt() {
+        Context context = mDialogContent.getContext();
+        java.io.File[] files = git.artdeell.mojo.utils.PixelArtEditor.saved(context);
+        if(files.length == 0) {
+            Toast.makeText(context, R.string.fork_ctl_pixel_none, Toast.LENGTH_LONG).show();
+            return;
+        }
+        String[] names = new String[files.length];
+        for(int i = 0; i < files.length; i++) names[i] = files[i].getName().replace(".png", "");
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle(R.string.fork_ctl_pixel_art)
+                .setItems(names, (d, which) -> {
+                    Bitmap art = android.graphics.BitmapFactory.decodeFile(files[which].getAbsolutePath());
+                    if(art == null) return;
+                    View target = mCurrentlyEditedButton.getControlView();
+                    Bitmap fitted = git.artdeell.mojo.utils.PixelArtEditor.fitTo(art,
+                            Math.max(1, target.getWidth()), Math.max(1, target.getHeight()));
+                    ControlData properties = mCurrentlyEditedButton.getProperties();
+                    LayoutBitmaps storage = mCurrentlyEditedButton.getControlLayoutParent().getBitmaps();
+                    properties.bitmapTag = storage.putBitmap(fitted, properties.bitmapTag);
+                    setHasBitmap(true);
+                    mCurrentlyEditedButton.setBackground();
+                })
+                .show();
+    }
+
     private void setupStyleListeners() {
+        mSelectPixelArt.setOnClickListener(v -> choosePixelArt());
+
         mSelectTextColor.setOnClickListener(v -> {
             mColorSelector.setAlphaEnabled(false);
             mColorSelector.setColorSelectionListener(color -> {

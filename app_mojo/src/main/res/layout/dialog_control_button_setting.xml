@@ -623,6 +623,14 @@
             app:drawableEndSize="20dp" />
 
         <TextView
+            android:id="@+id/editPixelArt_textView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:text="@string/fork_ctl_pixel_art" />
+
+        <TextView
             android:id="@+id/editStyleReset_textView"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_35sdp"

@@ -191,11 +191,19 @@ public class MainMenuFragment extends Fragment {
                 .show();
     }
 
+    private final androidx.activity.result.ActivityResultLauncher<String> mThemePicker =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.GetContent(), uri -> {
+                if(uri == null) return;
+                boolean ok = git.artdeell.mojo.utils.ThemeManager.importFrom(requireContext(), uri);
+                Toast.makeText(requireContext(), ok ? R.string.fork_theme_imported : R.string.fork_theme_error, Toast.LENGTH_LONG).show();
+                if(ok) requireActivity().recreate();
+            });
+
     private void showAppearanceDialog(Button playButton) {
         String[] items = {getString(R.string.fork_banner_pick_title), getString(R.string.fork_play_color_title),
                 getString(R.string.fork_accent_title), getString(R.string.fork_bg_color_title),
                 getString(R.string.fork_sidebar_color_title), getString(R.string.fork_pixel_menu),
-                getString(R.string.fork_colors_reset_all)};
+                getString(R.string.fork_theme_menu), getString(R.string.fork_colors_reset_all)};
         Runnable recreate = () -> requireActivity().recreate();
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.fork_appearance_title)
@@ -218,6 +226,8 @@ public class MainMenuFragment extends Fragment {
                                 color -> { git.artdeell.mojo.utils.ThemeColors.set(git.artdeell.mojo.utils.ThemeColors.PREF_SIDEBAR, color); recreate.run(); });
                     } else if(which == 5) {
                         git.artdeell.mojo.utils.PixelArtEditor.show(c);
+                    } else if(which == 6) {
+                        git.artdeell.mojo.utils.ThemeManager.show(c, recreate, () -> mThemePicker.launch("*/*"));
                     } else {
                         git.artdeell.mojo.utils.ThemeColors.resetAll();
                         recreate.run();

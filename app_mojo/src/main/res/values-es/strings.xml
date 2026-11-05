@@ -575,4 +575,26 @@
     <string name="fork_bedrock_import">Importar pack</string>
     <string name="fork_bedrock_appinfo">Info de la app Bedrock</string>
     <string name="fork_bedrock_downloads">Carpeta Descargas</string>
+    <string name="fork_ctl_pixel_art">Usar uno de mis pixel arts</string>
+    <string name="fork_ctl_pixel_none">No tienes pixel arts guardados. Dibuja uno en Apariencia, Editor de pixel art.</string>
+    <string name="fork_theme_menu">Temas</string>
+    <string name="fork_theme_save">Guardar el actual</string>
+    <string name="fork_theme_import">Importar</string>
+    <string name="fork_theme_apply">Aplicar</string>
+    <string name="fork_theme_export">Exportar a Descargas</string>
+    <string name="fork_theme_delete">Eliminar</string>
+    <string name="fork_theme_saved">Guardado %1$s</string>
+    <string name="fork_theme_exported">%1$s exportado a Descargas</string>
+    <string name="fork_theme_error">No se pudo leer o escribir el tema</string>
+    <string name="fork_theme_imported">Importado</string>
+    <string name="fork_theme_classic">Verde clásico</string>
+    <string name="fork_theme_nether">Nether</string>
+    <string name="fork_theme_end">El End</string>
+    <string name="fork_theme_ocean">Océano</string>
+    <string name="fork_theme_desert">Desierto</string>
+    <string name="fork_backup_export">Copia de seguridad: exportar todo</string>
+    <string name="fork_backup_done">Copia exportada: %1$s</string>
+    <string name="fork_pixel_tpl_pressed">Botón presionado</string>
+    <string name="fork_pixel_tpl_slot">Casilla de inventario</string>
+    <string name="fork_pixel_tpl_heart">Corazón</string>
 </resources>
