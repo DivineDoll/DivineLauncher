@@ -788,4 +788,6 @@
     <string name="fork_pixel_tpl_pressed">Pressed button</string>
     <string name="fork_pixel_tpl_slot">Inventory slot</string>
     <string name="fork_pixel_tpl_heart">Heart</string>
+    <string name="fork_pixel_preview">Clean view</string>
+    <string name="fork_pixel_preview_hint">Pinch to zoom, tap to go back</string>
 </resources>

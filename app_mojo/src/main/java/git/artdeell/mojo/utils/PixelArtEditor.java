@@ -178,6 +178,31 @@ public class PixelArtEditor {
         actions.addView(clear, ForkUi.weight(1f));
         side.addView(actions);
 
+        LinearLayout zoomRow = ForkUi.row(c);
+        Button zoomIn = ForkUi.button(c, "+", false);
+        Button zoomOut = ForkUi.button(c, "-", false);
+        Button zoomFit = ForkUi.button(c, "1:1", false);
+        zoomIn.setOnClickListener(v -> canvas.zoomBy(1.5f));
+        zoomOut.setOnClickListener(v -> canvas.zoomBy(1f / 1.5f));
+        zoomFit.setOnClickListener(v -> canvas.resetZoom());
+        zoomRow.addView(zoomIn, ForkUi.weight(1f));
+        zoomRow.addView(zoomOut, ForkUi.weight(1f));
+        zoomRow.addView(zoomFit, ForkUi.weight(1f));
+        side.addView(zoomRow);
+
+        Button previewButton = ForkUi.button(c, c.getString(R.string.fork_pixel_preview), false);
+        previewButton.setOnClickListener(v -> {
+            scroll.setVisibility(View.GONE);
+            root.setPadding(0, 0, 0, 0);
+            canvas.setPreview(true, () -> {
+                canvas.setPreview(false, null);
+                scroll.setVisibility(View.VISIBLE);
+                root.setPadding(pad, pad, pad, pad);
+            });
+            Toast.makeText(c, R.string.fork_pixel_preview_hint, Toast.LENGTH_SHORT).show();
+        });
+        side.addView(previewButton);
+
         Button[] swatches = new Button[PALETTE.length + 1];
         LinearLayout paletteBox = new LinearLayout(c);
         paletteBox.setOrientation(LinearLayout.VERTICAL);

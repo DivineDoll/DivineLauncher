@@ -597,4 +597,6 @@
     <string name="fork_pixel_tpl_pressed">Botón presionado</string>
     <string name="fork_pixel_tpl_slot">Casilla de inventario</string>
     <string name="fork_pixel_tpl_heart">Corazón</string>
+    <string name="fork_pixel_preview">Vista limpia</string>
+    <string name="fork_pixel_preview_hint">Pellizca para hacer zoom, toca para volver</string>
 </resources>
