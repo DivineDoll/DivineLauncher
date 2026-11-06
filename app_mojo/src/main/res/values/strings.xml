@@ -822,4 +822,5 @@
     <string name="fork_pixel_import_replace">Replace the drawing</string>
     <string name="fork_pixel_stamp_apply">Place</string>
     <string name="fork_pixel_stamp_hint">Drag the image to move it, use + and - to resize, then press Place</string>
+    <string name="fork_pixel_letters">Letters</string>
 </resources>

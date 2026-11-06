@@ -631,4 +631,5 @@
     <string name="fork_pixel_import_replace">Reemplazar el dibujo</string>
     <string name="fork_pixel_stamp_apply">Colocar</string>
     <string name="fork_pixel_stamp_hint">Arrastra la imagen para moverla, usa + y - para el tamaño y pulsa Colocar</string>
+    <string name="fork_pixel_letters">Letras</string>
 </resources>

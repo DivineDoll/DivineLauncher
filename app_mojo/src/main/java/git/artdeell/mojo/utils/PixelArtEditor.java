@@ -443,6 +443,28 @@ public class PixelArtEditor {
         });
         side.addView(importImage);
 
+        Button letters = ForkUi.button(c, c.getString(R.string.fork_pixel_letters), false);
+        letters.setOnClickListener(v -> {
+            android.widget.GridLayout grid = new android.widget.GridLayout(c);
+            grid.setColumnCount(6);
+            ScrollView letterScroll = new ScrollView(c);
+            letterScroll.addView(grid);
+            AlertDialog letterDialog = new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_letters).setView(letterScroll).show();
+            for(int i = 0; i < PixelFont.CHARS.length(); i++) {
+                char ch = PixelFont.CHARS.charAt(i);
+                Button b = ForkUi.button(c, String.valueOf(ch), false);
+                b.setMinWidth(0);
+                b.setMinimumWidth(0);
+                b.setOnClickListener(x -> {
+                    letterDialog.dismiss();
+                    canvas.startStamp(PixelFont.glyph(ch, canvas.getColor()));
+                    Toast.makeText(c, R.string.fork_pixel_stamp_hint, Toast.LENGTH_LONG).show();
+                });
+                grid.addView(b, new android.widget.GridLayout.LayoutParams());
+            }
+        });
+        side.addView(letters);
+
         EditText name = new EditText(c);
         name.setHint(R.string.fork_pixel_name_hint);
         name.setHintTextColor(0xFF888888);
