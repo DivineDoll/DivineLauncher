@@ -102,6 +102,7 @@ public class EditControlSideDialog extends SideDialogView {
     @Override
     protected void onInflate() {
         bindLayout();
+        if (mPreview != null && mCurrentlyEditedButton != null) mPreview.setTarget(mCurrentlyEditedButton);
         buildColorSelector();
         loadAdapter();
         setupRealTimeListeners();
@@ -824,7 +825,7 @@ public class EditControlSideDialog extends SideDialogView {
             mCurrentlyEditedButton.getControlView().removeOnLayoutChangeListener(mLayoutChangedListener);
         mCurrentlyEditedButton = button;
         mCurrentlyEditedButton.getControlView().addOnLayoutChangeListener(mLayoutChangedListener);
-        mPreview.setTarget(button);
+        if (mPreview != null) mPreview.setTarget(button);
     }
 
 }
