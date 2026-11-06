@@ -598,7 +598,8 @@
     <string name="fork_pixel_tpl_slot">Casilla de inventario</string>
     <string name="fork_pixel_tpl_heart">Corazón</string>
     <string name="fork_pixel_preview">Vista limpia</string>
-    <string name="fork_pixel_preview_hint">Pellizca para hacer zoom, toca para volver</string>
+    <string name="fork_pixel_preview_hint">Dibuja y pellizca para hacer zoom, usa Salir para volver</string>
+    <string name="fork_pixel_preview_exit">Salir</string>
     <string name="fork_pixel_line">Línea</string>
     <string name="fork_pixel_rect">Rectángulo</string>
     <string name="fork_pixel_circle">Círculo</string>
@@ -625,4 +626,9 @@
     <string name="fork_ctl_icon_remove">Quitar el icono</string>
     <string name="customctrl_undo">Deshacer</string>
     <string name="customctrl_redo">Rehacer</string>
+    <string name="fork_pixel_import_place">¿Dónde ponerla?</string>
+    <string name="fork_pixel_import_over">Encima del dibujo</string>
+    <string name="fork_pixel_import_replace">Reemplazar el dibujo</string>
+    <string name="fork_pixel_stamp_apply">Colocar</string>
+    <string name="fork_pixel_stamp_hint">Arrastra la imagen para moverla, usa + y - para el tamaño y pulsa Colocar</string>
 </resources>

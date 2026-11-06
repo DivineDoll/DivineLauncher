@@ -192,6 +192,7 @@ public class PixelArtEditor {
         int[] palette = PALETTE.clone();
         View[] swatches = new View[PALETTE.length];
 
+        View[] overlay = new View[1];
         LinearLayout root = new LinearLayout(c);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setBackgroundColor(ThemeColors.background());
@@ -284,15 +285,48 @@ public class PixelArtEditor {
         zoomRow.addView(zoomFit, ForkUi.weight(1f));
         side.addView(zoomRow);
 
+        LinearLayout stampRow = new LinearLayout(c);
+        stampRow.setOrientation(LinearLayout.HORIZONTAL);
+        stampRow.setVisibility(View.GONE);
+        Button stampSmaller = ForkUi.button(c, "-", false);
+        Button stampBigger = ForkUi.button(c, "+", false);
+        Button stampApply = ForkUi.button(c, c.getString(R.string.fork_pixel_stamp_apply), true);
+        Button stampCancel = ForkUi.button(c, c.getString(android.R.string.cancel), false);
+        stampSmaller.setOnClickListener(v -> canvas.resizeStamp(-Math.max(1, canvas.getStampWidth() / 10)));
+        stampBigger.setOnClickListener(v -> canvas.resizeStamp(Math.max(1, canvas.getStampWidth() / 10)));
+        stampApply.setOnClickListener(v -> canvas.commitStamp());
+        stampCancel.setOnClickListener(v -> canvas.cancelStamp());
+        stampRow.addView(stampSmaller, ForkUi.weight(1f));
+        stampRow.addView(stampBigger, ForkUi.weight(1f));
+        stampRow.addView(stampApply, ForkUi.weight(2f));
+        stampRow.addView(stampCancel, ForkUi.weight(2f));
+        canvas.setStampListener(() -> stampRow.setVisibility(canvas.isStamping() ? View.VISIBLE : View.GONE));
+        side.addView(stampRow);
+
+        LinearLayout floating = new LinearLayout(c);
+        floating.setOrientation(LinearLayout.HORIZONTAL);
+        floating.setVisibility(View.GONE);
+        floating.setAlpha(0.8f);
+        Button floatUndo = ForkUi.button(c, c.getString(R.string.fork_pixel_undo), false);
+        floatUndo.setOnClickListener(v -> canvas.undo());
+        Button floatExit = ForkUi.button(c, c.getString(R.string.fork_pixel_preview_exit), true);
+        floating.addView(floatUndo);
+        floating.addView(floatExit);
+        overlay[0] = floating;
+
         Button previewButton = ForkUi.button(c, c.getString(R.string.fork_pixel_preview), false);
+        Runnable leavePreview = () -> {
+            canvas.setPreview(false, null);
+            floating.setVisibility(View.GONE);
+            scroll.setVisibility(View.VISIBLE);
+            root.setPadding(pad, pad, pad, pad);
+        };
+        floatExit.setOnClickListener(v -> leavePreview.run());
         previewButton.setOnClickListener(v -> {
             scroll.setVisibility(View.GONE);
             root.setPadding(0, 0, 0, 0);
-            canvas.setPreview(true, () -> {
-                canvas.setPreview(false, null);
-                scroll.setVisibility(View.VISIBLE);
-                root.setPadding(pad, pad, pad, pad);
-            });
+            floating.setVisibility(View.VISIBLE);
+            canvas.setPreview(true, null);
             Toast.makeText(c, R.string.fork_pixel_preview_hint, Toast.LENGTH_SHORT).show();
         });
         side.addView(previewButton);
@@ -472,7 +506,12 @@ public class PixelArtEditor {
         close.setOnClickListener(v -> dialog.dismiss());
         side.addView(close);
 
-        dialog.setContentView(root);
+        android.widget.FrameLayout frame = new android.widget.FrameLayout(c);
+        frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        android.widget.FrameLayout.LayoutParams fp = new android.widget.FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
+        fp.setMargins(pad, pad, pad, pad);
+        frame.addView(overlay[0], fp);
+        dialog.setContentView(frame);
         dialog.show();
     }
 
@@ -482,16 +521,24 @@ public class PixelArtEditor {
         new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import_size).setItems(sizes, (d, which) -> {
             int side = Integer.parseInt(sizes[which]);
             String[] modes = {c.getString(R.string.fork_pixel_import_palette), c.getString(R.string.fork_pixel_import_original)};
-            new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import).setItems(modes, (d2, mode) ->
-                    git.artdeell.mojo.MojoApplication.sExecutorService.execute(() -> {
-                        try {
-                            Bitmap result = PixelImport.convert(c, uri, side, mode == 0 ? palette.clone() : null);
-                            git.artdeell.mojo.Tools.runOnUiThread(() -> canvas.load(result));
-                        } catch(Exception e) {
-                            git.artdeell.mojo.Tools.runOnUiThread(() ->
-                                    Toast.makeText(c, R.string.fork_pixel_import_error, Toast.LENGTH_LONG).show());
-                        }
-                    })).show();
+            new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import).setItems(modes, (d2, mode) -> {
+                String[] places = {c.getString(R.string.fork_pixel_import_over), c.getString(R.string.fork_pixel_import_replace)};
+                new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_import_place).setItems(places, (d3, place) ->
+                        git.artdeell.mojo.MojoApplication.sExecutorService.execute(() -> {
+                            try {
+                                Bitmap result = PixelImport.convert(c, uri, side, mode == 0 ? palette.clone() : null);
+                                git.artdeell.mojo.Tools.runOnUiThread(() -> {
+                                    if(place == 0) {
+                                        canvas.startStamp(result);
+                                        Toast.makeText(c, R.string.fork_pixel_stamp_hint, Toast.LENGTH_LONG).show();
+                                    } else canvas.load(result);
+                                });
+                            } catch(Exception e) {
+                                git.artdeell.mojo.Tools.runOnUiThread(() ->
+                                        Toast.makeText(c, R.string.fork_pixel_import_error, Toast.LENGTH_LONG).show());
+                            }
+                        })).show();
+            }).show();
         }).show();
     }
 

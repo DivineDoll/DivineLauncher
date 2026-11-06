@@ -43,6 +43,10 @@ public class PixelCanvasView extends View {
     private int sx, sy, ex, ey;
     private float lastFx, lastFy;
     private final ScaleGestureDetector scaleDetector;
+    private int[] stampSrc;
+    private int stampSw, stampSh, stampW;
+    private float stampFx, stampFy, dragX, dragY;
+    private Runnable stampListener;
 
     public PixelCanvasView(Context context) {
         super(context);
@@ -104,6 +108,65 @@ public class PixelCanvasView extends View {
         panY = Math.max(-maxY, Math.min(maxY, panY));
         left = (getWidth() - gw * cell) / 2f + panX;
         top = (getHeight() - gh * cell) / 2f + panY;
+    }
+
+
+    public void setStampListener(Runnable r) { stampListener = r; }
+    public boolean isStamping() { return stampSrc != null; }
+
+    private int stampH() {
+        return Math.max(1, Math.round(stampW * (float) stampSh / stampSw));
+    }
+
+    /** Starts placing the bitmap over the drawing. It can be dragged and resized until it is applied. */
+    public void startStamp(Bitmap bmp) {
+        stampSw = bmp.getWidth();
+        stampSh = bmp.getHeight();
+        stampSrc = new int[stampSw * stampSh];
+        bmp.getPixels(stampSrc, 0, stampSw, 0, 0, stampSw, stampSh);
+        stampW = Math.max(1, Math.min(stampSw, gw));
+        stampFx = (gw - stampW) / 2f;
+        stampFy = (gh - stampH()) / 2f;
+        invalidate();
+        if(stampListener != null) stampListener.run();
+    }
+
+    /** Grows or shrinks the stamp around its center, keeping the proportions. */
+    public void resizeStamp(int deltaCells) {
+        if(stampSrc == null) return;
+        float cx = stampFx + stampW / 2f, cy = stampFy + stampH() / 2f;
+        stampW = Math.max(1, Math.min(Math.max(gw, gh) * 2, stampW + deltaCells));
+        stampFx = cx - stampW / 2f;
+        stampFy = cy - stampH() / 2f;
+        invalidate();
+    }
+
+    public int getStampWidth() { return stampW; }
+
+    public void commitStamp() {
+        if(stampSrc == null) return;
+        pushUndo();
+        int sw = stampW, sh = stampH(), ox = Math.round(stampFx), oy = Math.round(stampFy);
+        for(int ty = 0; ty < sh; ty++) {
+            for(int tx = 0; tx < sw; tx++) {
+                int x = ox + tx, y = oy + ty;
+                if(x < 0 || y < 0 || x >= gw || y >= gh) continue;
+                int p = stampSrc[Math.min(stampSh - 1, ty * stampSh / sh) * stampSw + Math.min(stampSw - 1, tx * stampSw / sw)];
+                if((p >>> 24) != 0) layers[active][y * gw + x] = p;
+            }
+        }
+        cancelStamp();
+    }
+
+    public void cancelStamp() {
+        stampSrc = null;
+        invalidate();
+        if(stampListener != null) stampListener.run();
+    }
+
+    public boolean isEmpty() {
+        for(int i = 0; i < gw * gh; i++) if(layers[0][i] != 0 || layers[1][i] != 0) return false;
+        return true;
     }
 
     public void setListener(Listener l) { listener = l; }
@@ -196,6 +259,24 @@ public class PixelCanvasView extends View {
                 canvas.drawRect(left + x * cell, top + y * cell, left + (x + 1) * cell + 0.5f, top + (y + 1) * cell + 0.5f, paint);
             }
         }
+        if(stampSrc != null) {
+            int sw = stampW, sh = stampH(), ox = Math.round(stampFx), oy = Math.round(stampFy);
+            for(int ty = 0; ty < sh; ty++) {
+                for(int tx = 0; tx < sw; tx++) {
+                    int x = ox + tx, y = oy + ty;
+                    if(x < 0 || y < 0 || x >= gw || y >= gh) continue;
+                    int p = stampSrc[Math.min(stampSh - 1, ty * stampSh / sh) * stampSw + Math.min(stampSw - 1, tx * stampSw / sw)];
+                    if((p >>> 24) == 0) continue;
+                    paint.setColor(p);
+                    canvas.drawRect(left + x * cell, top + y * cell, left + (x + 1) * cell + 0.5f, top + (y + 1) * cell + 0.5f, paint);
+                }
+            }
+            paint.setColor(AccentColor.get());
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f);
+            canvas.drawRect(left + ox * cell, top + oy * cell, left + (ox + sw) * cell, top + (oy + sh) * cell, paint);
+            paint.setStyle(Paint.Style.FILL);
+        }
         if(preview) return;
         if(showGrid && cell >= 4f) {
             paint.setColor(0x33FFFFFF);
@@ -252,7 +333,21 @@ public class PixelCanvasView extends View {
             invalidate();
             return true;
         }
-        if(gesture || preview) return true;
+        if(gesture) return true;
+        if(stampSrc != null) {
+            if(action == MotionEvent.ACTION_DOWN) {
+                getParent().requestDisallowInterceptTouchEvent(true);
+                dragX = e.getX();
+                dragY = e.getY();
+            } else if(action == MotionEvent.ACTION_MOVE) {
+                stampFx += (e.getX() - dragX) / cell;
+                stampFy += (e.getY() - dragY) / cell;
+                dragX = e.getX();
+                dragY = e.getY();
+                invalidate();
+            }
+            return true;
+        }
         int x = (int) Math.floor((e.getX() - left) / cell), y = (int) Math.floor((e.getY() - top) / cell);
         boolean inside = x >= 0 && y >= 0 && x < gw && y < gh;
         if(action == MotionEvent.ACTION_DOWN) {

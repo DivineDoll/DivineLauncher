@@ -789,7 +789,8 @@
     <string name="fork_pixel_tpl_slot">Inventory slot</string>
     <string name="fork_pixel_tpl_heart">Heart</string>
     <string name="fork_pixel_preview">Clean view</string>
-    <string name="fork_pixel_preview_hint">Pinch to zoom, tap to go back</string>
+    <string name="fork_pixel_preview_hint">Draw and pinch to zoom, use Exit to go back</string>
+    <string name="fork_pixel_preview_exit">Exit</string>
     <string name="fork_pixel_line">Line</string>
     <string name="fork_pixel_rect">Rectangle</string>
     <string name="fork_pixel_circle">Circle</string>
@@ -816,4 +817,9 @@
     <string name="fork_ctl_icon_remove">Remove the icon</string>
     <string name="customctrl_undo">Undo</string>
     <string name="customctrl_redo">Redo</string>
+    <string name="fork_pixel_import_place">Where to put it?</string>
+    <string name="fork_pixel_import_over">Over the drawing</string>
+    <string name="fork_pixel_import_replace">Replace the drawing</string>
+    <string name="fork_pixel_stamp_apply">Place</string>
+    <string name="fork_pixel_stamp_hint">Drag the image to move it, use + and - to resize, then press Place</string>
 </resources>
