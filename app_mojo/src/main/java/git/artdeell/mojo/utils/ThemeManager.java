@@ -32,11 +32,11 @@ public class ThemeManager {
     private static final String[] KEYS = {AccentColor.PREF, PlayColor.PREF, ThemeColors.PREF_BACKGROUND, ThemeColors.PREF_SIDEBAR, ThemeColors.PREF_TEXT};
 
     private static final int[][] PRESETS = {
-            {0xFF52A535, 0xFF3C8527, 0xFF1E1E1E, 0xFF262626},
-            {0xFFE04646, 0xFFD14B2E, 0xFF2A1313, 0xFF331A1A},
-            {0xFF9B59E8, 0xFF8B4FD6, 0xFF16121F, 0xFF1E1830},
-            {0xFF29B6C5, 0xFF2E6FD1, 0xFF0F1B26, 0xFF14222F},
-            {0xFFE8B02E, 0xFFE0A526, 0xFF241E10, 0xFF2E2716}
+            {0xFF52A535, 0xFF3C8527, 0xFF1E1E1E, 0xFF262626, ThemeColors.DEFAULT_TEXT},
+            {0xFFE04646, 0xFFD14B2E, 0xFF2A1313, 0xFF331A1A, ThemeColors.DEFAULT_TEXT},
+            {0xFF9B59E8, 0xFF8B4FD6, 0xFF16121F, 0xFF1E1830, ThemeColors.DEFAULT_TEXT},
+            {0xFF29B6C5, 0xFF2E6FD1, 0xFF0F1B26, 0xFF14222F, ThemeColors.DEFAULT_TEXT},
+            {0xFFE8B02E, 0xFFE0A526, 0xFF241E10, 0xFF2E2716, ThemeColors.DEFAULT_TEXT}
     };
     private static final int[] PRESET_NAMES = {R.string.fork_theme_classic, R.string.fork_theme_nether,
             R.string.fork_theme_end, R.string.fork_theme_ocean, R.string.fork_theme_desert};
@@ -61,14 +61,14 @@ public class ThemeManager {
 
     private static int[] current() {
         int[] values = new int[KEYS.length];
-        int[] defaults = {AccentColor.DEFAULT, PlayColor.get(), ThemeColors.DEFAULT_BACKGROUND, ThemeColors.DEFAULT_SIDEBAR};
+        int[] defaults = {AccentColor.DEFAULT, PlayColor.get(), ThemeColors.DEFAULT_BACKGROUND, ThemeColors.DEFAULT_SIDEBAR, ThemeColors.DEFAULT_TEXT};
         for(int i = 0; i < KEYS.length; i++) values[i] = LauncherPreferences.DEFAULT_PREF.getInt(KEYS[i], defaults[i]);
         return values;
     }
 
     private static void apply(int[] values) {
         android.content.SharedPreferences.Editor edit = LauncherPreferences.DEFAULT_PREF.edit();
-        for(int i = 0; i < KEYS.length; i++) edit.putInt(KEYS[i], values[i] | 0xFF000000);
+        for(int i = 0; i < KEYS.length && i < values.length; i++) edit.putInt(KEYS[i], values[i] | 0xFF000000);
         edit.apply();
     }
 
