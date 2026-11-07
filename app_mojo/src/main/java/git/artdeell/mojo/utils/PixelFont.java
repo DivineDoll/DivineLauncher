@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 
 /** A small 5 pixel wide font drawn by hand: the alphabet, the digits and a few signs. */
 public class PixelFont {
-    public static final String CHARS = "ABCDEFGHIJKLMN\u00D1OPQRSTUVWXYZ0123456789!?.";
+    public static final String CHARS = "ABCDEFGHIJKLMN\u00D1OPQRSTUVWXYZ0123456789!?.abcdefghijklmnopqrstuvwxyz\u00F1 ";
 
     private static final String[][] GLYPHS = {
         {".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"},
@@ -47,6 +47,34 @@ public class PixelFont {
         {"..#..", "..#..", "..#..", "..#..", "..#..", ".....", "..#.."},
         {".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."},
         {".....", ".....", ".....", ".....", ".....", ".##..", ".##.."},
+        {".....", ".....", ".###.", "....#", ".####", "#...#", ".####"},
+        {"#....", "#....", "####.", "#...#", "#...#", "#...#", "####."},
+        {".....", ".....", ".###.", "#....", "#....", "#...#", ".###."},
+        {"....#", "....#", ".####", "#...#", "#...#", "#...#", ".####"},
+        {".....", ".....", ".###.", "#...#", "#####", "#....", ".###."},
+        {"..##.", ".#..#", ".#...", "###..", ".#...", ".#...", ".#..."},
+        {".....", ".####", "#...#", "#...#", ".####", "....#", ".###."},
+        {"#....", "#....", "####.", "#...#", "#...#", "#...#", "#...#"},
+        {"..#..", ".....", ".##..", "..#..", "..#..", "..#..", ".###."},
+        {"...#.", ".....", "..##.", "...#.", "...#.", "#..#.", ".##.."},
+        {"#....", "#....", "#..#.", "#.#..", "##...", "#.#..", "#..#."},
+        {".##..", "..#..", "..#..", "..#..", "..#..", "..#..", ".###."},
+        {".....", ".....", "##.#.", "#.#.#", "#.#.#", "#...#", "#...#"},
+        {".....", ".....", "####.", "#...#", "#...#", "#...#", "#...#"},
+        {".....", ".....", ".###.", "#...#", "#...#", "#...#", ".###."},
+        {".....", "####.", "#...#", "#...#", "####.", "#....", "#...."},
+        {".....", ".####", "#...#", "#...#", ".####", "....#", "....#"},
+        {".....", ".....", "#.##.", "##..#", "#....", "#....", "#...."},
+        {".....", ".....", ".####", "#....", ".###.", "....#", "####."},
+        {".#...", ".#...", "###..", ".#...", ".#...", ".#..#", "..##."},
+        {".....", ".....", "#...#", "#...#", "#...#", "#..##", ".##.#"},
+        {".....", ".....", "#...#", "#...#", "#...#", ".#.#.", "..#.."},
+        {".....", ".....", "#...#", "#...#", "#.#.#", "##.##", "#...#"},
+        {".....", ".....", "#...#", ".#.#.", "..#..", ".#.#.", "#...#"},
+        {".....", "#...#", "#...#", "#...#", ".####", "....#", ".###."},
+        {".....", ".....", "#####", "...#.", "..#..", ".#...", "#####"},
+        {".#.#.", ".....", ".....", "####.", "#...#", "#...#", "#...#", "#...#"},
+        {".....", ".....", ".....", ".....", ".....", ".....", "....."},
     };
 
     /** The character drawn in the color, with a transparent background. */
@@ -59,6 +87,37 @@ public class PixelFont {
             for(int x = 0; x < 5; x++) {
                 if(rows[y].charAt(x) == '#') bmp.setPixel(x, y, color | 0xFF000000);
             }
+        }
+        return bmp;
+    }
+
+    /** A whole text as one bitmap, with one empty column between letters. Accents are dropped, except the enye. */
+    public static Bitmap text(String text, int color) {
+        String clean = java.text.Normalizer.normalize(text.replace('\u00F1', '\u0001').replace('\u00D1', '\u0002'), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").replace('\u0001', '\u00F1').replace('\u0002', '\u00D1');
+        java.util.List<String[]> glyphs = new java.util.ArrayList<>();
+        java.util.List<Integer> widths = new java.util.ArrayList<>();
+        int height = 7, width = 0;
+        for(int i = 0; i < clean.length(); i++) {
+            int index = CHARS.indexOf(clean.charAt(i));
+            if(index < 0) continue;
+            glyphs.add(GLYPHS[index]);
+            height = Math.max(height, GLYPHS[index].length);
+            widths.add(clean.charAt(i) == ' ' ? 3 : 5);
+            width += widths.get(widths.size() - 1) + 1;
+        }
+        if(glyphs.isEmpty()) return glyph('A', color);
+        Bitmap bmp = Bitmap.createBitmap(Math.max(1, width - 1), height, Bitmap.Config.ARGB_8888);
+        int x = 0;
+        for(int g = 0; g < glyphs.size(); g++) {
+            String[] rows = glyphs.get(g);
+            for(int y = 0; y < rows.length; y++) {
+                for(int k = 0; k < 5; k++) {
+                    int px = x + k, py = y + height - rows.length;
+                    if(px < bmp.getWidth() && rows[y].charAt(k) == '#') bmp.setPixel(px, py, color | 0xFF000000);
+                }
+            }
+            x += widths.get(g) + 1;
         }
         return bmp;
     }

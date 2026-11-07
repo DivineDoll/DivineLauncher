@@ -17,10 +17,17 @@
         <item name="android:switchStyle">@style/MojoLauncher.Switch</item>
         <item name="switchStyle">@style/MojoLauncher.Switch</item>
         <item name="buttonStyle">@style/MojoLauncher.Button</item>
+        <item name="editTextStyle">@style/MojoLauncher.EditText</item>
+        <item name="android:editTextStyle">@style/MojoLauncher.EditText</item>
         <item name="android:buttonStyleToggle">@style/MojoLauncher.Button.Toggle</item>
     </style>
 
     <style name="MojoLauncher.AppTheme" parent="MojoLauncher"/>
+
+    <style name="MojoLauncher.EditText" parent="Widget.AppCompat.EditText">
+        <item name="fontFamily">@font/minecraft_regular</item>
+        <item name="android:fontFamily">@font/minecraft_regular</item>
+    </style>
 
     <style name="MojoLauncher.SeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressDrawable">@drawable/minepb_progress</item>

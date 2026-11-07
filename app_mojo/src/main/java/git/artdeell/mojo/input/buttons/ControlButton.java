@@ -10,6 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.PorterDuff;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -36,6 +38,9 @@ import static git.artdeell.mojo.game.platform.Platform.PLATFORM;
 
 @SuppressLint({"ViewConstructor", "AppCompatCustomView"})
 public class ControlButton extends TextView implements ControlInterface {
+    private static final int KEY_CHAT = 84;
+    private static final int KEY_ENTER = 257;
+
     private final Paint mRectPaint = new Paint();
     private final Paint mIconPaint = new Paint();
     private final RectF mIconRect = new RectF();
@@ -169,14 +174,51 @@ public class ControlButton extends TextView implements ControlInterface {
 
     @Override
     public void handlePressed() {
-        if(!getProperties().isToggle){
+        if(hasCommand()) {
+            setActivated(true);
+            runCommand();
+        } else if(getProperties().sequence) {
+            setActivated(true);
+            runSequence();
+        } else if(!getProperties().isToggle){
             sendKeyPresses(true);
+        }
+    }
+
+    private boolean hasCommand() {
+        String text = getProperties().commandText;
+        return text != null && !text.isEmpty();
+    }
+
+    /** Opens the chat, types the text and sends it. */
+    private void runCommand() {
+        String text = getProperties().commandText;
+        Handler handler = new Handler(Looper.getMainLooper());
+        sendKey(KEY_CHAT, true);
+        handler.postDelayed(() -> sendKey(KEY_CHAT, false), 50);
+        handler.postDelayed(() -> PLATFORM.sendBulkUnicodeEvent(text, CallbackBridge.getCurrentMods()), 200);
+        handler.postDelayed(() -> sendKey(KEY_ENTER, true), 350);
+        handler.postDelayed(() -> sendKey(KEY_ENTER, false), 400);
+    }
+
+    private void runSequence() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        int step = getProperties().sequenceDelay > 0 ? getProperties().sequenceDelay : 130;
+        int hold = Math.min(60, Math.max(10, step / 2));
+        int delay = 0;
+        for(int keycode : getProperties().keycodes) {
+            if(keycode == 0) continue;
+            handler.postDelayed(() -> sendKey(keycode, true), delay);
+            handler.postDelayed(() -> sendKey(keycode, false), delay + hold);
+            delay += step;
         }
     }
 
     @Override
     public void handleReleased() {
-        if(!triggerToggle()) {
+        if(hasCommand() || getProperties().sequence) {
+            setActivated(false);
+        } else if(!triggerToggle()) {
             sendKeyPresses(false);
         }
     }
@@ -237,7 +279,11 @@ public class ControlButton extends TextView implements ControlInterface {
 
     public void sendKeyPresses(boolean isDown){
         setActivated(isDown);
-        for(int keycode : mProperties.keycodes){
+        for(int keycode : mProperties.keycodes) sendKey(keycode, isDown);
+    }
+
+    private void sendKey(int keycode, boolean isDown) {
+        {
             if(keycode >= KeyEvent.KEYCODE_UNKNOWN){
                 CallbackBridge.setModifiers(keycode, isDown);
                 int modifiers = CallbackBridge.getCurrentMods();

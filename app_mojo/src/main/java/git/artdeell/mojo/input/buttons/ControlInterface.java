@@ -249,6 +249,11 @@ public interface ControlInterface extends View.OnLongClickListener, PlatformGrab
      * @param y Coordinate on the y axis
      */
     default void snapAndAlign(float x, float y) {
+        float grid = git.artdeell.mojo.utils.ExtraOptions.gridStepPx();
+        if(grid > 0) {
+            x = Math.round(x / grid) * grid;
+            y = Math.round(y / grid) * grid;
+        }
         final float MIN_DISTANCE = getSnapDistance();
         String dynamicX = generateDynamicX(x);
         String dynamicY = generateDynamicY(y);

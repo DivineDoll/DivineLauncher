@@ -72,6 +72,7 @@ public class AsyncAssetManager {
                 } catch(Exception ignored) {}
                 android.content.SharedPreferences copied = ctx.getSharedPreferences("preset_copy", Context.MODE_PRIVATE);
                 boolean upToDate = installedAt != 0 && copied.getLong("installed_at", 0) == installedAt;
+                if(!upToDate && copied.getLong("installed_at", 0) != 0) git.artdeell.mojo.utils.BackupManager.autoBackup(ctx);
                 for(String preset : new String[]{"Bedrock_Tocar", "Bedrock_Cruz_filar", "Bedrock_Clasico"}) {
                     // Presets are ours and are rewritten only after the app was updated; users should "Save as" to customize them
                     if(upToDate && new java.io.File(Tools.CTRLMAP_PATH, preset + ".json").exists()) continue;

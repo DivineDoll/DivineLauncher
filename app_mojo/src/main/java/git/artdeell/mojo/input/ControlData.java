@@ -70,6 +70,12 @@ public class ControlData {
     public float textSize;
     /** Key of a small image drawn over the button color, kept with the other images of the layout */
     public String iconTag;
+    /** Chat text sent when the button is pressed. Empty means the button sends its keys. */
+    public String commandText;
+    /** Press the keys one after another instead of all at once. */
+    public boolean sequence;
+    /** Milliseconds between keys of a sequence, 0 = default (130). */
+    public int sequenceDelay;
     /** Color of the pressed or toggled layer, 0 = default */
     public int pressedColor;
     /** Color mixed into the background image, 0 = no tint */
@@ -167,6 +173,9 @@ public class ControlData {
         this.pressedColor = controlData.pressedColor;
         this.imageTint = controlData.imageTint;
         this.iconTag = controlData.iconTag;
+        this.commandText = controlData.commandText;
+        this.sequence = controlData.sequence;
+        this.sequenceDelay = controlData.sequenceDelay;
     }
 
     /** Copies only the look of another button: text, colors and effects */

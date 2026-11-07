@@ -17,7 +17,7 @@ import java.util.ArrayDeque;
  * Templates are loaded as real pixels into the bottom layer.
  */
 public class PixelCanvasView extends View {
-    public static final int PENCIL = 0, ERASER = 1, FILL = 2, PICK = 3, LINE = 4, RECT = 5, CIRCLE = 6;
+    public static final int PENCIL = 0, ERASER = 1, FILL = 2, PICK = 3, LINE = 4, RECT = 5, CIRCLE = 6, SELECT = 7;
     private static final int MAX_UNDO = 40;
 
     public interface Listener {
@@ -48,6 +48,8 @@ public class PixelCanvasView extends View {
     private int stampSw, stampSh, stampW;
     private float stampFx, stampFy, dragX, dragY;
     private Runnable stampListener;
+    private boolean selOn, selecting;
+    private int selAx, selAy, selBx, selBy;
 
     public PixelCanvasView(Context context) {
         super(context);
@@ -132,6 +134,19 @@ public class PixelCanvasView extends View {
         if(stampListener != null) stampListener.run();
     }
 
+    /** Same as startStamp but at a given cell, at its own size. */
+    public void startStamp(Bitmap bmp, int cellX, int cellY) {
+        stampSw = bmp.getWidth();
+        stampSh = bmp.getHeight();
+        stampSrc = new int[stampSw * stampSh];
+        bmp.getPixels(stampSrc, 0, stampSw, 0, 0, stampSw, stampSh);
+        stampW = stampSw;
+        stampFx = cellX;
+        stampFy = cellY;
+        invalidate();
+        if(stampListener != null) stampListener.run();
+    }
+
     /** Grows or shrinks the stamp around its center, keeping the proportions. */
     public void resizeStamp(int deltaCells) {
         if(stampSrc == null) return;
@@ -171,7 +186,48 @@ public class PixelCanvasView extends View {
     }
 
     public void setListener(Listener l) { listener = l; }
-    public void setTool(int t) { tool = t; }
+    public void setTool(int t) {
+        tool = t;
+        if(t != SELECT) clearSelection();
+    }
+
+    public boolean hasSelection() { return selOn; }
+
+    public void clearSelection() {
+        selOn = false;
+        selecting = false;
+        invalidate();
+    }
+
+    /**
+     * Lifts the selected area of the active layer into a stamp so it can be moved or resized.
+     * With cut = true the original pixels are erased (move), otherwise they stay (copy).
+     * Returns false when the selection holds no pixels.
+     */
+    public boolean liftSelection(boolean cut) {
+        if(!selOn || stampSrc != null) return false;
+        int x0 = Math.min(selAx, selBx), x1 = Math.max(selAx, selBx);
+        int y0 = Math.min(selAy, selBy), y1 = Math.max(selAy, selBy);
+        int w = x1 - x0 + 1, h = y1 - y0 + 1;
+        int[] px = new int[w * h];
+        boolean any = false;
+        for(int y = 0; y < h; y++) {
+            for(int x = 0; x < w; x++) {
+                int p = layers[active][(y0 + y) * gw + x0 + x];
+                px[y * w + x] = p;
+                if((p >>> 24) != 0) any = true;
+            }
+        }
+        if(!any) return false;
+        if(cut) {
+            pushUndo();
+            for(int y = y0; y <= y1; y++) for(int x = x0; x <= x1; x++) layers[active][y * gw + x] = 0;
+        }
+        Bitmap bmp = Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888);
+        selOn = false;
+        startStamp(bmp, x0, y0);
+        return true;
+    }
     public void setColor(int c) { color = c | 0xFF000000; }
     public int getColor() { return color; }
     public int getGridWidth() { return gw; }
@@ -289,6 +345,15 @@ public class PixelCanvasView extends View {
             canvas.drawRect(left + ox * cell, top + oy * cell, left + (ox + sw) * cell, top + (oy + sh) * cell, paint);
             paint.setStyle(Paint.Style.FILL);
         }
+        if(selOn && stampSrc == null && !preview) {
+            int sx0 = Math.min(selAx, selBx), sx1 = Math.max(selAx, selBx);
+            int sy0 = Math.min(selAy, selBy), sy1 = Math.max(selAy, selBy);
+            paint.setColor(AccentColor.get());
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f);
+            canvas.drawRect(left + sx0 * cell, top + sy0 * cell, left + (sx1 + 1) * cell, top + (sy1 + 1) * cell, paint);
+            paint.setStyle(Paint.Style.FILL);
+        }
         if(preview) return;
         if(showGrid && cell >= 4f) {
             paint.setColor(0x33FFFFFF);
@@ -340,6 +405,7 @@ public class PixelCanvasView extends View {
             }
             if(shaping && action == MotionEvent.ACTION_UP && !gesture) commitShape();
             shaping = false;
+            selecting = false;
             strokeActive = false;
             gesture = false;
             invalidate();
@@ -370,6 +436,14 @@ public class PixelCanvasView extends View {
                 if(p != 0) { color = p; if(listener != null) listener.colorPicked(p); }
                 return true;
             }
+            if(tool == SELECT) {
+                selOn = true;
+                selecting = true;
+                selAx = selBx = x;
+                selAy = selBy = y;
+                invalidate();
+                return true;
+            }
             pushUndo();
             strokeActive = true;
             if(tool == FILL) { fill(x, y); strokeActive = false; return true; }
@@ -380,6 +454,12 @@ public class PixelCanvasView extends View {
                 invalidate();
                 return true;
             }
+        }
+        if(selecting && action == MotionEvent.ACTION_MOVE) {
+            selBx = Math.max(0, Math.min(gw - 1, x));
+            selBy = Math.max(0, Math.min(gh - 1, y));
+            invalidate();
+            return true;
         }
         if(shaping && action == MotionEvent.ACTION_MOVE) {
             ex = Math.max(0, Math.min(gw - 1, x));

@@ -733,6 +733,11 @@
     <string name="fork_ctl_apply_all_message">Text, colors, border and opacity of this button will be copied to every button in this layout. Names, sizes, positions and images stay as they are.</string>
     <string name="fork_ctl_apply_all_done">Style applied to all buttons</string>
     <string name="fork_pixel_title">Pixel art</string>
+    <string name="fork_pixel_select">Select</string>
+    <string name="fork_pixel_sel_copy">Copy area</string>
+    <string name="fork_pixel_sel_move">Move area</string>
+    <string name="fork_pixel_sel_none">Drag over the canvas to select an area first</string>
+    <string name="fork_pixel_sel_empty">The selected area is empty</string>
     <string name="fork_pixel_pencil">Pencil</string>
     <string name="fork_pixel_eraser">Eraser</string>
     <string name="fork_pixel_fill">Fill</string>
@@ -840,4 +845,34 @@
     <string name="fork_pixel_stamp_apply">Place</string>
     <string name="fork_pixel_stamp_hint">Drag the image to move it, use + and - to resize, then press Place</string>
     <string name="fork_pixel_letters">Letters</string>
+    <string name="fork_extra_fps">Show FPS in game</string>
+    <string name="fork_extra_memory">Show memory usage in game</string>
+    <string name="fork_extra_grid">Snap controls to a grid while editing</string>
+    <string name="fork_fps_line">FPS: %1$d</string>
+    <string name="fork_fps_memory">RAM: %1$d MB</string>
+    <string name="fork_ctl_command_hint">Chat command to send (optional)</string>
+    <string name="fork_ctl_sequence_delay">Delay between keys (ms, default 130)</string>
+    <string name="fork_ctl_sequence">Press the keys one after another</string>
+    <string name="fork_pixel_color_quick">Color</string>
+    <string name="fork_pixel_text">Write text</string>
+    <string name="fork_pixel_text_hint">Text to stamp</string>
+    <string name="fork_diag_title">Share diagnostic report</string>
+    <string name="fork_diag_error">Could not create the report: %1$s</string>
+    <string name="fork_installs_search">Search installations</string>
+    <string name="fork_autobackup_restore">Restore the automatic backup</string>
+    <string name="fork_autobackup_none">There is no automatic backup yet. It is made when the app is updated.</string>
+    <string name="fork_autobackup_confirm">Restore themes, pixel arts, palettes, skins and controls from the backup made before the last update? Files with the same name are replaced.</string>
+    <string name="fork_autobackup_done">Backup restored</string>
+    <string-array name="fork_tips">
+        <item>Tap the banner to change it</item>
+        <item>Long-press Play to change its color</item>
+        <item>Open More options to show FPS and memory</item>
+        <item>Pixel art: select an area to copy or move it</item>
+        <item>Controls: a button can send a chat command</item>
+        <item>Controls: turn on the grid to align buttons</item>
+        <item>Skins: your offline account shows your skin head</item>
+        <item>Appearance lets you change accent, background and text colors</item>
+        <item>Back up your controls and skins from More options</item>
+        <item>Tap this tip to see another one</item>
+    </string-array>
 </resources>

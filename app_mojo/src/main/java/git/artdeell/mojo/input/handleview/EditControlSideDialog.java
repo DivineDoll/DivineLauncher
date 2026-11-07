@@ -84,7 +84,10 @@ public class EditControlSideDialog extends SideDialogView {
             mSizeXTextView, mStrokeWidthTextView, mColorSelectWarningTextView;
 
     // Text and effects section
-    private View mStyleGroup;
+    private View mStyleGroup, mActionGroup;
+    private EditText mCommandEditText;
+    private SwitchCompat mSequenceSwitch;
+    private EditText mSequenceDelayEditText;
     private TextView mSelectTextColor, mSelectPressedColor, mSelectImageTint, mTextSizeValue;
     private TextView mResetStyle, mApplyStyleToAll, mSelectPixelArt, mSelectIcon, mRemoveIcon;
     private ControlPreviewView mPreview;
@@ -196,6 +199,11 @@ public class EditControlSideDialog extends SideDialogView {
         setPercentageText(mStrokePercentTextView, (int) data.strokeWidth * 10);
         setPercentageText(mCornerRadiusPercentTextView, (int) data.cornerRadius);
 
+        mActionGroup.setVisibility(VISIBLE);
+        mCommandEditText.setText(data.commandText == null ? "" : data.commandText);
+        mSequenceSwitch.setChecked(data.sequence);
+        mSequenceDelayEditText.setText(data.sequenceDelay > 0 ? String.valueOf(data.sequenceDelay) : "");
+        mSequenceDelayEditText.setVisibility(data.sequence ? View.VISIBLE : View.GONE);
         mToggleSwitch.setChecked(data.isToggle);
         mPassthroughSwitch.setChecked(data.passThruEnabled);
         mSwipeableSwitch.setChecked(data.isSwipeable);
@@ -246,6 +254,7 @@ public class EditControlSideDialog extends SideDialogView {
 
         mOrientationTextView.setVisibility(VISIBLE);
         mOrientationSpinner.setVisibility(VISIBLE);
+        mActionGroup.setVisibility(GONE);
 
         mSwipeableSwitch.setVisibility(View.GONE);
         mPassthroughSwitch.setVisibility(View.GONE);
@@ -267,6 +276,7 @@ public class EditControlSideDialog extends SideDialogView {
         mNameTextView.setVisibility(GONE);
         mNameEditText.setVisibility(GONE);
         mStyleGroup.setVisibility(GONE);
+        mActionGroup.setVisibility(GONE);
 
         mCornerRadiusTextView.setVisibility(GONE);
         mCornerRadiusSeekbar.setVisibility(GONE);
@@ -395,6 +405,10 @@ public class EditControlSideDialog extends SideDialogView {
         mAlphaPercentTextView = mDialogContent.findViewById(R.id.editButtonOpacity_textView_percent);
         mCornerRadiusPercentTextView = mDialogContent.findViewById(R.id.editCornerRadius_textView_percent);
         mStyleGroup = mDialogContent.findViewById(R.id.editStyle_group);
+        mActionGroup = mDialogContent.findViewById(R.id.editAction_group);
+        mCommandEditText = mDialogContent.findViewById(R.id.editCommand_editText);
+        mSequenceSwitch = mDialogContent.findViewById(R.id.checkboxSequence);
+        mSequenceDelayEditText = mDialogContent.findViewById(R.id.editSequenceDelay_editText);
         mSelectTextColor = mDialogContent.findViewById(R.id.editTextColor_textView);
         mSelectPressedColor = mDialogContent.findViewById(R.id.editPressedColor_textView);
         mSelectImageTint = mDialogContent.findViewById(R.id.editImageTint_textView);
@@ -480,6 +494,21 @@ public class EditControlSideDialog extends SideDialogView {
         mSwipeableSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (internalChanges) return;
             mCurrentlyEditedButton.getProperties().isSwipeable = isChecked;
+        });
+        mCommandEditText.addTextChangedListener((SimpleTextWatcher) s -> {
+            if (internalChanges) return;
+            mCurrentlyEditedButton.getProperties().commandText = s.toString();
+        });
+        mSequenceSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (internalChanges) return;
+            mCurrentlyEditedButton.getProperties().sequence = isChecked;
+            mSequenceDelayEditText.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+        mSequenceDelayEditText.addTextChangedListener((SimpleTextWatcher) s -> {
+            if (internalChanges) return;
+            int value = 0;
+            try { value = Integer.parseInt(s.toString().trim()); } catch (NumberFormatException ignored) {}
+            mCurrentlyEditedButton.getProperties().sequenceDelay = value;
         });
         mToggleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (internalChanges) return;

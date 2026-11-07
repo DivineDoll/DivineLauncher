@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import android.net.Uri;
@@ -101,6 +102,16 @@ public class MainMenuFragment extends Fragment {
         mBannerView.setOnClickListener(v -> BannerManager.showChooser(requireContext(),
                 () -> mBannerPicker.launch("image/*"), this::refreshBanner));
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
+        TextView tipView = view.findViewById(R.id.launcher_tip);
+        if(tipView != null) {
+            String[] tips = getResources().getStringArray(R.array.fork_tips);
+            int[] index = {new java.util.Random().nextInt(tips.length)};
+            tipView.setText(tips[index[0]]);
+            tipView.setOnClickListener(v -> {
+                index[0] = (index[0] + 1) % tips.length;
+                tipView.setText(tips[index[0]]);
+            });
+        }
 
         mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
         mModsButton.setOnClickListener(v -> {

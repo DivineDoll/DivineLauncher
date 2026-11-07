@@ -542,6 +542,11 @@
     <string name="fork_ctl_apply_all_message">El texto, los colores, el borde y la opacidad de este botón se copiarán a todos los botones de este diseño. Los nombres, tamaños, posiciones e imágenes no cambian.</string>
     <string name="fork_ctl_apply_all_done">Estilo aplicado a todos los botones</string>
     <string name="fork_pixel_title">Pixel art</string>
+    <string name="fork_pixel_select">Seleccionar</string>
+    <string name="fork_pixel_sel_copy">Copiar zona</string>
+    <string name="fork_pixel_sel_move">Mover zona</string>
+    <string name="fork_pixel_sel_none">Primero arrastra sobre el lienzo para elegir una zona</string>
+    <string name="fork_pixel_sel_empty">La zona elegida está vacía</string>
     <string name="fork_pixel_pencil">Lápiz</string>
     <string name="fork_pixel_eraser">Borrar</string>
     <string name="fork_pixel_fill">Relleno</string>
@@ -649,4 +654,34 @@
     <string name="fork_pixel_stamp_apply">Colocar</string>
     <string name="fork_pixel_stamp_hint">Arrastra la imagen para moverla, usa + y - para el tamaño y pulsa Colocar</string>
     <string name="fork_pixel_letters">Letras</string>
+    <string name="fork_extra_fps">Mostrar FPS en el juego</string>
+    <string name="fork_extra_memory">Mostrar uso de memoria en el juego</string>
+    <string name="fork_extra_grid">Pegar los controles a una cuadrícula al editar</string>
+    <string name="fork_fps_line">FPS: %1$d</string>
+    <string name="fork_fps_memory">RAM: %1$d MB</string>
+    <string name="fork_ctl_command_hint">Comando de chat a enviar (opcional)</string>
+    <string name="fork_ctl_sequence_delay">Retraso entre teclas (ms, por defecto 130)</string>
+    <string name="fork_ctl_sequence">Pulsar las teclas una tras otra</string>
+    <string name="fork_pixel_color_quick">Color</string>
+    <string name="fork_pixel_text">Escribir texto</string>
+    <string name="fork_pixel_text_hint">Texto a estampar</string>
+    <string name="fork_diag_title">Compartir reporte de diagnóstico</string>
+    <string name="fork_diag_error">No se pudo crear el reporte: %1$s</string>
+    <string name="fork_installs_search">Buscar instalaciones</string>
+    <string name="fork_autobackup_restore">Restaurar el respaldo automático</string>
+    <string name="fork_autobackup_none">Todavía no hay respaldo automático. Se hace cuando se actualiza la app.</string>
+    <string name="fork_autobackup_confirm">¿Restaurar temas, pixel arts, paletas, skins y controles desde el respaldo hecho antes de la última actualización? Se reemplazan los archivos con el mismo nombre.</string>
+    <string name="fork_autobackup_done">Respaldo restaurado</string>
+    <string-array name="fork_tips">
+        <item>Toca el banner para cambiarlo</item>
+        <item>Mantén pulsado Jugar para cambiar su color</item>
+        <item>Abre Más opciones para ver FPS y memoria</item>
+        <item>Pixel art: selecciona una zona para copiarla o moverla</item>
+        <item>Controles: un botón puede enviar un comando de chat</item>
+        <item>Controles: activa la cuadrícula para alinear botones</item>
+        <item>Skins: tu cuenta sin conexión muestra la cabeza de tu skin</item>
+        <item>Apariencia permite cambiar acento, fondo y colores de texto</item>
+        <item>Respalda tus controles y skins desde Más opciones</item>
+        <item>Toca este consejo para ver otro</item>
+    </string-array>
 </resources>

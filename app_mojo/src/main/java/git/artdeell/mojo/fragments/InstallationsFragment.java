@@ -31,6 +31,8 @@ public class InstallationsFragment extends Fragment {
     public static final String TAG = "InstallationsFragment";
 
     private LinearLayout mList;
+    private Instances mLastInstances;
+    private String mFilter = "";
 
     @Nullable
     @Override
@@ -53,6 +55,19 @@ public class InstallationsFragment extends Fragment {
         TextView hint = ForkUi.text(c, getString(R.string.fork_installs_hint), 13, false);
         hint.setPadding(0, ForkUi.dp(c, 4), 0, ForkUi.dp(c, 8));
         root.addView(hint);
+
+        android.widget.EditText search = new android.widget.EditText(c);
+        search.setHint(R.string.fork_installs_search);
+        search.setSingleLine(true);
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(android.text.Editable s) {
+                mFilter = s.toString().trim().toLowerCase(java.util.Locale.ROOT);
+                if(mLastInstances != null) show(mLastInstances);
+            }
+        });
+        root.addView(search);
 
         ScrollView scroll = new ScrollView(c);
         mList = new LinearLayout(c);
@@ -82,10 +97,11 @@ public class InstallationsFragment extends Fragment {
     private void show(Instances instances) {
         Context c = getContext();
         if(c == null || mList == null) return;
+        mLastInstances = instances;
         mList.removeAllViews();
         java.util.List<Integer> order = new java.util.ArrayList<>();
-        for(int i = 0; i < instances.list.size(); i++) if(isFavorite(instances.list.get(i))) order.add(i);
-        for(int i = 0; i < instances.list.size(); i++) if(!isFavorite(instances.list.get(i))) order.add(i);
+        for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && isFavorite(instances.list.get(i))) order.add(i);
+        for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && !isFavorite(instances.list.get(i))) order.add(i);
         for(int i : order) {
             DisplayInstance instance = instances.list.get(i);
             boolean selected = i == instances.selectedIndex;
@@ -146,6 +162,12 @@ public class InstallationsFragment extends Fragment {
 
     private static final String FAVORITE_PREFIX = "inst_fav_";
     private static final String ICON_PREFIX = "inst_icon_";
+
+    private boolean matches(DisplayInstance instance) {
+        if(mFilter.isEmpty()) return true;
+        String text = (String.valueOf(instance.name) + " " + instance.versionId).toLowerCase(java.util.Locale.ROOT);
+        return text.contains(mFilter);
+    }
 
     private static boolean isFavorite(DisplayInstance instance) {
         return git.artdeell.mojo.prefs.LauncherPreferences.DEFAULT_PREF.getBoolean(FAVORITE_PREFIX + instance.name, false);

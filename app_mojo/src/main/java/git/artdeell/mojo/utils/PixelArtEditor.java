@@ -179,6 +179,14 @@ public class PixelArtEditor {
         return null;
     }
 
+    private static void liftSelection(Context c, PixelCanvasView canvas, boolean cut) {
+        if(!canvas.hasSelection()) {
+            Toast.makeText(c, R.string.fork_pixel_sel_none, Toast.LENGTH_SHORT).show();
+        } else if(!canvas.liftSelection(cut)) {
+            Toast.makeText(c, R.string.fork_pixel_sel_empty, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private static Button toggle(Context c, int label, boolean on) {
         Button b = ForkUi.button(c, c.getString(label), on);
         b.setTextSize(11);
@@ -211,9 +219,9 @@ public class PixelArtEditor {
         side.addView(ForkUi.text(c, c.getString(R.string.fork_pixel_title), 16, true));
 
         int[] toolIds = {PixelCanvasView.PENCIL, PixelCanvasView.ERASER, PixelCanvasView.FILL, PixelCanvasView.PICK,
-                PixelCanvasView.LINE, PixelCanvasView.RECT, PixelCanvasView.CIRCLE};
+                PixelCanvasView.LINE, PixelCanvasView.RECT, PixelCanvasView.CIRCLE, PixelCanvasView.SELECT};
         int[] toolNames = {R.string.fork_pixel_pencil, R.string.fork_pixel_eraser, R.string.fork_pixel_fill, R.string.fork_pixel_pick,
-                R.string.fork_pixel_line, R.string.fork_pixel_rect, R.string.fork_pixel_circle};
+                R.string.fork_pixel_line, R.string.fork_pixel_rect, R.string.fork_pixel_circle, R.string.fork_pixel_select};
         Button[] toolButtons = new Button[toolIds.length];
         LinearLayout toolRow1 = ForkUi.row(c), toolRow2 = ForkUi.row(c);
         for(int i = 0; i < toolIds.length; i++) {
@@ -228,6 +236,15 @@ public class PixelArtEditor {
         }
         side.addView(toolRow1);
         side.addView(toolRow2);
+
+        LinearLayout selectRow = ForkUi.row(c);
+        Button selCopy = ForkUi.button(c, c.getString(R.string.fork_pixel_sel_copy), false);
+        Button selMove = ForkUi.button(c, c.getString(R.string.fork_pixel_sel_move), false);
+        selCopy.setOnClickListener(v -> liftSelection(c, canvas, false));
+        selMove.setOnClickListener(v -> liftSelection(c, canvas, true));
+        selectRow.addView(selCopy, ForkUi.weight(1f));
+        selectRow.addView(selMove, ForkUi.weight(1f));
+        side.addView(selectRow);
 
         LinearLayout options = ForkUi.row(c);
         Button mirror = toggle(c, R.string.fork_pixel_mirror, false);
@@ -310,6 +327,34 @@ public class PixelArtEditor {
         Button floatUndo = ForkUi.button(c, c.getString(R.string.fork_pixel_undo), false);
         floatUndo.setOnClickListener(v -> canvas.undo());
         Button floatExit = ForkUi.button(c, c.getString(R.string.fork_pixel_preview_exit), true);
+        Button floatPencil = ForkUi.button(c, c.getString(R.string.fork_pixel_pencil), false);
+        floatPencil.setOnClickListener(v -> canvas.setTool(PixelCanvasView.PENCIL));
+        Button floatEraser = ForkUi.button(c, c.getString(R.string.fork_pixel_eraser), false);
+        floatEraser.setOnClickListener(v -> canvas.setTool(PixelCanvasView.ERASER));
+        Button floatColor = ForkUi.button(c, c.getString(R.string.fork_pixel_color_quick), false);
+        floatColor.setOnClickListener(v -> {
+            android.widget.GridLayout grid = new android.widget.GridLayout(c);
+            grid.setColumnCount(4);
+            AlertDialog colorDialog = new AlertDialog.Builder(c).setView(grid).create();
+            for(int i = 0; i < palette.length; i++) {
+                final int index = i;
+                View swatch = new View(c);
+                swatch.setBackground(ForkUi.box(c, palette[i], 0xFFFFFFFF, 1));
+                swatch.setOnClickListener(x -> {
+                    canvas.setColor(palette[index]);
+                    colorDialog.dismiss();
+                });
+                android.widget.GridLayout.LayoutParams lp = new android.widget.GridLayout.LayoutParams();
+                lp.width = ForkUi.dp(c, 52);
+                lp.height = ForkUi.dp(c, 52);
+                lp.setMargins(ForkUi.dp(c, 3), ForkUi.dp(c, 3), ForkUi.dp(c, 3), ForkUi.dp(c, 3));
+                grid.addView(swatch, lp);
+            }
+            colorDialog.show();
+        });
+        floating.addView(floatPencil);
+        floating.addView(floatEraser);
+        floating.addView(floatColor);
         floating.addView(floatUndo);
         floating.addView(floatExit);
         overlay[0] = floating;
@@ -448,10 +493,29 @@ public class PixelArtEditor {
             android.widget.GridLayout grid = new android.widget.GridLayout(c);
             grid.setColumnCount(6);
             ScrollView letterScroll = new ScrollView(c);
-            letterScroll.addView(grid);
+            LinearLayout letterBox = new LinearLayout(c);
+            letterBox.setOrientation(LinearLayout.VERTICAL);
+            letterBox.addView(grid);
+            letterScroll.addView(letterBox);
             AlertDialog letterDialog = new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_letters).setView(letterScroll).show();
+            Button writeText = ForkUi.button(c, c.getString(R.string.fork_pixel_text), true);
+            writeText.setOnClickListener(x -> {
+                letterDialog.dismiss();
+                EditText input = new EditText(c);
+                input.setHint(R.string.fork_pixel_text_hint);
+                input.setSingleLine(true);
+                new AlertDialog.Builder(c).setTitle(R.string.fork_pixel_text).setView(input)
+                        .setPositiveButton(android.R.string.ok, (d, w) -> {
+                            if(input.getText().length() == 0) return;
+                            canvas.startStamp(PixelFont.text(input.getText().toString(), canvas.getColor()));
+                            Toast.makeText(c, R.string.fork_pixel_stamp_hint, Toast.LENGTH_LONG).show();
+                        })
+                        .setNegativeButton(android.R.string.cancel, null).show();
+            });
+            letterBox.addView(writeText, 0);
             for(int i = 0; i < PixelFont.CHARS.length(); i++) {
                 char ch = PixelFont.CHARS.charAt(i);
+                if(ch == ' ') continue;
                 Button b = ForkUi.button(c, String.valueOf(ch), false);
                 b.setMinWidth(0);
                 b.setMinimumWidth(0);

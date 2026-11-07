@@ -65,6 +65,25 @@
         app:layout_constraintStart_toStartOf="@id/bedrock_banner"
         app:layout_constraintTop_toTopOf="@id/bedrock_banner" />
 
+    <TextView
+        android:id="@+id/launcher_tip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_6sdp"
+        android:fontFamily="@font/minecraft_regular"
+        android:gravity="center"
+        android:paddingStart="@dimen/_8sdp"
+        android:paddingEnd="@dimen/_8sdp"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:textColor="#FFFF55"
+        android:textSize="@dimen/_10ssp"
+        app:layout_constraintBottom_toBottomOf="@id/bedrock_banner"
+        app:layout_constraintEnd_toEndOf="@id/bedrock_banner"
+        app:layout_constraintStart_toStartOf="@id/bedrock_banner" />
+
     <ScrollView
         android:id="@+id/sidebar_scroll"
         android:layout_width="0dp"

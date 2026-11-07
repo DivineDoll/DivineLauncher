@@ -58,7 +58,7 @@ public class TextureViewSurfaceProvider implements SurfaceProvider {
 
         @Override
         public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surfaceTexture) {
-
+            git.artdeell.mojo.utils.FpsOverlay.onFrame();
         }
     }
 }

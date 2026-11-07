@@ -208,11 +208,13 @@ public class ControlLayout extends FrameLayout {
 		ControlDrawerData pack = new ControlDrawerData();
 		pack.properties.name = getContext().getString(R.string.fork_ctl_pack_name);
 		pack.properties.bitmapTag = packBitmapKey();
+		pack.properties.setWidth(Tools.dpToPx(190f));
+		pack.properties.setHeight(Tools.dpToPx(36f));
 		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
 				getContext().getString(R.string.fork_ctl_pack_emotes)};
 		int[] keys = {292, 258, 66};
 		for(int i = 0; i < names.length; i++) {
-			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 120f, 34f);
+			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 190f, 36f);
 			button.bitmapTag = packBitmapKey();
 			pack.buttonProperties.add(button);
 		}

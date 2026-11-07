@@ -147,7 +147,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         mGyroControl = new GyroControl(this);
 
         // Enabling this on TextureView results in a broken white result
-        if(PREF_USE_ALTERNATE_SURFACE) getWindow().setBackgroundDrawable(null);
+        if(git.artdeell.mojo.utils.FpsOverlay.useSurfaceView()) getWindow().setBackgroundDrawable(null);
         else getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
 
         // Set the sustained performance mode for available APIs
@@ -226,6 +226,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     protected void initLayout(int resId) {
         setContentView(resId);
         bindValues();
+        git.artdeell.mojo.utils.FpsOverlay.attach(this);
         mControlLayout.setMenuListener(this);
 
         mDrawerPullButton.setOnClickListener(v -> onClickedMenu());

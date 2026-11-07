@@ -21,6 +21,13 @@ public class BackupManager {
     /** Builds the backup and copies it to Downloads. Returns the file name. Blocking. */
     public static String export(Context c) throws Exception {
         File zip = new File(c.getCacheDir(), "mojo-backup.zip");
+        writeZip(c, zip);
+        String name = OnlineSkins.exportToDownloads(c, zip, "application/zip");
+        zip.delete();
+        return name;
+    }
+
+    private static void writeZip(Context c, File zip) throws Exception {
         try(ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip))) {
             put(out, "theme.json", ThemeManager.currentAsJson().getBytes(StandardCharsets.UTF_8));
             addFolder(out, ThemeManager.directory(c), "themes/", ".json");
@@ -30,9 +37,17 @@ public class BackupManager {
             addFolder(out, new File(c.getFilesDir(), "offline_skins"), "skins/offline/", ".png");
             if(git.artdeell.mojo.Tools.CTRLMAP_PATH != null) addFolder(out, new File(git.artdeell.mojo.Tools.CTRLMAP_PATH), "controls/", ".json");
         }
-        String name = OnlineSkins.exportToDownloads(c, zip, "application/zip");
-        zip.delete();
-        return name;
+    }
+
+    public static File autoBackupFile(Context c) {
+        return new File(c.getFilesDir(), "auto_backup.zip");
+    }
+
+    /** Keeps one copy in the app folder, made before the launcher presets are rewritten after an update. */
+    public static void autoBackup(Context c) {
+        try {
+            writeZip(c, autoBackupFile(c));
+        } catch (Exception ignored) {}
     }
 
     private static void addFolder(ZipOutputStream out, File dir, String prefix, String ext) throws IOException {

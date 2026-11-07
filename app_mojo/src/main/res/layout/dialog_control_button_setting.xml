@@ -668,13 +668,46 @@
             android:text="@string/fork_ctl_apply_all" />
     </LinearLayout>
 
+    <!-- Chat command and key sequence -->
+    <LinearLayout
+        android:id="@+id/editAction_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/editStyle_group">
+
+        <EditText
+            android:id="@+id/editCommand_editText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/fork_ctl_command_hint"
+            android:imeOptions="flagNoExtractUi"
+            android:maxLines="1" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/checkboxSequence"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_36sdp"
+            android:text="@string/fork_ctl_sequence" />
+
+        <EditText
+            android:id="@+id/editSequenceDelay_editText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/fork_ctl_sequence_delay"
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="number"
+            android:maxLength="4"
+            android:maxLines="1" />
+    </LinearLayout>
+
     <!-- Button visibility -->
     <TextView
         android:id="@+id/visibility_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/customctrl_visibility_title"
-        app:layout_constraintTop_toBottomOf="@+id/editStyle_group"
+        app:layout_constraintTop_toBottomOf="@+id/editAction_group"
         tools:layout_editor_absoluteX="6dp" />
 
     <CheckBox
