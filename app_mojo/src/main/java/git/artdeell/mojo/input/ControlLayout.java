@@ -207,24 +207,27 @@ public class ControlLayout extends FrameLayout {
 	public void addOptionPack() {
 		ControlDrawerData pack = new ControlDrawerData();
 		pack.properties.name = getContext().getString(R.string.fork_ctl_pack_name);
-		pack.properties.bitmapTag = packBitmapKey();
-		pack.orientation = ControlDrawerData.Orientation.DOWN;
+		pack.properties.bitmapTag = packBitmapKey(true);
+		pack.properties.textColor = 0xFF000000;
 		pack.properties.setWidth(Tools.dpToPx(190f));
-		pack.properties.setHeight(Tools.dpToPx(36f));
+		pack.properties.setHeight(Tools.dpToPx(40f));
+		pack.orientation = ControlDrawerData.Orientation.DOWN;
 		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
 				getContext().getString(R.string.fork_ctl_pack_emotes)};
 		int[] keys = {292, 258, 66};
 		for(int i = 0; i < names.length; i++) {
-			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 190f, 36f);
-			button.bitmapTag = packBitmapKey();
+			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 190f, 40f);
+			button.bitmapTag = packBitmapKey(false);
+			button.textColor = 0xFF000000;
+			button.textLeft = true;
 			pack.buttonProperties.add(button);
 		}
 		addDrawer(pack);
 	}
 
-	private String packBitmapKey() {
-		android.graphics.Bitmap template = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.pixel_template_button);
-		return getBitmaps().putBitmap(template.copy(android.graphics.Bitmap.Config.ARGB_8888, false), null);
+	private String packBitmapKey(boolean blue) {
+		android.graphics.Bitmap texture = git.artdeell.mojo.utils.PackTexture.make(getContext(), (int) Tools.dpToPx(190f), (int) Tools.dpToPx(40f), blue);
+		return getBitmaps().putBitmap(texture, null);
 	}
 
 	public void addDrawer(ControlDrawerData drawerData){

@@ -121,6 +121,14 @@ public class ControlButton extends TextView implements ControlInterface {
         setText(properties.name);
         setTextColor(properties.textColor != 0 ? properties.textColor : Color.WHITE);
         setTextSize(properties.textSize > 0 ? properties.textSize : 14);
+        if(properties.textLeft) {
+            setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            setPadding((int) (12 * getResources().getDisplayMetrics().density), 4, 4, 4);
+            setTypeface(git.artdeell.mojo.utils.McStyle.font(getContext()));
+        } else {
+            setGravity(Gravity.CENTER);
+            setPadding(4, 4, 4, 4);
+        }
     }
 
     /** Draws the small icon over the background and under the text, with square pixels. */

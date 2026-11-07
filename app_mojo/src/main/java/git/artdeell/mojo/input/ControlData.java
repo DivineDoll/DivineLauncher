@@ -76,6 +76,8 @@ public class ControlData {
     public boolean sequence;
     /** Milliseconds between keys of a sequence, 0 = default (130). */
     public int sequenceDelay;
+    /** Text aligned to the left with the game font, as in the buttons of an option pack. */
+    public boolean textLeft;
     /** Color of the pressed or toggled layer, 0 = default */
     public int pressedColor;
     /** Color mixed into the background image, 0 = no tint */
@@ -176,6 +178,7 @@ public class ControlData {
         this.commandText = controlData.commandText;
         this.sequence = controlData.sequence;
         this.sequenceDelay = controlData.sequenceDelay;
+        this.textLeft = controlData.textLeft;
     }
 
     /** Copies only the look of another button: text, colors and effects */
