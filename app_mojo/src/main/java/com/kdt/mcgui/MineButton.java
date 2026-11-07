@@ -25,4 +25,10 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 		setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));
 	}
 
+
+    @Override
+    public boolean performClick() {
+        git.artdeell.mojo.utils.ClickSound.play();
+        return super.performClick();
+    }
 }

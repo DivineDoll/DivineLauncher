@@ -63,7 +63,7 @@ public class ForkUi {
 
     /** In-game style button. green = the main action (Play color), otherwise gray. */
     public static Button button(Context c, CharSequence label, boolean green) {
-        Button b = new Button(c);
+        Button b = new ClickSound.SoundButton(c);
         b.setText(label);
         McStyle.button(b, green);
         b.setMinHeight(dp(c, 40));

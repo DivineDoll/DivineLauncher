@@ -203,6 +203,27 @@ public class ControlLayout extends FrameLayout {
 	}
 
 	// CONTROL DRAWER
+	/** Adds a drawer with a few ready buttons that use the pixel button as their background. */
+	public void addOptionPack() {
+		ControlDrawerData pack = new ControlDrawerData();
+		pack.properties.name = getContext().getString(R.string.fork_ctl_pack_name);
+		pack.properties.bitmapTag = packBitmapKey();
+		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
+				getContext().getString(R.string.fork_ctl_pack_emotes)};
+		int[] keys = {292, 258, 66};
+		for(int i = 0; i < names.length; i++) {
+			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 120f, 34f);
+			button.bitmapTag = packBitmapKey();
+			pack.buttonProperties.add(button);
+		}
+		addDrawer(pack);
+	}
+
+	private String packBitmapKey() {
+		android.graphics.Bitmap template = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.pixel_template_button);
+		return getBitmaps().putBitmap(template.copy(android.graphics.Bitmap.Config.ARGB_8888, false), null);
+	}
+
 	public void addDrawer(ControlDrawerData drawerData){
 		rememberState();
 		mLayout.mDrawerDataList.add(drawerData);

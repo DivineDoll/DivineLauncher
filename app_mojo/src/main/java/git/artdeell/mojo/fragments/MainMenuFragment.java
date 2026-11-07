@@ -203,7 +203,7 @@ public class MainMenuFragment extends Fragment {
         String[] items = {getString(R.string.fork_banner_pick_title), getString(R.string.fork_play_color_title),
                 getString(R.string.fork_accent_title), getString(R.string.fork_bg_color_title),
                 getString(R.string.fork_sidebar_color_title), getString(R.string.fork_pixel_menu),
-                getString(R.string.fork_theme_menu), getString(R.string.fork_colors_reset_all)};
+                getString(R.string.fork_theme_menu), getString(R.string.fork_text_color_title), getString(R.string.fork_extra_menu), getString(R.string.fork_colors_reset_all)};
         Runnable recreate = () -> requireActivity().recreate();
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.fork_appearance_title)
@@ -228,6 +228,12 @@ public class MainMenuFragment extends Fragment {
                         git.artdeell.mojo.utils.PixelArtEditor.show(c);
                     } else if(which == 6) {
                         git.artdeell.mojo.utils.ThemeManager.show(c, recreate, () -> mThemePicker.launch("*/*"));
+                    } else if(which == 7) {
+                        git.artdeell.mojo.utils.ColorPicker.show(c, R.string.fork_text_color_title,
+                                git.artdeell.mojo.utils.ThemeColors.text(), git.artdeell.mojo.utils.ThemeColors.DEFAULT_TEXT,
+                                color -> { git.artdeell.mojo.utils.ThemeColors.set(git.artdeell.mojo.utils.ThemeColors.PREF_TEXT, color); recreate.run(); });
+                    } else if(which == 8) {
+                        git.artdeell.mojo.utils.ExtraOptions.show(c, this::refreshBanner);
                     } else {
                         git.artdeell.mojo.utils.ThemeColors.resetAll();
                         recreate.run();

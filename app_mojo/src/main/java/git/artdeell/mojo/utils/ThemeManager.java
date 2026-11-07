@@ -29,7 +29,7 @@ import git.artdeell.mojo.prefs.LauncherPreferences;
  * small .json file and import one made by someone else.
  */
 public class ThemeManager {
-    private static final String[] KEYS = {AccentColor.PREF, PlayColor.PREF, ThemeColors.PREF_BACKGROUND, ThemeColors.PREF_SIDEBAR};
+    private static final String[] KEYS = {AccentColor.PREF, PlayColor.PREF, ThemeColors.PREF_BACKGROUND, ThemeColors.PREF_SIDEBAR, ThemeColors.PREF_TEXT};
 
     private static final int[][] PRESETS = {
             {0xFF52A535, 0xFF3C8527, 0xFF1E1E1E, 0xFF262626},

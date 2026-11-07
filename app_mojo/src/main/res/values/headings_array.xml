@@ -20,6 +20,7 @@
         <item name="6">@string/customctrl_export</item>
         <item name="7">@string/customctrl_undo</item>
         <item name="8">@string/customctrl_redo</item>
+        <item name="9">@string/fork_ctl_pack_menu</item>
     </string-array>
 
     <string-array name="menu_ingame">

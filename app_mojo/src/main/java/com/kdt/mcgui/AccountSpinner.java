@@ -327,16 +327,29 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
                 authType = ResourcesCompat.getDrawable(resources, authTypeResource, theme);
             }
 
-            int headCacheHash = System.identityHashCode(account);
-            BitmapDrawable accountHead = mSkinHeadCache.get(headCacheHash);
-            if (accountHead == null){
-                Bitmap accountSkinFace = account.getSkinFace();
-                accountHead = new BitmapDrawable(resources, accountSkinFace);
-                mSkinHeadCache.put(headCacheHash, accountHead);
-            }
+            BitmapDrawable accountHead = headFor(account, resources);
 
             textview.setText(account.username);
             textview.setCompoundDrawablesRelative(accountHead, null, authType, null);
+        }
+
+        /** Face of the account: downloaded for online accounts, drawn from the chosen skin file for offline ones. */
+        private BitmapDrawable headFor(Account account, Resources resources) {
+            java.io.File offlineSkin = account.isLocal()
+                    ? git.artdeell.mojo.authenticator.accounts.OfflineSkin.getSkinFile(getContext(), account) : null;
+            int key = System.identityHashCode(account) * 31 + (offlineSkin != null ? Long.hashCode(offlineSkin.lastModified()) : 0);
+            BitmapDrawable head = mSkinHeadCache.get(key);
+            if(head != null) return head;
+            Bitmap face;
+            if(offlineSkin != null) {
+                Bitmap skin = git.artdeell.mojo.authenticator.accounts.SkinLibrary.loadFile(offlineSkin);
+                face = skin == null ? null : new git.artdeell.mojo.authenticator.accounts.SkinHeadRenderer().render(100, skin);
+            } else {
+                face = account.getSkinFace();
+            }
+            head = new BitmapDrawable(resources, face);
+            if(face != null) mSkinHeadCache.put(key, head);
+            return head;
         }
 
         private void showDeleteDialog(Context context, int position) {

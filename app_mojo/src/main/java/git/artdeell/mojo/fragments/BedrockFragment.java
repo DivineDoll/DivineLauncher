@@ -123,7 +123,7 @@ public class BedrockFragment extends Fragment {
         Context c = requireContext();
         String[] items = {getString(R.string.fork_accent_title), getString(R.string.fork_bg_color_title),
                 getString(R.string.fork_sidebar_color_title), getString(R.string.fork_play_color_title),
-                getString(R.string.fork_theme_menu)};
+                getString(R.string.fork_theme_menu), getString(R.string.fork_text_color_title), getString(R.string.fork_extra_menu)};
         new AlertDialog.Builder(c).setTitle(R.string.fork_appearance_title).setItems(items, (d, which) -> {
             Runnable recreate = () -> requireActivity().recreate();
             if(which == 0) AccentColor.choose(c, recreate);
@@ -132,7 +132,10 @@ public class BedrockFragment extends Fragment {
             else if(which == 2) ColorPicker.show(c, R.string.fork_sidebar_color_title, ThemeColors.sidebar(),
                     ThemeColors.DEFAULT_SIDEBAR, color -> { ThemeColors.set(ThemeColors.PREF_SIDEBAR, color); recreate.run(); });
             else if(which == 3) PlayColor.choose(c, recreate);
-            else git.artdeell.mojo.utils.ThemeManager.show(c, recreate, () -> mThemePicker.launch("*/*"));
+            else if(which == 4) git.artdeell.mojo.utils.ThemeManager.show(c, recreate, () -> mThemePicker.launch("*/*"));
+            else if(which == 6) git.artdeell.mojo.utils.ExtraOptions.show(c, null);
+            else ColorPicker.show(c, R.string.fork_text_color_title, ThemeColors.text(), ThemeColors.DEFAULT_TEXT,
+                    color -> { ThemeColors.set(ThemeColors.PREF_TEXT, color); recreate.run(); });
         }).show();
     }
 

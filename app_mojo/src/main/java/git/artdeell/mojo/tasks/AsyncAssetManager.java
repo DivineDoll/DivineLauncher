@@ -66,10 +66,18 @@ public class AsyncAssetManager {
         sExecutorService.execute(() -> {
             try {
                 Tools.copyAssetFile(ctx, "default.json", Tools.CTRLMAP_PATH, false);
+                long installedAt = 0;
+                try {
+                    installedAt = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).lastUpdateTime;
+                } catch(Exception ignored) {}
+                android.content.SharedPreferences copied = ctx.getSharedPreferences("preset_copy", Context.MODE_PRIVATE);
+                boolean upToDate = installedAt != 0 && copied.getLong("installed_at", 0) == installedAt;
                 for(String preset : new String[]{"Bedrock_Tocar", "Bedrock_Cruz_filar", "Bedrock_Clasico"}) {
-                    // Always overwrite: presets are ours, users should "Save as" to customize them
+                    // Presets are ours and are rewritten only after the app was updated; users should "Save as" to customize them
+                    if(upToDate && new java.io.File(Tools.CTRLMAP_PATH, preset + ".json").exists()) continue;
                     Tools.copyAssetFile(ctx, "controls/" + preset + ".json", Tools.CTRLMAP_PATH, true);
                 }
+                if(installedAt != 0) copied.edit().putLong("installed_at", installedAt).apply();
                 Tools.copyAssetFile(ctx, "launcher_profiles.json", Tools.DIR_GAME_NEW, false);
                 Tools.copyAssetFile(ctx,"resolv.conf",Tools.DIR_DATA, false);
             } catch (IOException e) {

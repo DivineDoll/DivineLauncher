@@ -8,6 +8,8 @@ import git.artdeell.mojo.prefs.LauncherPreferences;
 public class ThemeColors {
     public static final String PREF_BACKGROUND = "bg_color";
     public static final String PREF_SIDEBAR = "sidebar_color";
+    public static final String PREF_TEXT = "text_color";
+    public static final int DEFAULT_TEXT = 0xFFFFFFFF;
     public static final int DEFAULT_BACKGROUND = 0xFF1E1E1E;
     public static final int DEFAULT_SIDEBAR = 0xFF262626;
 
@@ -21,6 +23,10 @@ public class ThemeColors {
 
     public static int background() {
         return get(PREF_BACKGROUND, DEFAULT_BACKGROUND);
+    }
+
+    public static int text() {
+        return get(PREF_TEXT, DEFAULT_TEXT) | 0xFF000000;
     }
 
     public static int sidebar() {
@@ -44,7 +50,7 @@ public class ThemeColors {
 
     public static void resetAll() {
         LauncherPreferences.DEFAULT_PREF.edit()
-                .remove(PREF_BACKGROUND).remove(PREF_SIDEBAR)
+                .remove(PREF_BACKGROUND).remove(PREF_SIDEBAR).remove(PREF_TEXT)
                 .remove(AccentColor.PREF).remove(PlayColor.PREF).apply();
     }
 }

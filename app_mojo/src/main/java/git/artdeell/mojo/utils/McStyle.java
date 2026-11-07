@@ -111,7 +111,7 @@ public class McStyle {
                 TextView t = (TextView) super.getView(position, convertView, parent);
                 text(t);
                 float d = getContext().getResources().getDisplayMetrics().density;
-                t.setTextColor(Color.WHITE);
+                t.setTextColor(ThemeColors.text());
                 t.setTextSize(15);
                 t.setPadding((int) (16 * d), (int) (14 * d), (int) (12 * d), (int) (14 * d));
                 t.setMinHeight((int) (52 * d));
@@ -153,7 +153,7 @@ public class McStyle {
         text(b);
         b.setTextColor(new ColorStateList(
                 new int[][]{{-android.R.attr.state_enabled}, {}},
-                new int[]{0xFF777777, Color.WHITE}));
+                new int[]{0xFF777777, ThemeColors.text()}));
         b.setAllCaps(false);
     }
 

@@ -83,7 +83,10 @@ public class InstallationsFragment extends Fragment {
         Context c = getContext();
         if(c == null || mList == null) return;
         mList.removeAllViews();
-        for(int i = 0; i < instances.list.size(); i++) {
+        java.util.List<Integer> order = new java.util.ArrayList<>();
+        for(int i = 0; i < instances.list.size(); i++) if(isFavorite(instances.list.get(i))) order.add(i);
+        for(int i = 0; i < instances.list.size(); i++) if(!isFavorite(instances.list.get(i))) order.add(i);
+        for(int i : order) {
             DisplayInstance instance = instances.list.get(i);
             boolean selected = i == instances.selectedIndex;
 
@@ -92,8 +95,15 @@ public class InstallationsFragment extends Fragment {
                     selected ? git.artdeell.mojo.utils.AccentColor.get() : 0xFF111111, selected ? 2 : 1));
             row.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 8), ForkUi.dp(c, 10));
 
+            android.widget.ImageView icon = new android.widget.ImageView(c);
+            icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            icon.setImageBitmap(iconOf(c, instance));
+            icon.setOnClickListener(v -> chooseIcon(c, instance));
+            row.addView(icon, new LinearLayout.LayoutParams(ForkUi.dp(c, 40), ForkUi.dp(c, 40)));
+
             LinearLayout texts = new LinearLayout(c);
             texts.setOrientation(LinearLayout.VERTICAL);
+            texts.setPadding(ForkUi.dp(c, 10), 0, 0, 0);
             texts.addView(ForkUi.text(c, String.valueOf(instance.name), 16, false));
             TextView version = ForkUi.text(c, String.valueOf(instance.versionId), 13, false);
             version.setTextColor(0xFFBBBBBB);
@@ -107,6 +117,16 @@ public class InstallationsFragment extends Fragment {
                 mark.setPadding(0, 0, ForkUi.dp(c, 8), 0);
                 row.addView(mark);
             }
+            TextView star = ForkUi.text(c, isFavorite(instance) ? "\u2605" : "\u2606", 22, false);
+            star.setTextColor(0xFFFFD83D);
+            star.setPadding(ForkUi.dp(c, 8), 0, ForkUi.dp(c, 8), 0);
+            star.setGravity(Gravity.CENTER);
+            star.setOnClickListener(v -> {
+                git.artdeell.mojo.prefs.LauncherPreferences.DEFAULT_PREF.edit()
+                        .putBoolean(FAVORITE_PREFIX + instance.name, !isFavorite(instance)).apply();
+                show(instances);
+            });
+            row.addView(star);
             Button edit = ForkUi.button(c, getString(R.string.fork_installs_edit), false);
             edit.setOnClickListener(v -> {
                 Instances.setSelectedInstance(instance);
@@ -122,5 +142,36 @@ public class InstallationsFragment extends Fragment {
             lp.bottomMargin = ForkUi.dp(c, 6);
             mList.addView(row, lp);
         }
+    }
+
+    private static final String FAVORITE_PREFIX = "inst_fav_";
+    private static final String ICON_PREFIX = "inst_icon_";
+
+    private static boolean isFavorite(DisplayInstance instance) {
+        return git.artdeell.mojo.prefs.LauncherPreferences.DEFAULT_PREF.getBoolean(FAVORITE_PREFIX + instance.name, false);
+    }
+
+    private static android.graphics.Bitmap iconOf(Context c, DisplayInstance instance) {
+        String name = git.artdeell.mojo.prefs.LauncherPreferences.DEFAULT_PREF.getString(ICON_PREFIX + instance.name, null);
+        if(name != null) {
+            java.io.File file = new java.io.File(git.artdeell.mojo.utils.PixelArtEditor.directory(c), name);
+            android.graphics.Bitmap art = file.isFile() ? android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath()) : null;
+            if(art != null) return git.artdeell.mojo.utils.PixelArtEditor.fitTo(art, 64, 64);
+        }
+        return android.graphics.BitmapFactory.decodeResource(c.getResources(), R.drawable.pixel_template_button);
+    }
+
+    private void chooseIcon(Context c, DisplayInstance instance) {
+        java.io.File[] drawings = git.artdeell.mojo.utils.PixelArtEditor.saved(c);
+        String[] names = new String[drawings.length + 1];
+        names[0] = getString(R.string.fork_inst_icon_remove);
+        for(int i = 0; i < drawings.length; i++) names[i + 1] = drawings[i].getName().replace(".png", "");
+        new androidx.appcompat.app.AlertDialog.Builder(c).setTitle(R.string.fork_inst_icon_pick).setItems(names, (d, which) -> {
+            android.content.SharedPreferences.Editor editor = git.artdeell.mojo.prefs.LauncherPreferences.DEFAULT_PREF.edit();
+            if(which == 0) editor.remove(ICON_PREFIX + instance.name);
+            else editor.putString(ICON_PREFIX + instance.name, drawings[which - 1].getName());
+            editor.apply();
+            load();
+        }).show();
     }
 }

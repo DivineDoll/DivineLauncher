@@ -48,4 +48,10 @@ public class LauncherMenuButton extends ExtendedButton {
         getExtendedViewData().setSizeCompounds(sizes);
         postProcessDrawables();
     }
+
+    @Override
+    public boolean performClick() {
+        git.artdeell.mojo.utils.ClickSound.play();
+        return super.performClick();
+    }
 }

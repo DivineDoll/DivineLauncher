@@ -13,10 +13,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-/** One .zip with the current theme, the saved themes and the pixel arts, to keep or move to another phone. */
+/** One .zip with the theme, saved themes, pixel arts, palettes, skins and control layouts, to keep or move to another phone. */
 public class BackupManager {
     private static final Pattern NAME = Pattern.compile("[A-Za-z0-9 _.-]{1,60}");
-    private static final int MAX_ENTRY = 5 * 1024 * 1024;
+    private static final int MAX_ENTRY = 25 * 1024 * 1024;
 
     /** Builds the backup and copies it to Downloads. Returns the file name. Blocking. */
     public static String export(Context c) throws Exception {
@@ -25,6 +25,10 @@ public class BackupManager {
             put(out, "theme.json", ThemeManager.currentAsJson().getBytes(StandardCharsets.UTF_8));
             addFolder(out, ThemeManager.directory(c), "themes/", ".json");
             addFolder(out, PixelArtEditor.directory(c), "pixelart/", ".png");
+            addFolder(out, new File(c.getFilesDir(), "palettes"), "palettes/", ".json");
+            addFolder(out, new File(c.getFilesDir(), "skin_library"), "skins/library/", ".png");
+            addFolder(out, new File(c.getFilesDir(), "offline_skins"), "skins/offline/", ".png");
+            if(git.artdeell.mojo.Tools.CTRLMAP_PATH != null) addFolder(out, new File(git.artdeell.mojo.Tools.CTRLMAP_PATH), "controls/", ".json");
         }
         String name = OnlineSkins.exportToDownloads(c, zip, "application/zip");
         zip.delete();
@@ -67,6 +71,14 @@ public class BackupManager {
                     write(ThemeManager.directory(c), name.substring(7), data);
                 } else if(name.startsWith("pixelart/") && name.endsWith(".png")) {
                     write(PixelArtEditor.directory(c), name.substring(9), data);
+                } else if(name.startsWith("palettes/") && name.endsWith(".json")) {
+                    writeSafe(new File(c.getFilesDir(), "palettes"), name.substring(9), data);
+                } else if(name.startsWith("skins/library/") && name.endsWith(".png")) {
+                    writeSafe(new File(c.getFilesDir(), "skin_library"), name.substring(14), data);
+                } else if(name.startsWith("skins/offline/") && name.endsWith(".png")) {
+                    writeSafe(new File(c.getFilesDir(), "offline_skins"), name.substring(14), data);
+                } else if(git.artdeell.mojo.Tools.CTRLMAP_PATH != null && name.startsWith("controls/") && name.endsWith(".json")) {
+                    writeSafe(new File(git.artdeell.mojo.Tools.CTRLMAP_PATH), name.substring(9), data);
                 }
             }
         }
@@ -86,6 +98,16 @@ public class BackupManager {
 
     private static void write(File dir, String fileName, byte[] data) throws IOException {
         if(!NAME.matcher(fileName).matches() || fileName.contains("..")) return;
+        try(FileOutputStream out = new FileOutputStream(new File(dir, fileName))) {
+            out.write(data);
+        }
+    }
+
+    /** Names made by the launcher itself, such as skins and control layouts, may have more characters. */
+    private static void writeSafe(File dir, String fileName, byte[] data) throws IOException {
+        if(fileName.isEmpty() || fileName.length() > 120 || fileName.startsWith(".") || fileName.contains("..")
+                || fileName.indexOf('/') >= 0 || fileName.indexOf('\\') >= 0 || fileName.indexOf('\0') >= 0) return;
+        if(!dir.isDirectory() && !dir.mkdirs()) return;
         try(FileOutputStream out = new FileOutputStream(new File(dir, fileName))) {
             out.write(data);
         }

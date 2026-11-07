@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -240,25 +241,36 @@ public class PixelCanvasView extends View {
         return bmp;
     }
 
+    private Bitmap compBitmap, checkerBitmap;
+    private int[] compPixels;
+    private final RectF dst = new RectF();
+
+    /** The grid is drawn as two bitmaps (checkerboard and drawing) scaled without smoothing, not one rectangle per cell. */
     @Override
     protected void onDraw(Canvas canvas) {
         layout();
+        if(compBitmap == null || compBitmap.getWidth() != gw || compBitmap.getHeight() != gh) {
+            compBitmap = Bitmap.createBitmap(gw, gh, Bitmap.Config.ARGB_8888);
+            compPixels = new int[gw * gh];
+            checkerBitmap = Bitmap.createBitmap(gw, gh, Bitmap.Config.ARGB_8888);
+            int[] checker = new int[gw * gh];
+            for(int y = 0; y < gh; y++) for(int x = 0; x < gw; x++) checker[y * gw + x] = ((x + y) & 1) == 0 ? 0xFF4A4A4A : 0xFF3C3C3C;
+            checkerBitmap.setPixels(checker, 0, gw, 0, 0, gw, gh);
+        }
+        boolean[] shape = shaping ? shapeMask() : null;
+        for(int i = 0; i < compPixels.length; i++) {
+            int p = composite(i);
+            if(shape != null && shape[i]) p = (color & 0x00FFFFFF) | 0xFF000000;
+            compPixels[i] = p;
+        }
+        compBitmap.setPixels(compPixels, 0, gw, 0, 0, gw, gh);
+        dst.set(left, top, left + gw * cell, top + gh * cell);
+        paint.setFilterBitmap(false);
+        paint.setColor(0xFFFFFFFF);
+        if(!preview) canvas.drawBitmap(checkerBitmap, null, dst, paint);
+        canvas.drawBitmap(compBitmap, null, dst, paint);
         int x0 = Math.max(0, (int) Math.floor(-left / cell)), x1 = Math.min(gw, (int) Math.ceil((getWidth() - left) / cell));
         int y0 = Math.max(0, (int) Math.floor(-top / cell)), y1 = Math.min(gh, (int) Math.ceil((getHeight() - top) / cell));
-        boolean[] shape = shaping ? shapeMask() : null;
-        for(int y = y0; y < y1; y++) {
-            for(int x = x0; x < x1; x++) {
-                int i = y * gw + x;
-                int p = composite(i);
-                if(shape != null && shape[i]) p = (color & 0x00FFFFFF) | 0xFF000000;
-                if(p == 0) {
-                    if(preview) continue;
-                    p = ((x + y) & 1) == 0 ? 0xFF4A4A4A : 0xFF3C3C3C;
-                }
-                paint.setColor(p);
-                canvas.drawRect(left + x * cell, top + y * cell, left + (x + 1) * cell + 0.5f, top + (y + 1) * cell + 0.5f, paint);
-            }
-        }
         if(stampSrc != null) {
             int sw = stampW, sh = stampH(), ox = Math.round(stampFx), oy = Math.round(stampFy);
             for(int ty = 0; ty < sh; ty++) {

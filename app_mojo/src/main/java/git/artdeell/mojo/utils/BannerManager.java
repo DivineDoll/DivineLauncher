@@ -27,6 +27,9 @@ public class BannerManager {
     private static final String CUSTOM = "custom";
     private static final String CUSTOM_FILE = "custom_banner.png";
     private static final int MAX_WIDTH = 1280;
+    public static final String PREF_AUTO = "banner_auto";
+    private static Bitmap sCustom;
+    private static long sCustomStamp;
 
     private static final int[] DEFAULT_BANNERS = {
             R.drawable.bedrock_banner_art,
@@ -55,7 +58,11 @@ public class BannerManager {
         if(CUSTOM.equals(selected)) {
             File file = customFile(context);
             if(file.isFile()) {
-                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if(sCustom == null || sCustomStamp != file.lastModified()) {
+                    sCustom = BitmapFactory.decodeFile(file.getAbsolutePath());
+                    sCustomStamp = file.lastModified();
+                }
+                Bitmap bitmap = sCustom;
                 if(bitmap != null) {
                     target.setImageBitmap(bitmap);
                     return true;
@@ -64,6 +71,11 @@ public class BannerManager {
             selected = "0";
         }
         int index = 0;
+        if(prefs(context).getBoolean(PREF_AUTO, false)) {
+            int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+            target.setImageResource(DEFAULT_BANNERS[hour >= 6 && hour < 17 ? 1 : hour >= 17 && hour < 19 ? 0 : 2]);
+            return false;
+        }
         try {
             index = Math.max(0, Math.min(DEFAULT_BANNERS.length - 1, Integer.parseInt(selected)));
         } catch (NumberFormatException ignored) {}
