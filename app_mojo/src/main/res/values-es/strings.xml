@@ -427,6 +427,8 @@
     <string name="fork_skins_new">Nueva skin</string>
     <string name="fork_installs_title">Instalaciones</string>
     <string name="fork_installs_new">Nueva</string>
+    <string name="fork_installs_count">%d instalaciones</string>
+    <string name="fork_installs_empty">Ninguna instalación coincide con tu búsqueda</string>
     <string name="fork_installs_edit">Editar</string>
     <string name="fork_installs_selected">En uso</string>
     <string name="fork_installs_hint">Toca una instalación para elegirla.</string>

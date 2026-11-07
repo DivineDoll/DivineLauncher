@@ -33,6 +33,7 @@ public class InstallationsFragment extends Fragment {
     private LinearLayout mList;
     private Instances mLastInstances;
     private String mFilter = "";
+    private TextView mCount;
 
     @Nullable
     @Override
@@ -44,18 +45,9 @@ public class InstallationsFragment extends Fragment {
         root.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 12), ForkUi.dp(c, 16), ForkUi.dp(c, 12));
 
         root.addView(ForkUi.pageHeader(c, requireActivity(), ForkUi.TAB_INSTALLS));
+        root.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
         LinearLayout header = ForkUi.row(c);
-        header.addView(new View(c), ForkUi.weight(1f));
-        Button create = ForkUi.button(c, getString(R.string.fork_installs_new), true);
-        create.setOnClickListener(v -> Tools.swapFragment(requireActivity(), ProfileTypeSelectFragment.class,
-                ProfileTypeSelectFragment.TAG, null));
-        header.addView(create, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(header);
-
-        TextView hint = ForkUi.text(c, getString(R.string.fork_installs_hint), 13, false);
-        hint.setPadding(0, ForkUi.dp(c, 4), 0, ForkUi.dp(c, 8));
-        root.addView(hint);
-
         android.widget.EditText search = new android.widget.EditText(c);
         search.setHint(R.string.fork_installs_search);
         search.setSingleLine(true);
@@ -67,12 +59,25 @@ public class InstallationsFragment extends Fragment {
                 if(mLastInstances != null) show(mLastInstances);
             }
         });
-        root.addView(search);
+        header.addView(search, ForkUi.weight(1f));
+        Button create = ForkUi.button(c, getString(R.string.fork_installs_new), true);
+        create.setOnClickListener(v -> Tools.swapFragment(requireActivity(), ProfileTypeSelectFragment.class,
+                ProfileTypeSelectFragment.TAG, null));
+        LinearLayout.LayoutParams createParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        createParams.leftMargin = ForkUi.dp(c, 8);
+        header.addView(create, createParams);
+        root.addView(header, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        mCount = ForkUi.text(c, "", 12, false);
+        mCount.setTextColor(0xFFBBBBBB);
+        mCount.setPadding(0, ForkUi.dp(c, 6), 0, ForkUi.dp(c, 6));
+        root.addView(mCount);
 
         ScrollView scroll = new ScrollView(c);
         mList = new LinearLayout(c);
         mList.setOrientation(LinearLayout.VERTICAL);
-        scroll.addView(mList);
+        scroll.setFillViewport(true);
+        scroll.addView(mList, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         return root;
     }
@@ -99,9 +104,16 @@ public class InstallationsFragment extends Fragment {
         if(c == null || mList == null) return;
         mLastInstances = instances;
         mList.removeAllViews();
+        if(mCount != null) mCount.setText(getString(R.string.fork_installs_count, instances.list.size()));
         java.util.List<Integer> order = new java.util.ArrayList<>();
         for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && isFavorite(instances.list.get(i))) order.add(i);
         for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && !isFavorite(instances.list.get(i))) order.add(i);
+        if(order.isEmpty()) {
+            TextView empty = ForkUi.text(c, getString(R.string.fork_installs_empty), 14, false);
+            empty.setGravity(Gravity.CENTER);
+            empty.setPadding(0, ForkUi.dp(c, 24), 0, 0);
+            mList.addView(empty, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
         for(int i : order) {
             DisplayInstance instance = instances.list.get(i);
             boolean selected = i == instances.selectedIndex;

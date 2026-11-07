@@ -618,6 +618,8 @@
     <string name="fork_skins_new">New skin</string>
     <string name="fork_installs_title">Installations</string>
     <string name="fork_installs_new">New</string>
+    <string name="fork_installs_count">%d installations</string>
+    <string name="fork_installs_empty">No installations match your search</string>
     <string name="fork_installs_edit">Edit</string>
     <string name="fork_installs_selected">In use</string>
     <string name="fork_installs_hint">Tap an installation to select it.</string>
