@@ -208,6 +208,7 @@ public class ControlLayout extends FrameLayout {
 		ControlDrawerData pack = new ControlDrawerData();
 		pack.properties.name = getContext().getString(R.string.fork_ctl_pack_name);
 		pack.properties.bitmapTag = packBitmapKey();
+		pack.orientation = ControlDrawerData.Orientation.DOWN;
 		pack.properties.setWidth(Tools.dpToPx(190f));
 		pack.properties.setHeight(Tools.dpToPx(36f));
 		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
