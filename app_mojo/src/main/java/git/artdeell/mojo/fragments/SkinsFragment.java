@@ -294,7 +294,7 @@ public class SkinsFragment extends Fragment {
         } else if(inUse) {
             TextView mark = ForkUi.text(c, getString(R.string.fork_installs_selected), 11, false);
             mark.setGravity(Gravity.CENTER);
-            mark.setTextColor(0xFF7CD65A);
+            mark.setTextColor(git.artdeell.mojo.utils.AccentColor.light());
             card.addView(mark);
         }
         card.setOnClickListener(v -> {

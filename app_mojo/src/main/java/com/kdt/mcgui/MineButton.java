@@ -4,8 +4,6 @@ import android.content.*;
 import android.graphics.*;
 import android.util.*;
 
-import androidx.core.content.res.ResourcesCompat;
-
 import git.artdeell.mojo.R;
 
 public class MineButton extends androidx.appcompat.widget.AppCompatButton {
@@ -20,8 +18,7 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 	}
 
 	public void init() {
-		setTypeface(ResourcesCompat.getFont(getContext(), R.font.noto_sans_bold));
-		setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.mine_button_background, null));
+		git.artdeell.mojo.utils.McStyle.button(this, "primary".equals(getTag()));
 		setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));
 	}
 

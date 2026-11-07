@@ -18,6 +18,7 @@
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/file_selector_select_folder"
+        android:tag="primary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginVertical="@dimen/_16sdp"

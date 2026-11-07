@@ -130,6 +130,7 @@
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/mineButton_import_local_modpack"
+        android:tag="primary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:enabled="false"

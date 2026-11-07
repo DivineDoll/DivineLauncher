@@ -143,6 +143,7 @@
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/fabric_installer_start_button"
+        android:tag="primary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_heavy"

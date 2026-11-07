@@ -130,7 +130,7 @@ public class PatchNotesFragment extends Fragment {
             card.addView(ForkUi.text(c, title != null ? title : String.valueOf(version), 16, false));
             String sub = (version != null ? version : "") + (type != null ? "  ·  " + type : "");
             TextView subView = ForkUi.text(c, sub, 12, false);
-            subView.setTextColor(0xFF7CD65A);
+            subView.setTextColor(git.artdeell.mojo.utils.AccentColor.light());
             card.addView(subView);
 
             TextView content = ForkUi.text(c, "", 13, false);

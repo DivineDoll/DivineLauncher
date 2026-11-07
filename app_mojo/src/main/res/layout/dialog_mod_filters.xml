@@ -50,6 +50,7 @@
     <!-- Apply -->
     <com.kdt.mcgui.MineButton
         android:id="@+id/search_mod_apply_filters"
+        android:tag="primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/generic_apply"

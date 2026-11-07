@@ -28,8 +28,8 @@
     <style name="MojoLauncher.AlertDialog" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@drawable/dialog_panel</item>
         <item name="dialogCornerRadius">0dp</item>
-        <item name="colorAccent">@color/bedrock_green_light</item>
-        <item name="colorControlActivated">@color/bedrock_green_light</item>
+        <item name="colorAccent">@color/primary_text</item>
+        <item name="colorControlActivated">@color/primary_text</item>
         <item name="buttonBarButtonStyle">@style/MojoLauncher.DialogButton</item>
         <item name="alertDialogStyle">@style/MojoLauncher.AlertDialogStyle</item>
         <item name="editTextStyle">@style/MojoLauncher.EditText</item>
@@ -45,7 +45,7 @@
     <style name="MojoLauncher.DialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:fontFamily">@font/minecraft_ten</item>
         <item name="fontFamily">@font/minecraft_ten</item>
-        <item name="android:textColor">@color/bedrock_green_light</item>
+        <item name="android:textColor">@color/primary_text</item>
     </style>
 
     <style name="TextAppearance.AppCompat.Title" parent="Base.TextAppearance.AppCompat.Title">

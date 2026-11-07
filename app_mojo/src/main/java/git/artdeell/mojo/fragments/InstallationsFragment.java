@@ -140,7 +140,7 @@ public class InstallationsFragment extends Fragment {
 
             if(selected) {
                 TextView mark = ForkUi.text(c, getString(R.string.fork_installs_selected), 12, false);
-                mark.setTextColor(0xFF7CD65A);
+                mark.setTextColor(git.artdeell.mojo.utils.AccentColor.light());
                 mark.setGravity(Gravity.CENTER);
                 mark.setPadding(0, 0, ForkUi.dp(c, 8), 0);
                 row.addView(mark);

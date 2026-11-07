@@ -255,6 +255,7 @@
         >
         <com.kdt.mcgui.MineButton
             android:id="@+id/vprof_editor_save_button"
+        android:tag="primary"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
