@@ -22,6 +22,7 @@ import com.kdt.CustomSeekbar;
 
 import git.artdeell.mojo.R;
 import git.artdeell.mojo.Tools;
+import git.artdeell.mojo.utils.FpsOverlay;
 import git.artdeell.mojo.utils.interfaces.SimpleSeekBarListener;
 
 /**
@@ -33,6 +34,8 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
     private SharedPreferences.Editor mEditor;
 
     private SwitchCompat mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch;
+    private SwitchCompat mFpsSwitch, mMemorySwitch, mBatterySwitch;
+    private boolean mOriginalFps, mOriginalMemory, mOriginalBattery;
     private CustomSeekbar mGyroSensitivityBar, mMouseSpeedBar, mGestureDelayBar, mResolutionBar, mTransparencyBar;
     private TextView mGyroSensitivityText, mGyroSensitivityDisplayText, mMouseSpeedText, mGestureDelayText, mGestureDelayDisplayText, mResolutionText, mTransparencyText;
 
@@ -50,6 +53,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
     @Override
     protected void onInflate() {
         bindLayout();
+        git.artdeell.mojo.utils.McStyle.applyFont(mDialogContent);
         Tools.runOnUiThread(() -> {
             this.setupListeners();
             this.updateGyroCompatibility();
@@ -67,6 +71,9 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroXSwitch = mDialogContent.findViewById(R.id.checkboxGyroX);
         mGyroYSwitch = mDialogContent.findViewById(R.id.checkboxGyroY);
         mGestureSwitch = mDialogContent.findViewById(R.id.checkboxGesture);
+        mFpsSwitch = mDialogContent.findViewById(R.id.checkboxQuickFps);
+        mMemorySwitch = mDialogContent.findViewById(R.id.checkboxQuickMemory);
+        mBatterySwitch = mDialogContent.findViewById(R.id.checkboxQuickBattery);
 
         mGyroSensitivityBar = mDialogContent.findViewById(R.id.editGyro_seekbar);
         mMouseSpeedBar = mDialogContent.findViewById(R.id.editMouseSpeed_seekbar);
@@ -96,6 +103,28 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mOriginalGestureDelay = PREF_LONGPRESS_TRIGGER;
         mOriginalResolution = PREF_SCALE_FACTOR;
         mOriginalTransparency = PREF_BUTTON_TRANSPARENCY;
+
+        mOriginalFps = FpsOverlay.fpsEnabled();
+        mOriginalMemory = FpsOverlay.memoryEnabled();
+        mOriginalBattery = FpsOverlay.batteryEnabled();
+        mFpsSwitch.setChecked(mOriginalFps);
+        mMemorySwitch.setChecked(mOriginalMemory);
+        mBatterySwitch.setChecked(mOriginalBattery);
+        mFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mEditor.putBoolean(FpsOverlay.PREF, isChecked);
+            applyReadout();
+            if(isChecked && !FpsOverlay.counting()) {
+                android.widget.Toast.makeText(buttonView.getContext(), R.string.fork_fps_restart, android.widget.Toast.LENGTH_LONG).show();
+            }
+        });
+        mMemorySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mEditor.putBoolean(FpsOverlay.PREF_MEMORY, isChecked);
+            applyReadout();
+        });
+        mBatterySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mEditor.putBoolean(FpsOverlay.PREF_BATTERY, isChecked);
+            applyReadout();
+        });
 
         mGyroSwitch.setChecked(mOriginalGyroEnabled);
         mGyroXSwitch.setChecked(mOriginalGyroXEnabled);
@@ -174,6 +203,10 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         updateGestureVisibility(mOriginalGestureDisabled);
     }
 
+    private void applyReadout() {
+        FpsOverlay.setLive(mFpsSwitch.isChecked(), mMemorySwitch.isChecked(), mBatterySwitch.isChecked());
+    }
+
     private static void setSeekTextMillisecond(TextView target, int value) {
         setSeekText(target, R.string.millisecond_format, value);
     }
@@ -216,6 +249,9 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroXSwitch.setOnCheckedChangeListener(null);
         mGyroYSwitch.setOnCheckedChangeListener(null);
         mGestureSwitch.setOnCheckedChangeListener(null);
+        mFpsSwitch.setOnCheckedChangeListener(null);
+        mMemorySwitch.setOnCheckedChangeListener(null);
+        mBatterySwitch.setOnCheckedChangeListener(null);
 
         mGyroSensitivityBar.setOnSeekBarChangeListener(null);
         mMouseSpeedBar.setOnSeekBarChangeListener(null);
@@ -247,6 +283,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
             PREF_SCALE_FACTOR = mOriginalResolution;
             PREF_BUTTON_TRANSPARENCY = mOriginalTransparency;
 
+            FpsOverlay.setLive(mOriginalFps, mOriginalMemory, mOriginalBattery);
             onGyroStateChanged();
             onResolutionChanged();
             onButtonTransparencyChanged();

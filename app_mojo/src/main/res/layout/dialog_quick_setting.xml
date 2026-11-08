@@ -226,6 +226,40 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonTransparency_textView" />
 
     <TextView
+        android:id="@+id/quickDisplay_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:text="@string/fork_quick_display"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonTransparency_seekBar" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/checkboxQuickFps"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="@string/fork_quick_fps"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/quickDisplay_title" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/checkboxQuickMemory"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="@string/fork_quick_memory"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkboxQuickFps" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/checkboxQuickBattery"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="@string/fork_quick_battery"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkboxQuickMemory" />
+
+    <TextView
         android:id="@+id/buttonTransparency_textView_percent"
         android:layout_width="150dp"
         android:layout_height="0dp"

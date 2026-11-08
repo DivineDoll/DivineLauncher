@@ -646,6 +646,19 @@
     <string name="customctrl_undo">Deshacer</string>
     <string name="customctrl_redo">Rehacer</string>
     <string name="fork_ctl_pack_menu">Añadir paquete de opciones</string>
+    <string name="fork_ctl_pack_hud">Ocultar HUD</string>
+    <string name="fork_ctl_pack_screenshot">Captura de pantalla</string>
+    <string name="fork_ctl_pack_camera">Vista de cámara</string>
+    <string name="fork_ctl_pack_fullscreen">Pantalla completa</string>
+    <string name="fork_ctl_pack_drop">Soltar objeto</string>
+    <string name="fork_ctl_pack_swap">Cambiar de mano</string>
+    <string name="fork_ctl_pack_inventory">Inventario</string>
+    <string-array name="fork_ctl_pack_types">
+        <item>Menú (debug, jugadores, emotes)</item>
+        <item>Cámara (HUD, captura, vista, pantalla completa)</item>
+        <item>Objetos (soltar, cambiar de mano, inventario)</item>
+    </string-array>
+    <string name="fork_fps_restart">Para contar los FPS exactos con la superficie alternativa hay que reiniciar el juego</string>
     <string name="fork_ctl_pack_name">Opciones</string>
     <string name="fork_ctl_pack_debug">Depuración</string>
     <string name="fork_ctl_pack_players">Jugadores</string>
@@ -660,6 +673,12 @@
     <string name="fork_extra_memory">Mostrar uso de memoria en el juego</string>
     <string name="fork_extra_grid">Pegar los controles a una cuadrícula al editar</string>
     <string name="fork_fps_line">FPS: %1$d</string>
+    <string name="fork_extra_battery">Mostrar nivel de batería en el juego</string>
+    <string name="fork_fps_battery">Batería: %1$d%%</string>
+    <string name="fork_quick_display">Mostrar en pantalla</string>
+    <string name="fork_quick_fps">Mostrar FPS</string>
+    <string name="fork_quick_memory">Mostrar uso de memoria</string>
+    <string name="fork_quick_battery">Mostrar nivel de batería</string>
     <string name="fork_fps_memory">RAM: %1$d MB</string>
     <string name="fork_ctl_command_hint">Comando de chat a enviar (opcional)</string>
     <string name="fork_ctl_sequence_delay">Retraso entre teclas (ms, por defecto 130)</string>

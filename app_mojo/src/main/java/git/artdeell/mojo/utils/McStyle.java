@@ -185,4 +185,14 @@ public class McStyle {
         Drawable.ConstantState state = sDirt.getConstantState();
         return state != null ? state.newDrawable(c.getResources()) : sDirt;
     }
+
+    /** Sets the game font on every text in a view tree. */
+    public static void applyFont(android.view.View root) {
+        if(root instanceof android.widget.TextView) {
+            ((android.widget.TextView) root).setTypeface(font(root.getContext()));
+        } else if(root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for(int i = 0; i < group.getChildCount(); i++) applyFont(group.getChildAt(i));
+        }
+    }
 }

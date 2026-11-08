@@ -39,12 +39,13 @@ public class ExtraOptions {
     private static void switches(Context c, Runnable onChanged) {
         String[] items = {c.getString(R.string.fork_extra_banner_auto), c.getString(R.string.fork_extra_click_sound),
                 c.getString(R.string.fork_extra_fps), c.getString(R.string.fork_extra_memory),
-                c.getString(R.string.fork_extra_grid)};
+                c.getString(R.string.fork_extra_battery), c.getString(R.string.fork_extra_grid)};
         boolean[] checked = {
                 LauncherPreferences.DEFAULT_PREF.getBoolean(BannerManager.PREF_AUTO, false),
                 LauncherPreferences.DEFAULT_PREF.getBoolean(ClickSound.PREF, true),
                 LauncherPreferences.DEFAULT_PREF.getBoolean(FpsOverlay.PREF, false),
                 LauncherPreferences.DEFAULT_PREF.getBoolean(FpsOverlay.PREF_MEMORY, false),
+                LauncherPreferences.DEFAULT_PREF.getBoolean(FpsOverlay.PREF_BATTERY, false),
                 LauncherPreferences.DEFAULT_PREF.getBoolean(GRID_PREF, false)
         };
         new AlertDialog.Builder(c)
@@ -56,7 +57,8 @@ public class ExtraOptions {
                             .putBoolean(ClickSound.PREF, checked[1])
                             .putBoolean(FpsOverlay.PREF, checked[2])
                             .putBoolean(FpsOverlay.PREF_MEMORY, checked[3])
-                            .putBoolean(GRID_PREF, checked[4]).apply();
+                            .putBoolean(FpsOverlay.PREF_BATTERY, checked[4])
+                            .putBoolean(GRID_PREF, checked[5]).apply();
                     if(onChanged != null) onChanged.run();
                 })
                 .setNegativeButton(android.R.string.cancel, null)

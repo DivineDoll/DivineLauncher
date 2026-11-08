@@ -205,28 +205,45 @@ public class ControlLayout extends FrameLayout {
 	// CONTROL DRAWER
 	/** Adds a drawer with a few ready buttons that use the pixel button as their background. */
 	public void addOptionPack() {
+		addOptionPack(0);
+	}
+
+	/** Adds a drawer that opens downward. Type 0 is the menu, 1 the camera tools and 2 the item tools. */
+	public void addOptionPack(int type) {
+		int[][] keys = {{292, 258, 66}, {290, 291, 294, 300}, {81, 70, 69}};
+		int[][] labels = {
+				{R.string.fork_ctl_pack_debug, R.string.fork_ctl_pack_players, R.string.fork_ctl_pack_emotes},
+				{R.string.fork_ctl_pack_hud, R.string.fork_ctl_pack_screenshot, R.string.fork_ctl_pack_camera, R.string.fork_ctl_pack_fullscreen},
+				{R.string.fork_ctl_pack_drop, R.string.fork_ctl_pack_swap, R.string.fork_ctl_pack_inventory}};
+		type = Math.max(0, Math.min(type, keys.length - 1));
 		ControlDrawerData pack = new ControlDrawerData();
 		pack.properties.name = "";
-		pack.properties.bitmapTag = packBitmapKey(true, 44, 44);
-		pack.properties.iconTag = getBitmaps().putBitmap(git.artdeell.mojo.utils.PackTexture.menuIcon((int) Tools.dpToPx(44f)), null);
-		pack.properties.dynamicX = "0.56 * ${screen_width}";
+		pack.properties.bitmapTag = menuBitmapKey();
+		pack.properties.dynamicX = (0.56f + 0.06f * type) + " * ${screen_width}";
 		pack.properties.dynamicY = "0.0";
-		pack.properties.setWidth(Tools.dpToPx(44f));
-		pack.properties.setHeight(Tools.dpToPx(44f));
+		pack.properties.setWidth(Tools.dpToPx(36f));
+		pack.properties.setHeight(Tools.dpToPx(36f));
 		pack.orientation = ControlDrawerData.Orientation.DOWN;
 		pack.subWidth = 190f;
 		pack.subHeight = 40f;
-		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
-				getContext().getString(R.string.fork_ctl_pack_emotes)};
-		int[] keys = {292, 258, 66};
-		for(int i = 0; i < names.length; i++) {
-			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 190f, 40f);
+		for(int i = 0; i < keys[type].length; i++) {
+			ControlData button = new ControlData(getContext().getString(labels[type][i]), new int[]{keys[type][i]}, 0f, 0f, 190f, 40f);
 			button.bitmapTag = packBitmapKey(false, 190, 40);
 			button.textColor = 0xFF000000;
 			button.textLeft = true;
 			pack.buttonProperties.add(button);
 		}
 		addDrawer(pack);
+	}
+
+	/** Uses the image of the pause button (three bars) of the current layout, or the default one. */
+	private String menuBitmapKey() {
+		for(ControlData data : mLayout.mControlDataList) {
+			if(data.keycodes == null || data.keycodes.length == 0 || (data.keycodes[0] != 256 && data.keycodes[0] != 111) || !Tools.isValidString(data.bitmapTag)) continue;
+			android.graphics.Bitmap existing = getBitmaps().getBitmap(data.bitmapTag);
+			if(existing != null) return getBitmaps().putBitmap(existing.copy(android.graphics.Bitmap.Config.ARGB_8888, false), null);
+		}
+		return getBitmaps().putBitmap(android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.pack_menu_button), null);
 	}
 
 	private String packBitmapKey(boolean blue, int widthDp, int heightDp) {

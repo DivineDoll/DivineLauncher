@@ -837,6 +837,19 @@
     <string name="customctrl_undo">Undo</string>
     <string name="customctrl_redo">Redo</string>
     <string name="fork_ctl_pack_menu">Add option pack</string>
+    <string name="fork_ctl_pack_hud">Hide HUD</string>
+    <string name="fork_ctl_pack_screenshot">Screenshot</string>
+    <string name="fork_ctl_pack_camera">Camera view</string>
+    <string name="fork_ctl_pack_fullscreen">Fullscreen</string>
+    <string name="fork_ctl_pack_drop">Drop item</string>
+    <string name="fork_ctl_pack_swap">Swap hands</string>
+    <string name="fork_ctl_pack_inventory">Inventory</string>
+    <string-array name="fork_ctl_pack_types">
+        <item>Menu (debug, players, emotes)</item>
+        <item>Camera (HUD, screenshot, view, fullscreen)</item>
+        <item>Items (drop, swap hands, inventory)</item>
+    </string-array>
+    <string name="fork_fps_restart">FPS needs a restart to count exactly with the alternate surface</string>
     <string name="fork_ctl_pack_name">Options</string>
     <string name="fork_ctl_pack_debug">Debug Overlay</string>
     <string name="fork_ctl_pack_players">Player List</string>
@@ -851,6 +864,12 @@
     <string name="fork_extra_memory">Show memory usage in game</string>
     <string name="fork_extra_grid">Snap controls to a grid while editing</string>
     <string name="fork_fps_line">FPS: %1$d</string>
+    <string name="fork_extra_battery">Show battery level in game</string>
+    <string name="fork_fps_battery">Battery: %1$d%%</string>
+    <string name="fork_quick_display">Show on screen</string>
+    <string name="fork_quick_fps">Show FPS</string>
+    <string name="fork_quick_memory">Show memory usage</string>
+    <string name="fork_quick_battery">Show battery level</string>
     <string name="fork_fps_memory">RAM: %1$d MB</string>
     <string name="fork_ctl_command_hint">Chat command to send (optional)</string>
     <string name="fork_ctl_sequence_delay">Delay between keys (ms, default 130)</string>

@@ -60,7 +60,12 @@ public class CustomControlsActivity extends BaseActivity implements EditorExitab
 				case 5: mControlLayout.openSetDefaultDialog(); break;
 				case 7: mControlLayout.undo(); break;
 				case 8: mControlLayout.redo(); break;
-				case 9: mControlLayout.addOptionPack(); break;
+				case 9:
+					new androidx.appcompat.app.AlertDialog.Builder(this)
+							.setTitle(R.string.fork_ctl_pack_menu)
+							.setItems(getResources().getStringArray(R.array.fork_ctl_pack_types), (d, which) -> mControlLayout.addOptionPack(which))
+							.show();
+					break;
 				case 6: // Saving the currently shown control
 					try {
 						Uri contentUri = DocumentsContract.buildDocumentUri(getString(R.string.storageProviderAuthorities), mControlLayout.saveToDirectory(mControlLayout.mLayoutFileName));
