@@ -22,6 +22,8 @@ public class FpsOverlay {
     public static final String PREF = "show_fps";
     public static final String PREF_MEMORY = "show_memory";
     public static final String PREF_BATTERY = "show_battery";
+    private static final String PREF_POS_X = "fps_overlay_x";
+    private static final String PREF_POS_Y = "fps_overlay_y";
     private static final int INTERVAL_MS = 500;
     private static final AtomicInteger sFrames = new AtomicInteger();
 
@@ -93,6 +95,7 @@ public class FpsOverlay {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.END);
         activity.addContentView(text, params);
+        makeMovable(text);
 
         Handler handler = new Handler(Looper.getMainLooper());
         long[] last = {System.nanoTime()};
@@ -139,6 +142,61 @@ public class FpsOverlay {
                 if(sText == text) sText = null;
             }
         });
+    }
+
+    /**
+     * The readout can be moved: hold it for a moment, then drag. The offset from its default corner
+     * is saved as a fraction of the screen so it stays in place at any size.
+     */
+    private static void makeMovable(TextView text) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        float[] start = new float[2];
+        boolean[] dragging = {false};
+        Runnable startDrag = () -> {
+            dragging[0] = true;
+            text.setBackgroundColor(0xAA000000);
+        };
+        text.setOnTouchListener((v, event) -> {
+            View parent = (View) v.getParent();
+            switch(event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    start[0] = event.getRawX() - v.getTranslationX();
+                    start[1] = event.getRawY() - v.getTranslationY();
+                    dragging[0] = false;
+                    handler.postDelayed(startDrag, 400);
+                    break;
+                case android.view.MotionEvent.ACTION_MOVE:
+                    if(dragging[0] && parent != null) {
+                        v.setTranslationX(clamp(event.getRawX() - start[0], -v.getLeft(), parent.getWidth() - v.getRight()));
+                        v.setTranslationY(clamp(event.getRawY() - start[1], -v.getTop(), parent.getHeight() - v.getBottom()));
+                    }
+                    break;
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    handler.removeCallbacks(startDrag);
+                    if(dragging[0] && parent != null && parent.getWidth() > 0 && parent.getHeight() > 0) {
+                        LauncherPreferences.DEFAULT_PREF.edit()
+                                .putFloat(PREF_POS_X, v.getTranslationX() / parent.getWidth())
+                                .putFloat(PREF_POS_Y, v.getTranslationY() / parent.getHeight()).apply();
+                    }
+                    dragging[0] = false;
+                    text.setBackgroundColor(0x66000000);
+                    break;
+            }
+            return true;
+        });
+        text.post(() -> {
+            View parent = (View) text.getParent();
+            if(parent == null) return;
+            float fx = LauncherPreferences.DEFAULT_PREF.getFloat(PREF_POS_X, 0f);
+            float fy = LauncherPreferences.DEFAULT_PREF.getFloat(PREF_POS_Y, 0f);
+            text.setTranslationX(clamp(fx * parent.getWidth(), -text.getLeft(), parent.getWidth() - text.getRight()));
+            text.setTranslationY(clamp(fy * parent.getHeight(), -text.getTop(), parent.getHeight() - text.getBottom()));
+        });
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(value, Math.max(min, max)));
     }
 
     private static int batteryPercent(Activity activity) {

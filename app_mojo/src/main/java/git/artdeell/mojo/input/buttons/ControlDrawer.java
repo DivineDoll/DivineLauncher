@@ -32,7 +32,13 @@ public class ControlDrawer extends ControlButton {
         this.parentLayout = layout;
         this.drawerData = drawerData;
         areButtonsVisible = layout.getModifiable();
+        // The position is only known after the first layout pass, so the buttons are aligned again then
+        addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            if(getX() != mAlignedX || getY() != mAlignedY) alignButtons();
+        });
     }
+
+    private float mAlignedX = Float.NaN, mAlignedY = Float.NaN;
 
 
     public void addButton(ControlData properties){
@@ -87,6 +93,8 @@ public class ControlDrawer extends ControlButton {
             }
             buttons.get(i).updateProperties();
         }
+        mAlignedX = getX();
+        mAlignedY = getY();
     }
 
 
