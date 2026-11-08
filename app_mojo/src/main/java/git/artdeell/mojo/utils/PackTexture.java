@@ -14,6 +14,22 @@ public class PackTexture {
     private static final int[] GRAY = {0xFF0B0B0F, 0xFF6C6C6C, 0xFF808080, 0xFF3A3A3A};
     private static final int[] BLUE = {0xFF161C30, 0xFF7380A0, 0xFF8793B0, 0xFF485270};
 
+    /** Three horizontal bars, the menu icon drawn on the small button that opens the pack. */
+    public static Bitmap menuIcon(int size) {
+        Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+        Paint p = new Paint();
+        p.setAntiAlias(false);
+        p.setColor(0xFF1B2238);
+        int unit = Math.max(1, size / 12);
+        int left = unit * 2, right = size - unit * 2;
+        for(int i = 0; i < 3; i++) {
+            int top = unit * (3 + i * 3) + unit / 2;
+            canvas.drawRect(left, top, right, top + unit * 2, p);
+        }
+        return bmp;
+    }
+
     public static Bitmap make(Context c, int w, int h, boolean blue) {
         int[] col = blue ? BLUE : GRAY;
         int u = Math.max(2, Math.round(c.getResources().getDisplayMetrics().density * 1.5f));

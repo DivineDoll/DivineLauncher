@@ -14,6 +14,8 @@ public class ControlDrawerData {
     public final ArrayList<ControlData> buttonProperties;
     public final ControlData properties;
     public Orientation orientation;
+    /** Size in dp of the buttons inside the drawer when they differ from the drawer button, 0 = same size. */
+    public float subWidth, subHeight;
 
     @androidx.annotation.Keep
     public enum Orientation {
@@ -76,6 +78,8 @@ public class ControlDrawerData {
         }
         properties = new ControlData(drawerData.properties);
         orientation = drawerData.orientation;
+        subWidth = drawerData.subWidth;
+        subHeight = drawerData.subHeight;
     }
 
 }

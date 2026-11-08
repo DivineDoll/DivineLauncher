@@ -5,6 +5,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import git.artdeell.mojo.Tools;
 import git.artdeell.mojo.input.ControlData;
 import git.artdeell.mojo.input.ControlDrawerData;
 import git.artdeell.mojo.input.ControlLayout;
@@ -80,7 +81,7 @@ public class ControlDrawer extends ControlButton {
                     break;
 
                 case DOWN:
-                    buttons.get(i).setDynamicY(generateDynamicY(getY() + (drawerData.properties.getHeight() + margin)*(i+1)));
+                    buttons.get(i).setDynamicY(generateDynamicY(getY() + drawerData.properties.getHeight() + margin + (subHeight() + margin)*i));
                     buttons.get(i).setDynamicX(generateDynamicX(getX()));
                     break;
             }
@@ -89,11 +90,19 @@ public class ControlDrawer extends ControlButton {
     }
 
 
+    private float subWidth() {
+        return drawerData.subWidth > 0 ? Tools.dpToPx(drawerData.subWidth) : mProperties.getWidth();
+    }
+
+    private float subHeight() {
+        return drawerData.subHeight > 0 ? Tools.dpToPx(drawerData.subHeight) : mProperties.getHeight();
+    }
+
     private void resizeButtons(){
         if (buttons == null || drawerData.orientation == ControlDrawerData.Orientation.FREE) return;
         for(ControlSubButton subButton : buttons){
-            subButton.mProperties.setWidth(mProperties.getWidth());
-            subButton.mProperties.setHeight(mProperties.getHeight());
+            subButton.mProperties.setWidth(subWidth());
+            subButton.mProperties.setHeight(subHeight());
 
             subButton.updateProperties();
         }

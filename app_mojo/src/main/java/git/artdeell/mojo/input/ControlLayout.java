@@ -206,18 +206,22 @@ public class ControlLayout extends FrameLayout {
 	/** Adds a drawer with a few ready buttons that use the pixel button as their background. */
 	public void addOptionPack() {
 		ControlDrawerData pack = new ControlDrawerData();
-		pack.properties.name = getContext().getString(R.string.fork_ctl_pack_name);
-		pack.properties.bitmapTag = packBitmapKey(true);
-		pack.properties.textColor = 0xFF000000;
-		pack.properties.setWidth(Tools.dpToPx(190f));
-		pack.properties.setHeight(Tools.dpToPx(40f));
+		pack.properties.name = "";
+		pack.properties.bitmapTag = packBitmapKey(true, 44, 44);
+		pack.properties.iconTag = getBitmaps().putBitmap(git.artdeell.mojo.utils.PackTexture.menuIcon((int) Tools.dpToPx(44f)), null);
+		pack.properties.dynamicX = "0.56 * ${screen_width}";
+		pack.properties.dynamicY = "0.0";
+		pack.properties.setWidth(Tools.dpToPx(44f));
+		pack.properties.setHeight(Tools.dpToPx(44f));
 		pack.orientation = ControlDrawerData.Orientation.DOWN;
+		pack.subWidth = 190f;
+		pack.subHeight = 40f;
 		String[] names = {getContext().getString(R.string.fork_ctl_pack_debug), getContext().getString(R.string.fork_ctl_pack_players),
 				getContext().getString(R.string.fork_ctl_pack_emotes)};
 		int[] keys = {292, 258, 66};
 		for(int i = 0; i < names.length; i++) {
 			ControlData button = new ControlData(names[i], new int[]{keys[i]}, 0f, 0f, 190f, 40f);
-			button.bitmapTag = packBitmapKey(false);
+			button.bitmapTag = packBitmapKey(false, 190, 40);
 			button.textColor = 0xFF000000;
 			button.textLeft = true;
 			pack.buttonProperties.add(button);
@@ -225,8 +229,8 @@ public class ControlLayout extends FrameLayout {
 		addDrawer(pack);
 	}
 
-	private String packBitmapKey(boolean blue) {
-		android.graphics.Bitmap texture = git.artdeell.mojo.utils.PackTexture.make(getContext(), (int) Tools.dpToPx(190f), (int) Tools.dpToPx(40f), blue);
+	private String packBitmapKey(boolean blue, int widthDp, int heightDp) {
+		android.graphics.Bitmap texture = git.artdeell.mojo.utils.PackTexture.make(getContext(), (int) Tools.dpToPx(widthDp), (int) Tools.dpToPx(heightDp), blue);
 		return getBitmaps().putBitmap(texture, null);
 	}
 
