@@ -80,6 +80,7 @@ public class BedrockFragment extends Fragment {
         McStyle.headingText(play);
         play.setBackground(PlayColor.background(c));
         play.setOnClickListener(v -> openBedrockOrStore());
+        com.divinedoll.launcher.utils.DivineTheme.styleBedrock(view, play);
 
         view.findViewById(R.id.bd_wiki_button).setOnClickListener(v -> Tools.openURL(requireActivity(), "https://minecraft.wiki/w/Bedrock_Edition"));
         view.findViewById(R.id.bd_java_button).setOnClickListener(v -> Tools.backToMainMenu(requireActivity()));
@@ -180,7 +181,10 @@ public class BedrockFragment extends Fragment {
             t.setTextColor(i == tab ? Color.WHITE : ForkUi.TAB_IDLE);
             t.setPadding(ForkUi.dp(c, 14), ForkUi.dp(c, 8), ForkUi.dp(c, 14), ForkUi.dp(c, 8));
             t.setGravity(Gravity.CENTER);
-            if(i == tab) {
+            if(com.divinedoll.launcher.utils.UiStyle.rounded()) {
+                t.setBackground(com.divinedoll.launcher.utils.DivineTheme.tabPill(c, i == tab));
+                if(i == tab) t.setTextColor(AccentColor.light()); else t.setOnClickListener(v -> select(index));
+            } else if(i == tab) {
                 android.graphics.drawable.GradientDrawable line = new android.graphics.drawable.GradientDrawable();
                 line.setColor(AccentColor.get());
                 android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(
