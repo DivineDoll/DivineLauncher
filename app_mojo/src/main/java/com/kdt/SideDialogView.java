@@ -98,6 +98,7 @@ public abstract class SideDialogView {
 
         LayoutInflater.from(mParent.getContext()).inflate(mLayoutId, mScrollView, true);
         mDialogContent = mScrollView.getChildAt(0);
+        com.divinedoll.launcher.utils.DivineTheme.styleTree(mDialogContent);
 
         // Attach layouts
         mParent.addView(mDialogLayout);
