@@ -46,7 +46,7 @@ import com.divinedoll.launcher.utils.ThemeColors;
 /** Bedrock section laid out like the Java one: play, add-ons, textures and skins. */
 public class BedrockFragment extends Fragment {
     public static final String TAG = "BedrockFragment";
-    private static final int TAB_PLAY = 0, TAB_ADDONS = 1, TAB_TEXTURES = 2, TAB_SKINS = 3;
+    private static final int TAB_PLAY = 0, TAB_ADDONS = 1, TAB_TEXTURES = 2, TAB_SKINS = 3, TAB_CONTROLS = 4;
 
     private FrameLayout mContent;
     private FrameLayout mHeaderHost;
@@ -171,10 +171,13 @@ public class BedrockFragment extends Fragment {
         box.addView(title);
         LinearLayout tabs = new LinearLayout(c);
         tabs.setOrientation(LinearLayout.HORIZONTAL);
-        box.addView(tabs);
+        android.widget.HorizontalScrollView tabScroll = new android.widget.HorizontalScrollView(c);
+        tabScroll.setHorizontalScrollBarEnabled(false);
+        tabScroll.addView(tabs);
+        box.addView(tabScroll);
         mHeaderHost.removeAllViews();
         mHeaderHost.addView(box);
-        int[] labels = {R.string.fork_tab_play, R.string.fork_bedrock_addons, R.string.fork_bedrock_textures, R.string.fork_skin_title};
+        int[] labels = {R.string.fork_tab_play, R.string.fork_bedrock_addons, R.string.fork_bedrock_textures, R.string.fork_skin_title, R.string.fork_tab_controls};
         for(int i = 0; i < labels.length; i++) {
             final int index = i;
             TextView t = ForkUi.text(c, getString(labels[i]), 15, false);
@@ -203,9 +206,51 @@ public class BedrockFragment extends Fragment {
         }
         mContent.setVisibility(View.VISIBLE);
         int pad = ForkUi.dp(c, 12);
-        View pane = tab == TAB_SKINS ? buildSkins(c) : buildBrowser(c, tab == TAB_ADDONS ? "addon" : "texture");
+        View pane = tab == TAB_CONTROLS ? buildControls(c) : tab == TAB_SKINS ? buildSkins(c) : buildBrowser(c, tab == TAB_ADDONS ? "addon" : "texture");
         pane.setPadding(pad, pad, pad, pad);
         mContent.addView(pane);
+    }
+
+    /** Button packs: the normal launcher layout or the Bedrock presets. */
+    private View buildControls(Context c) {
+        ScrollView scroll = new ScrollView(c);
+        LinearLayout box = new LinearLayout(c);
+        box.setOrientation(LinearLayout.VERTICAL);
+        scroll.addView(box);
+        TextView help = ForkUi.text(c, getString(R.string.fork_pack_help), 14, false);
+        help.setPadding(0, 0, 0, ForkUi.dp(c, 10));
+        box.addView(help);
+        String now = com.divinedoll.launcher.utils.ControlPacks.current();
+        String[] files = new String[com.divinedoll.launcher.utils.ControlPacks.BEDROCK.length + 1];
+        files[0] = com.divinedoll.launcher.utils.ControlPacks.NORMAL;
+        System.arraycopy(com.divinedoll.launcher.utils.ControlPacks.BEDROCK, 0, files, 1, files.length - 1);
+        for(int i = 0; i < files.length; i++) {
+            final String file = files[i];
+            boolean selected = file.equals(now);
+            if(i == 1) {
+                TextView group = ForkUi.text(c, getString(R.string.fork_pack_bedrock), 15, true);
+                group.setTextColor(AccentColor.light());
+                group.setPadding(ForkUi.dp(c, 4), ForkUi.dp(c, 10), 0, ForkUi.dp(c, 6));
+                box.addView(group);
+            }
+            LinearLayout cardView = card(c);
+            cardView.setOrientation(LinearLayout.HORIZONTAL);
+            cardView.setGravity(Gravity.CENTER_VERTICAL);
+            cardView.setBackground(ForkUi.box(c, ThemeColors.panel(), selected ? AccentColor.get() : 0, selected ? 2 : 0));
+            if(com.divinedoll.launcher.utils.UiStyle.rounded()) com.divinedoll.launcher.utils.DivineTheme.roundCorners(cardView, 14);
+            TextView name = ForkUi.text(c, getString(com.divinedoll.launcher.utils.ControlPacks.labelOf(file)), 17, true);
+            cardView.addView(name, ForkUi.weight(1f));
+            if(selected) {
+                TextView mark = ForkUi.text(c, "✓ " + getString(R.string.fork_pack_active), 14, true);
+                mark.setTextColor(AccentColor.light());
+                cardView.addView(mark);
+            }
+            cardView.setOnClickListener(v -> {
+                if(com.divinedoll.launcher.utils.ControlPacks.apply(requireContext(), file)) select(TAB_CONTROLS);
+            });
+            box.addView(cardView);
+        }
+        return scroll;
     }
 
     private LinearLayout card(Context c) {

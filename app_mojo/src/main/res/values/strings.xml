@@ -1048,4 +1048,15 @@
     <string name="fork_chip_packs">Resource packs</string>
     <string name="fork_recent_worlds">Recent worlds</string>
     <string name="fork_no_worlds">No worlds yet</string>
+    <string name="fork_pack_title">Button pack</string>
+    <string name="fork_pack_normal">Normal buttons (launcher style)</string>
+    <string name="fork_pack_bedrock">Bedrock buttons</string>
+    <string name="fork_pack_bedrock_touch">Bedrock · Touch</string>
+    <string name="fork_pack_bedrock_dpad">Bedrock · D-pad</string>
+    <string name="fork_pack_bedrock_classic">Bedrock · Classic</string>
+    <string name="fork_pack_help">Choose the layout used when you play. Instances with their own layout keep it. You can edit any pack afterwards.</string>
+    <string name="fork_pack_active">In use</string>
+    <string name="fork_pack_error">Could not apply the pack: %1$s</string>
+    <string name="fork_tab_controls">Controls</string>
+    <string name="fork_pack_summary">Normal launcher buttons or the Bedrock style</string>
 </resources>

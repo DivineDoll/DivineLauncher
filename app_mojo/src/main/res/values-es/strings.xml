@@ -857,4 +857,15 @@
     <string name="fork_chip_packs">Paquetes de recursos</string>
     <string name="fork_recent_worlds">Mundos recientes</string>
     <string name="fork_no_worlds">Aún no hay mundos</string>
+    <string name="fork_pack_title">Paquete de botones</string>
+    <string name="fork_pack_normal">Botones normales (estilo del launcher)</string>
+    <string name="fork_pack_bedrock">Botones Bedrock</string>
+    <string name="fork_pack_bedrock_touch">Bedrock · Táctil</string>
+    <string name="fork_pack_bedrock_dpad">Bedrock · Cruceta</string>
+    <string name="fork_pack_bedrock_classic">Bedrock · Clásico</string>
+    <string name="fork_pack_help">Elige el diseño que se usa al jugar. Las instancias con su propio diseño lo conservan. Puedes editar cualquier paquete después.</string>
+    <string name="fork_pack_active">En uso</string>
+    <string name="fork_pack_error">No se pudo aplicar el paquete: %1$s</string>
+    <string name="fork_tab_controls">Controles</string>
+    <string name="fork_pack_summary">Botones normales del launcher o estilo Bedrock</string>
 </resources>
