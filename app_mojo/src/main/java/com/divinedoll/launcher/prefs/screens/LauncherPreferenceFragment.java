@@ -75,7 +75,7 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat impleme
             @Override
             public int getSpanSize(int position) {
                 Preference p = visiblePreferenceAt(position);
-                return p != null && p.getLayoutResource() == R.layout.bedrock_preference_tile ? 2 : 6;
+                return p != null && p.getLayoutResource() == R.layout.bedrock_preference_tile ? (com.divinedoll.launcher.utils.DivineTheme.isPortrait(requireContext()) ? 3 : 2) : 6;
             }
         });
         return manager;

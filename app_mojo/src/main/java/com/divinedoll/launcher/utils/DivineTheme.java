@@ -173,6 +173,107 @@ public final class DivineTheme {
         }
     }
 
+    // ------------------------------------------------------------------ widgets
+
+    /** Slim sliders with an accent fill and a round thumb; round switches. Applied to a whole view tree. */
+    public static void styleTree(View v) {
+        if(v == null || !UiStyle.rounded()) return;
+        if(v instanceof android.widget.SeekBar) {
+            styleSeek((android.widget.SeekBar) v);
+        } else if(v instanceof androidx.appcompat.widget.SwitchCompat) {
+            styleSwitch((androidx.appcompat.widget.SwitchCompat) v);
+        } else if(v instanceof androidx.recyclerview.widget.RecyclerView) {
+            hookRecycler((androidx.recyclerview.widget.RecyclerView) v);
+        }
+        if(v instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) v;
+            for(int i = 0; i < group.getChildCount(); i++) styleTree(group.getChildAt(i));
+        }
+    }
+
+    private static void hookRecycler(androidx.recyclerview.widget.RecyclerView list) {
+        if(list.getTag(R.id.divine_styled) != null) return;
+        list.setTag(R.id.divine_styled, Boolean.TRUE);
+        list.addOnChildAttachStateChangeListener(new androidx.recyclerview.widget.RecyclerView.OnChildAttachStateChangeListener() {
+            @Override public void onChildViewAttachedToWindow(View view) { styleTree(view); }
+            @Override public void onChildViewDetachedFromWindow(View view) {}
+        });
+    }
+
+    private static GradientDrawable bar(Context c, int color, int heightDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(color);
+        g.setCornerRadius(ForkUi.dp(c, heightDp) / 2f);
+        g.setSize(1, ForkUi.dp(c, heightDp));
+        return g;
+    }
+
+    private static void styleSeek(android.widget.SeekBar seek) {
+        Context c = seek.getContext();
+        int accent = AccentColor.get();
+        android.graphics.drawable.ClipDrawable fill = new android.graphics.drawable.ClipDrawable(
+                bar(c, accent, 4), android.view.Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+        android.graphics.drawable.LayerDrawable track = new android.graphics.drawable.LayerDrawable(
+                new Drawable[]{bar(c, 0x33FFFFFF, 4), fill});
+        track.setId(0, android.R.id.background);
+        track.setId(1, android.R.id.progress);
+        GradientDrawable thumb = new GradientDrawable();
+        thumb.setShape(GradientDrawable.OVAL);
+        thumb.setColor(accent);
+        thumb.setStroke(ForkUi.dp(c, 2), 0xFFFFFFFF);
+        thumb.setSize(ForkUi.dp(c, 20), ForkUi.dp(c, 20));
+        seek.setProgressDrawable(track);
+        seek.setThumb(thumb);
+        seek.setSplitTrack(false);
+    }
+
+    private static void styleSwitch(androidx.appcompat.widget.SwitchCompat sw) {
+        Context c = sw.getContext();
+        int accent = AccentColor.get();
+        GradientDrawable on = new GradientDrawable();
+        on.setColor(accent);
+        on.setCornerRadius(ForkUi.dp(c, 12));
+        on.setSize(ForkUi.dp(c, 44), ForkUi.dp(c, 24));
+        GradientDrawable off = new GradientDrawable();
+        off.setColor(0x44FFFFFF);
+        off.setCornerRadius(ForkUi.dp(c, 12));
+        off.setSize(ForkUi.dp(c, 44), ForkUi.dp(c, 24));
+        StateListDrawable track = new StateListDrawable();
+        track.addState(new int[]{android.R.attr.state_checked}, on);
+        track.addState(new int[]{}, off);
+        GradientDrawable thumb = new GradientDrawable();
+        thumb.setShape(GradientDrawable.OVAL);
+        thumb.setColor(0xFFFFFFFF);
+        thumb.setSize(ForkUi.dp(c, 18), ForkUi.dp(c, 18));
+        sw.setTrackDrawable(track);
+        sw.setThumbDrawable(new InsetDrawable(thumb, ForkUi.dp(c, 3)));
+    }
+
+    /** Bedrock screen: same rounded banner, pill sidebar and flat bottom bar as the Java one. */
+    public static void styleBedrock(View root, TextView playButton) {
+        if(!UiStyle.rounded()) return;
+        Context c = root.getContext();
+        View bar = root.findViewById(R.id.bd_sidebar_scroll);
+        if(bar != null) bar.setBackground(new ColorDrawable(ThemeColors.sidebar()));
+        if(bar instanceof android.widget.FrameLayout && ((android.widget.FrameLayout) bar).getChildCount() > 0
+                && ((android.widget.FrameLayout) bar).getChildAt(0) instanceof ViewGroup) {
+            ViewGroup list = (ViewGroup) ((android.widget.FrameLayout) bar).getChildAt(0);
+            for(int i = 0; i < list.getChildCount(); i++) list.getChildAt(i).setBackground(sideItem(c, false));
+        }
+        View banner = root.findViewById(R.id.bd_banner);
+        if(banner != null) {
+            roundCorners(banner, 16);
+            if(banner.getLayoutParams() instanceof ConstraintLayout.LayoutParams) {
+                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) banner.getLayoutParams();
+                lp.setMargins(ForkUi.dp(c, 12), ForkUi.dp(c, 4), ForkUi.dp(c, 12), ForkUi.dp(c, 8));
+                banner.setLayoutParams(lp);
+            }
+        }
+        View bottom = root.findViewById(R.id._background_display_view);
+        if(bottom != null) bottom.setBackground(new ColorDrawable(ThemeColors.sidebar()));
+        if(playButton != null) playButton.setTextColor(onColor(PlayColor.get()));
+    }
+
     /** Icons-only sidebar, like a narrow rail. Labels stay as content descriptions. */
     public static void applyRail(View root) {
         if(!UiStyle.iconRail()) return;
