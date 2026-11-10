@@ -28,6 +28,16 @@ public class LauncherPreferenceControlFragment extends LauncherPreferenceFragmen
         //Triggers a write for some reason which resets the value
         addPreferencesFromResource(R.xml.pref_control);
 
+        androidx.preference.Preference packPref = findPreference("controlPack");
+        if(packPref != null) {
+            packPref.setSummary(getString(com.divinedoll.launcher.utils.ControlPacks.labelOf(com.divinedoll.launcher.utils.ControlPacks.current())));
+            packPref.setOnPreferenceClickListener(p -> {
+                com.divinedoll.launcher.utils.ControlPacks.show(requireContext(), () ->
+                        packPref.setSummary(getString(com.divinedoll.launcher.utils.ControlPacks.labelOf(com.divinedoll.launcher.utils.ControlPacks.current()))));
+                return true;
+            });
+        }
+
         CustomSeekBarPreference seek2 = requirePreference("timeLongPressTrigger",
                 CustomSeekBarPreference.class);
         seek2.setValue(longPressTrigger);
