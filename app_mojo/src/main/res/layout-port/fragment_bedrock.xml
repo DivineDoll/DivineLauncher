@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragment_bedrock_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#16181C">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/sidebar_guideline"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.0"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/play_start_guideline"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.40"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/play_end_guideline"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="1.0"/>
+
+    <FrameLayout
+        android:id="@+id/launcher_tabs_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <HorizontalScrollView
+        android:id="@+id/bd_sidebar_scroll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#1B1D21"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/launcher_tabs_container">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_wiki_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_book"
+                android:text="@string/mcl_tab_wiki" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_java_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_user_creeper"
+                android:text="@string/fork_java_button" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_addons_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_user_mods"
+                android:text="@string/fork_bedrock_addons" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_textures_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_image"
+                android:text="@string/fork_bedrock_textures" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_skins_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_creeper"
+                android:text="@string/fork_skin_title" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_pixel_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_edit"
+                android:text="@string/fork_pixel_menu" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_import_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_data_import"
+                android:text="@string/fork_bedrock_import" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_appearance_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_user_palette"
+                android:text="@string/fork_appearance_title" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_appinfo_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_sliders"
+                android:text="@string/fork_bedrock_appinfo" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/bd_downloads_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_32sdp"
+                android:drawableStart="@drawable/ic_px_folder"
+                android:text="@string/fork_bedrock_downloads" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <ImageView
+        android:id="@+id/bd_banner"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bedrock_banner_art"
+        app:layout_constraintBottom_toTopOf="@id/_background_display_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bd_sidebar_scroll" />
+
+    <TextView
+        android:id="@+id/bd_banner_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/minecraft_ten"
+        android:gravity="center"
+        android:text="@string/fork_banner_title"
+        android:textColor="@color/primary_text"
+        android:textSize="@dimen/_20ssp"
+        app:layout_constraintBottom_toBottomOf="@id/bd_banner"
+        app:layout_constraintEnd_toEndOf="@id/bd_banner"
+        app:layout_constraintStart_toStartOf="@id/bd_banner"
+        app:layout_constraintTop_toTopOf="@id/bd_banner" />
+
+    <TextView
+        android:id="@+id/bd_status"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/_32sdp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/minecraft_regular"
+        android:gravity="center_vertical"
+        android:textSize="@dimen/_12ssp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/bd_play_button"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/_background_display_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-8dp"
+        android:background="@color/background_bottom_bar"
+        android:translationZ="-1dp"
+        app:layout_constraintTop_toTopOf="@id/bd_status" />
+
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/bd_play_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="@string/main_play"
+        android:textAllCaps="true"
+        app:layout_constraintBottom_toBottomOf="@+id/bd_status"
+        app:layout_constraintEnd_toEndOf="@id/play_end_guideline"
+        app:layout_constraintStart_toStartOf="@id/play_start_guideline"
+        app:layout_constraintTop_toTopOf="@+id/bd_status" />
+
+    <FrameLayout
+        android:id="@+id/bd_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/_background_display_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bd_sidebar_scroll" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
