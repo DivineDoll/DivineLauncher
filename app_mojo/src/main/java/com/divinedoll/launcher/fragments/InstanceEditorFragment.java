@@ -125,6 +125,72 @@ public class InstanceEditorFragment extends Fragment implements CropperUtils.Cro
         }else {
             loadValues(selectedInstance, context);
         }
+        styleEditor(view);
+    }
+
+    /** Same flat dark look as the rest of the launcher, plus the content hub and the button pack picker. */
+    private void styleEditor(View view) {
+        Context c = view.getContext();
+        view.setBackgroundColor(com.divinedoll.launcher.utils.ThemeColors.background());
+        if(com.divinedoll.launcher.utils.UiStyle.rounded()) {
+            com.divinedoll.launcher.utils.DivineTheme.roundCorners(mInstanceIcon, 16);
+            styleForm(view, c);
+        }
+        if(view instanceof android.widget.LinearLayout && mInstance != null) {
+            android.widget.LinearLayout row = new android.widget.LinearLayout(c);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            int p = com.divinedoll.launcher.utils.ForkUi.dp(c, 12);
+            row.setPadding(p, p, p, 0);
+            Button hub = com.divinedoll.launcher.utils.ForkUi.compact(com.divinedoll.launcher.utils.ForkUi.button(c, getString(R.string.fork_editor_hub), true));
+            hub.setOnClickListener(v -> InstanceHubFragment.open(requireActivity(), String.valueOf(mInstance.name)));
+            Button pack = com.divinedoll.launcher.utils.ForkUi.compact(com.divinedoll.launcher.utils.ForkUi.button(c, getString(R.string.fork_editor_pack), false));
+            pack.setOnClickListener(v -> choosePack(c));
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            lp.setMarginEnd(com.divinedoll.launcher.utils.ForkUi.dp(c, 8));
+            row.addView(hub, lp);
+            row.addView(pack, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            ((android.widget.LinearLayout) view).addView(row, 0);
+        }
+    }
+
+    private void styleForm(View v, Context c) {
+        if(v instanceof Button) {
+            boolean primary = "primary".equals(v.getTag());
+            int base = primary ? com.divinedoll.launcher.utils.PlayColor.get() : 0xFF3A3F47;
+            v.setBackground(com.divinedoll.launcher.utils.UiStyle.button(c, base));
+            ((Button) v).setTextColor(primary ? com.divinedoll.launcher.utils.DivineTheme.onColor(base) : 0xFFFFFFFF);
+        } else if(v instanceof EditText || v instanceof Spinner || (v instanceof TextView && !(v instanceof android.widget.CompoundButton) && v.isClickable() && v.getBackground() != null)) {
+            v.setBackground(com.divinedoll.launcher.utils.ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x33FFFFFF, 1));
+            int h = com.divinedoll.launcher.utils.ForkUi.dp(c, 12);
+            int w = v.getPaddingLeft() > 0 ? v.getPaddingLeft() : h;
+            v.setPadding(w, h, w, h);
+        } else if(v instanceof CheckBox) {
+            ((CheckBox) v).setButtonTintList(android.content.res.ColorStateList.valueOf(com.divinedoll.launcher.utils.AccentColor.get()));
+            v.setBackground(com.divinedoll.launcher.utils.ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x33FFFFFF, 1));
+            int h = com.divinedoll.launcher.utils.ForkUi.dp(c, 12);
+            v.setPadding(h, h, h, h);
+        }
+        if(v instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) v;
+            for(int i = 0; i < g.getChildCount(); i++) styleForm(g.getChildAt(i), c);
+        }
+    }
+
+    private void choosePack(Context c) {
+        String[] files = {"", com.divinedoll.launcher.utils.ControlPacks.NORMAL, com.divinedoll.launcher.utils.ControlPacks.BEDROCK[0],
+                com.divinedoll.launcher.utils.ControlPacks.BEDROCK[1], com.divinedoll.launcher.utils.ControlPacks.BEDROCK[2]};
+        String[] labels = new String[files.length];
+        labels[0] = getString(R.string.fork_pack_global);
+        for(int i = 1; i < files.length; i++) labels[i] = getString(com.divinedoll.launcher.utils.ControlPacks.labelOf(files[i]));
+        new androidx.appcompat.app.AlertDialog.Builder(c).setTitle(R.string.fork_pack_title).setItems(labels, (d, which) -> {
+            try {
+                if(which > 0) com.divinedoll.launcher.utils.ControlPacks.ensure(c, files[which]);
+                mSelectedControlLayout = files[which];
+                mDefaultControl.setText(files[which]);
+            } catch(Exception e) {
+                Toast.makeText(c, getString(R.string.fork_pack_error, String.valueOf(e.getMessage())), Toast.LENGTH_LONG).show();
+            }
+        }).setNegativeButton(android.R.string.cancel, null).show();
     }
 
     private View.OnClickListener getControlSelectListener() {

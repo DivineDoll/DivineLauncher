@@ -451,6 +451,14 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     }
 
     private void runCraft(String versionId, File[] classpath) throws Throwable {
+        if(com.divinedoll.launcher.utils.WorldBackup.enabled() && instance != null) {
+            try {
+                int saved = com.divinedoll.launcher.utils.WorldBackup.run(instance.getGameDirectory());
+                if(saved > 0) Logger.appendToLog("Backed up " + saved + " world(s) before launching");
+            } catch(Throwable t) {
+                Logger.appendToLog("World backup skipped: " + t);
+            }
+        }
         Logger.appendToLog("--------- Starting game with Launcher Debug!");
         Tools.printLauncherInfo(versionId, instance.getLaunchArgs(), mGameRenderer.getCurrentRenderer(), this);
         JREUtils.redirectAndPrintJRELog();
