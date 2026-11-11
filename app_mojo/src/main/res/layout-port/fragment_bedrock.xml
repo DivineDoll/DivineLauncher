@@ -38,6 +38,7 @@
 
     <HorizontalScrollView
         android:id="@+id/bd_sidebar_scroll"
+        android:saveEnabled="false"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#1B1D21"
