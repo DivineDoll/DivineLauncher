@@ -49,6 +49,28 @@ public class InstanceIconProvider {
     }
 
     /**
+     * The instance's own icon as a bitmap: its icon file (e.g. a modpack icon, or one picked in the editor),
+     * or the loader icon (Fabric, Forge...). Null when it only has the generic default.
+     */
+    public static Bitmap ownIcon(Resources resources, @NonNull DisplayInstance instance) {
+        File file = instance.getInstanceIconLocation();
+        if(file.isFile() && file.canRead()) {
+            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+            if(bitmap != null) return bitmap;
+        }
+        if(instance.icon == null || FALLBACK_ICON_NAME.equals(instance.icon)) return null;
+        Drawable drawable = getStaticIcon(resources, instance.icon);
+        if(drawable == null) return null;
+        int w = Math.max(1, drawable.getIntrinsicWidth()), h = Math.max(1, drawable.getIntrinsicHeight());
+        if(w < 96) { h = h * 96 / w; w = 96; }
+        Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(out);
+        drawable.setBounds(0, 0, w, h);
+        drawable.draw(canvas);
+        return out;
+    }
+
+    /**
      * Drop an icon from the icon cache. When dropped, it's Drawable will be re-read from the
      * instance icon file (or re-fetched from the static cache)
      * @param key the instance

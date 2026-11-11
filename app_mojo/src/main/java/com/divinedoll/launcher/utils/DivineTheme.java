@@ -258,7 +258,22 @@ public final class DivineTheme {
         if(bar instanceof android.widget.FrameLayout && ((android.widget.FrameLayout) bar).getChildCount() > 0
                 && ((android.widget.FrameLayout) bar).getChildAt(0) instanceof ViewGroup) {
             ViewGroup list = (ViewGroup) ((android.widget.FrameLayout) bar).getChildAt(0);
-            for(int i = 0; i < list.getChildCount(); i++) list.getChildAt(i).setBackground(sideItem(c, false));
+            boolean chips = bar instanceof android.widget.HorizontalScrollView;
+            for(int i = 0; i < list.getChildCount(); i++) {
+                View item = list.getChildAt(i);
+                if(chips && item instanceof TextView) {
+                    TextView t = (TextView) item;
+                    t.setBackground(tabPill(c, false));
+                    t.setPaddingRelative(ForkUi.dp(c, 12), 0, ForkUi.dp(c, 14), 0);
+                    t.setCompoundDrawablePadding(ForkUi.dp(c, 8));
+                    t.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+                    ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) t.getLayoutParams();
+                    lp.setMarginEnd(ForkUi.dp(c, 6));
+                    t.setLayoutParams(lp);
+                } else {
+                    item.setBackground(sideItem(c, false));
+                }
+            }
         }
         View banner = root.findViewById(R.id.bd_banner);
         if(banner != null) {

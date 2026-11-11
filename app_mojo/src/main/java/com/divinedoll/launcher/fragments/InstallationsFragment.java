@@ -296,6 +296,11 @@ public class InstallationsFragment extends Fragment {
             android.graphics.Bitmap art = file.isFile() ? android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath()) : null;
             if(art != null) return com.divinedoll.launcher.utils.PixelArtEditor.fitTo(art, 64, 64);
         }
+        // The icon the instance already has (the one shown in its editor), before inventing a letter tile
+        try {
+            android.graphics.Bitmap own = com.divinedoll.launcher.instances.InstanceIconProvider.ownIcon(c.getResources(), instance);
+            if(own != null) return android.graphics.Bitmap.createScaledBitmap(own, 128, 128, true);
+        } catch(Exception ignored) {}
         return com.divinedoll.launcher.utils.InstanceAvatar.make(String.valueOf(instance.name), 128);
     }
 
