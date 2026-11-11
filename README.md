@@ -4,6 +4,32 @@ DivineLauncher is an unofficial Minecraft: Java Edition launcher for Android wit
 
 It is a fork of [MojoLauncher](https://github.com/MojoLauncher/MojoLauncher), which is based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher). It is not made, approved or affiliated with Mojang Studios or Microsoft.
 
+## Features
+- Modrinth-style dark interface with a gold accent, rounded cards and pill tabs. Portrait and landscape.
+- Appearance panel: accent, background, sidebar and Play button colors, themes, banner image, rounded corners and icon rail on or off.
+- Instance manager: own icons, colors and background image per instance, tags, favorites, duplicate, export as `.zip` or `.mrpack`, import of `.zip`, `.mrpack` and CurseForge packs.
+- Per-instance screen with tabs for mods (enable, disable, delete, Modrinth search and update check), worlds (manual and automatic backups), logs and look.
+- Minecraft: Bedrock section with detection of the installed game, add-ons, textures and skins.
+- Button packs: the normal launcher layout or the Bedrock-style presets, globally or per instance.
+- Touch controls, gamepad support, F1 to hide the controls, movable FPS readout, quick settings drawer and a built-in screen recorder (no audio).
+- MobileGlues and other renderers, performance profiles (memory and resolution).
+- Skins manager with 3D preview. English and Spanish.
+
+## Screenshots
+Screenshots of the real app go in `docs/screenshots/`. Add them there and link them here, for example:
+
+```
+![Home](docs/screenshots/home.png)
+```
+
+## CurseForge key
+Searching CurseForge needs an API key. Get one for free at <https://console.curseforge.com> and use it in one of these ways:
+- GitHub Actions: add a repository secret named `CURSEFORGE_API_KEY` (Settings, Secrets and variables, Actions). The workflow already passes it to the build.
+- Local build: put the key in a file called `curseforge_key.txt` next to `gradlew`, or set the `CURSEFORGE_API_KEY` environment variable.
+- In the app: Bedrock tab, Add-ons, "Key" button. A key set there is also used for the Java mod search.
+
+Never commit the key to the repository.
+
 ## Getting DivineLauncher
 Build it from source (see below) or download the APK from the GitHub Actions of this repository.
 
