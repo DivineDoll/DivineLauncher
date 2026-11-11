@@ -67,6 +67,7 @@
 
     <ScrollView
         android:id="@+id/bd_sidebar_scroll"
+        android:saveEnabled="false"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#262626"
