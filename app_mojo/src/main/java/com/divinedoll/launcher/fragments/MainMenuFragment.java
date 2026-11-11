@@ -65,6 +65,12 @@ public class MainMenuFragment extends Fragment {
     private void refreshBanner() {
         if(mBannerView == null) return;
         boolean custom = BannerManager.apply(requireContext(), mBannerView);
+        try {
+            Instance selected = Instances.loadSelectedInstance();
+            android.graphics.Bitmap own = selected == null ? null
+                    : com.divinedoll.launcher.utils.InstanceLook.image(requireContext(), String.valueOf(selected.name));
+            if(own != null) { mBannerView.setImageBitmap(own); custom = true; }
+        } catch(Exception ignored) {}
         if(mBannerTitle != null) BannerManager.setTitleVisible(mBannerTitle, custom);
     }
 
@@ -159,6 +165,9 @@ public class MainMenuFragment extends Fragment {
     private android.widget.LinearLayout mContentPanel;
     private TextView mChipMods, mChipWorlds, mChipPacks;
     private android.widget.LinearLayout mWorldList;
+    private TextView mPlayingAs;
+    private java.util.List<String[]> mNews = new java.util.ArrayList<>();
+    private boolean mNewsLoading, mNewsTried;
 
     private boolean wideLayout() {
         return com.divinedoll.launcher.utils.UiStyle.rounded() && !com.divinedoll.launcher.utils.DivineTheme.isPortrait(requireContext());
@@ -195,6 +204,10 @@ public class MainMenuFragment extends Fragment {
         int pad = com.divinedoll.launcher.utils.ForkUi.dp(c, 12);
         mContentPanel.setPadding(pad, pad, pad, pad);
         mContentPanel.setBackground(com.divinedoll.launcher.utils.ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x22FFFFFF, 1));
+        mPlayingAs = com.divinedoll.launcher.utils.ForkUi.text(c, "", 13, true);
+        mPlayingAs.setTextColor(com.divinedoll.launcher.utils.AccentColor.light());
+        mPlayingAs.setPadding(0, 0, 0, com.divinedoll.launcher.utils.ForkUi.dp(c, 8));
+        mContentPanel.addView(mPlayingAs);
         android.widget.LinearLayout chips = new android.widget.LinearLayout(c);
         chips.setOrientation(android.widget.LinearLayout.HORIZONTAL);
         mChipMods = chip(c, chips, R.string.fork_chip_mods);
@@ -240,6 +253,14 @@ public class MainMenuFragment extends Fragment {
         Context c = requireContext();
         Instance instance = Instances.loadSelectedInstance();
         mWorldList.removeAllViews();
+        try {
+            com.divinedoll.launcher.authenticator.accounts.Account account = com.divinedoll.launcher.authenticator.accounts.Accounts.getCurrent();
+            mPlayingAs.setText(account == null ? "" : getString(R.string.fork_playing_as, account.username));
+            mPlayingAs.setVisibility(account == null ? View.GONE : View.VISIBLE);
+        } catch(Exception e) {
+            mPlayingAs.setVisibility(View.GONE);
+        }
+        loadNews();
         if(instance == null) {
             mChipMods.setText("0");
             mChipWorlds.setText("0");
@@ -272,6 +293,62 @@ public class MainMenuFragment extends Fragment {
             row.addView(when);
             mWorldList.addView(row);
         }
+        renderNews(c);
+    }
+
+    private void renderNews(Context c) {
+        if(mNews.isEmpty() || mWorldList == null) return;
+        TextView title = com.divinedoll.launcher.utils.ForkUi.text(c, getString(R.string.fork_news), 12, true);
+        title.setAllCaps(true);
+        title.setTextColor(com.divinedoll.launcher.utils.AccentColor.light());
+        title.setPadding(0, com.divinedoll.launcher.utils.ForkUi.dp(c, 12), 0, com.divinedoll.launcher.utils.ForkUi.dp(c, 4));
+        mWorldList.addView(title);
+        for(String[] item : mNews) {
+            TextView t = com.divinedoll.launcher.utils.ForkUi.text(c, item[0], 13, false);
+            t.setPadding(com.divinedoll.launcher.utils.ForkUi.dp(c, 6), com.divinedoll.launcher.utils.ForkUi.dp(c, 6), 0, com.divinedoll.launcher.utils.ForkUi.dp(c, 6));
+            t.setSingleLine(true);
+            t.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            if(item[1] != null && !item[1].isEmpty()) t.setOnClickListener(v -> Tools.openURL(requireActivity(), item[1]));
+            mWorldList.addView(t);
+        }
+    }
+
+    /** Latest Minecraft news, fetched once per screen. Fails silently when offline. */
+    private void loadNews() {
+        if(mNewsLoading || mNewsTried || !mNews.isEmpty()) return;
+        mNewsLoading = true;
+        mNewsTried = true;
+        new Thread(() -> {
+            java.util.List<String[]> found = new java.util.ArrayList<>();
+            try {
+                java.net.HttpURLConnection con = (java.net.HttpURLConnection) new java.net.URL("https://launchercontent.mojang.com/v2/news.json").openConnection();
+                con.setConnectTimeout(8000);
+                con.setReadTimeout(8000);
+                con.setRequestProperty("User-Agent", "DivineDoll/DivineLauncher");
+                try(java.io.InputStream in = con.getInputStream()) {
+                    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    com.google.gson.JsonObject root = new com.google.gson.Gson().fromJson(out.toString("UTF-8"), com.google.gson.JsonObject.class);
+                    com.google.gson.JsonArray entries = root.getAsJsonArray("entries");
+                    if(entries != null) for(com.google.gson.JsonElement e : entries) {
+                        com.google.gson.JsonObject o = e.getAsJsonObject();
+                        if(!o.has("title") || o.get("title").isJsonNull()) continue;
+                        String link = o.has("readMoreLink") && !o.get("readMoreLink").isJsonNull() ? o.get("readMoreLink").getAsString() : "";
+                        found.add(new String[]{o.get("title").getAsString(), link});
+                        if(found.size() >= 4) break;
+                    }
+                }
+            } catch(Exception ignored) {
+            }
+            Tools.runOnUiThread(() -> {
+                mNewsLoading = false;
+                if(!isAdded()) return;
+                mNews = found;
+                refreshContentPanel();
+            });
+        }).start();
     }
 
     private TextView mHomeName, mHomeInfo, mHomeWorld;
@@ -390,7 +467,7 @@ public class MainMenuFragment extends Fragment {
         } else if(instance == null) {
             Toast.makeText(c, R.string.no_instance, Toast.LENGTH_LONG).show();
         } else if(which == 0) {
-            com.divinedoll.launcher.utils.InstanceFiles.show(requireActivity(), instance.getGameDirectory(), instance.versionId);
+            InstanceHubFragment.open(requireActivity(), String.valueOf(instance.name));
         } else {
             Tools.swapFragment(requireActivity(), InstanceEditorFragment.class, InstanceEditorFragment.TAG, null);
         }

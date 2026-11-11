@@ -88,6 +88,42 @@ public final class Modrinth {
         if(!tmp.renameTo(out)) throw new IOException("Cannot save " + out.getName());
     }
 
+    /** For other helpers (modpack export): a raw call to the Modrinth API. */
+    public static String api(String method, String path, String body) throws IOException {
+        return request(method, API + path, body);
+    }
+
+    public static String sha1Of(File f) throws Exception {
+        return sha1(f);
+    }
+
+    /** How many mods of the instance have a newer file on Modrinth. Blocking, call it from a thread. */
+    public static int countUpdates(File gameDir, String versionId) {
+        try {
+            String gv = gameVersionOf(versionId);
+            String loader = loaderOf(versionId);
+            File[] jars = new File(gameDir, "mods").listFiles(f -> f.isFile() && f.getName().endsWith(".jar"));
+            if(jars == null || jars.length == 0) return 0;
+            JsonArray hashes = new JsonArray();
+            for(File j : jars) hashes.add(sha1(j));
+            JsonObject body = new JsonObject();
+            body.add("hashes", hashes);
+            body.addProperty("algorithm", "sha1");
+            if(loader != null) { JsonArray l = new JsonArray(); l.add(loader); body.add("loaders", l); }
+            if(gv != null) { JsonArray g = new JsonArray(); g.add(gv); body.add("game_versions", g); }
+            JsonObject res = GSON.fromJson(request("POST", API + "/version_files/update", body.toString()), JsonObject.class);
+            int n = 0;
+            for(java.util.Map.Entry<String, JsonElement> en : res.entrySet()) {
+                JsonObject file = primaryFile(en.getValue().getAsJsonObject());
+                if(file == null) continue;
+                if(!file.getAsJsonObject("hashes").get("sha1").getAsString().equalsIgnoreCase(en.getKey())) n++;
+            }
+            return n;
+        } catch(Exception e) {
+            return -1;
+        }
+    }
+
     private static String str(JsonObject o, String key) {
         JsonElement e = o.get(key);
         return e == null || e.isJsonNull() ? null : e.getAsString();

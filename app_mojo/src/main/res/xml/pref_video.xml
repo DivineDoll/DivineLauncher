@@ -5,6 +5,10 @@
     <com.divinedoll.launcher.prefs.BackButtonPreference />
 
     <PreferenceCategory android:title="@string/preference_category_video" >
+        <Preference
+            android:key="performanceProfile"
+            android:title="@string/fork_pp_title"
+            android:summary="@string/fork_pp_summary" />
         <androidx.preference.ListPreference
             android:title="@string/mcl_setting_category_renderer"
             android:key="renderer"

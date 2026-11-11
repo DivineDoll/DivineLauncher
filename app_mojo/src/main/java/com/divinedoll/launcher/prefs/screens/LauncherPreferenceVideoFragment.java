@@ -44,6 +44,12 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         CustomSeekBarPreference resolutionSeekbar = requirePreference("resolutionRatio",
                 CustomSeekBarPreference.class);
         resolutionSeekbar.setSuffix(" %");
+        Preference perf = findPreference("performanceProfile");
+        if(perf != null) perf.setOnPreferenceClickListener(p -> {
+            com.divinedoll.launcher.utils.PerformanceProfiles.show(requireContext(), () ->
+                    resolutionSeekbar.setValue((int) (LauncherPreferences.PREF_SCALE_FACTOR * 100)));
+            return true;
+        });
 
         // #724 bug fix
         if (resolution < 25) {

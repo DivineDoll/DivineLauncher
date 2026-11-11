@@ -37,6 +37,12 @@ public final class ControlPacks {
         return false;
     }
 
+    /** Copies the pack from the app when it is not in the controls folder. */
+    public static void ensure(Context c, String file) throws java.io.IOException {
+        File target = new File(Tools.CTRLMAP_PATH, file);
+        if(!target.exists()) Tools.copyAssetFile(c, NORMAL.equals(file) ? file : "controls/" + file, Tools.CTRLMAP_PATH, true);
+    }
+
     /** Makes the pack the default layout, copying it from the app if it is missing. */
     public static boolean apply(Context c, String file) {
         try {

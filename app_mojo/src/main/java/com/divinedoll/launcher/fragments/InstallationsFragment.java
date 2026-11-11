@@ -122,10 +122,11 @@ public class InstallationsFragment extends Fragment {
             boolean selected = i == instances.selectedIndex;
 
             LinearLayout row = ForkUi.row(c);
-            int accent = com.divinedoll.launcher.utils.AccentColor.get();
+            int own = com.divinedoll.launcher.utils.InstanceLook.color(String.valueOf(instance.name));
+            int accent = own != 0 ? own : com.divinedoll.launcher.utils.AccentColor.get();
             row.setBackground(selected
                     ? ForkUi.box(c, (accent & 0x00FFFFFF) | 0x22000000, accent, 2)
-                    : ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x22FFFFFF, 1));
+                    : ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), own != 0 ? (own & 0x00FFFFFF) | 0x88000000 : 0x22FFFFFF, own != 0 ? 2 : 1));
             row.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 8), ForkUi.dp(c, 10));
 
             android.widget.ImageView icon = new android.widget.ImageView(c);
@@ -214,6 +215,24 @@ public class InstallationsFragment extends Fragment {
                 }).start();
             });
 
+    private com.divinedoll.launcher.instances.Instance mMrpackTarget;
+    private final androidx.activity.result.ActivityResultLauncher<String> mMrpackExport =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/zip"), uri -> {
+                com.divinedoll.launcher.instances.Instance inst = mMrpackTarget;
+                mMrpackTarget = null;
+                if(uri == null || inst == null) return;
+                Context ctx = requireContext();
+                android.widget.Toast.makeText(ctx, R.string.fork_mrpack_working, android.widget.Toast.LENGTH_SHORT).show();
+                new Thread(() -> {
+                    try {
+                        int linked = com.divinedoll.launcher.utils.MrpackExport.export(ctx, inst, uri);
+                        Tools.runOnUiThread(() -> android.widget.Toast.makeText(ctx, getString(R.string.fork_mrpack_done, linked), android.widget.Toast.LENGTH_LONG).show());
+                    } catch (Exception e) {
+                        Tools.runOnUiThread(() -> android.widget.Toast.makeText(ctx, getString(R.string.fork_op_error, String.valueOf(e.getMessage())), android.widget.Toast.LENGTH_LONG).show());
+                    }
+                }).start();
+            });
+
     private com.divinedoll.launcher.instances.Instance mExporting;
     private final androidx.activity.result.ActivityResultLauncher<String> mExport =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.CreateDocument(), uri -> {
@@ -233,7 +252,7 @@ public class InstallationsFragment extends Fragment {
 
     private void showMenu(Context c, DisplayInstance instance) {
         String[] items = {getString(R.string.fork_menu_files), getString(R.string.fork_menu_duplicate),
-                getString(R.string.fork_menu_export), getString(R.string.fork_menu_tag)};
+                getString(R.string.fork_menu_export), getString(R.string.fork_menu_tag), getString(R.string.fork_menu_mrpack)};
         new androidx.appcompat.app.AlertDialog.Builder(c)
                 .setTitle(String.valueOf(instance.name))
                 .setItems(items, (d, which) -> {
@@ -243,12 +262,17 @@ public class InstallationsFragment extends Fragment {
                         try {
                             com.divinedoll.launcher.instances.Instance full = com.divinedoll.launcher.utils.InstanceTools.find(name);
                             if(which == 0) {
-                                Tools.runOnUiThread(() -> { if(isAdded()) com.divinedoll.launcher.utils.InstanceFiles.show(requireActivity(), full.getGameDirectory(), full.versionId); });
+                                Tools.runOnUiThread(() -> { if(isAdded()) InstanceHubFragment.open(requireActivity(), name); });
                             } else if(which == 1) {
                                 com.divinedoll.launcher.instances.Instance copy = com.divinedoll.launcher.utils.InstanceTools.duplicate(full, getString(R.string.fork_dup_suffix));
                                 Tools.runOnUiThread(() -> {
                                     android.widget.Toast.makeText(c, getString(R.string.fork_dup_done, String.valueOf(copy.name)), android.widget.Toast.LENGTH_LONG).show();
                                     if(isAdded()) load();
+                                });
+                            } else if(which == 4) {
+                                Tools.runOnUiThread(() -> {
+                                    mMrpackTarget = full;
+                                    mMrpackExport.launch(name.replaceAll("[^A-Za-z0-9._-]", "_") + ".mrpack");
                                 });
                             } else {
                                 Tools.runOnUiThread(() -> {

@@ -49,6 +49,12 @@ import java.io.OutputStream;
 
 
 public class SearchModFragment extends Fragment implements ModItemAdapter.SearchResultCallback {
+    /** The key the user set in the app, or the one built into the launcher. */
+    static String curseforgeKey(Context context) {
+        String key = com.divinedoll.launcher.utils.BedrockContent.apiKey(context);
+        return key == null || key.isEmpty() ? "DUMMY" : key;
+    }
+
 
     public static final String TAG = "SearchModFragment";
     public static final String ARG_MODPACK = "modpack";
@@ -122,7 +128,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        modpackApi = new CommonApi(context.getString(R.string.curseforge_api_key));
+        modpackApi = new CommonApi(curseforgeKey(context));
     }
 
     @Override
