@@ -1,72 +1,77 @@
-<H1 align="center">DivineLauncher</H1>
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="DivineLauncher icon">
+</p>
 
-DivineLauncher is an unofficial Minecraft: Java Edition launcher for Android with a Bedrock-style interface, an instance manager, themes, screen recorder, gamepad support and MobileGlues support.
+<h1 align="center">DivineLauncher</h1>
 
-It is a fork of [MojoLauncher](https://github.com/MojoLauncher/MojoLauncher), which is based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher). It is not made, approved or affiliated with Mojang Studios or Microsoft.
+<p align="center">
+  A Minecraft launcher for Android with a golden, Modrinth-inspired look.<br>
+  Java Edition and Bedrock in one app, fully customizable.
+</p>
 
-## Features
-- Modrinth-style dark interface with a gold accent, rounded cards and pill tabs. Portrait and landscape.
-- Appearance panel: accent, background, sidebar and Play button colors, themes, banner image, rounded corners and icon rail on or off.
-- Instance manager: own icons, colors and background image per instance, tags, favorites, duplicate, export as `.zip` or `.mrpack`, import of `.zip`, `.mrpack` and CurseForge packs.
-- Per-instance screen with tabs for mods (enable, disable, delete, Modrinth search and update check), worlds (manual and automatic backups), logs and look.
-- Minecraft: Bedrock section with detection of the installed game, add-ons, textures and skins.
-- Button packs: the normal launcher layout or the Bedrock-style presets, globally or per instance.
-- Touch controls, gamepad support, F1 to hide the controls, movable FPS readout, quick settings drawer and a built-in screen recorder (no audio).
-- MobileGlues and other renderers, performance profiles (memory and resolution).
-- Skins manager with 3D preview. English and Spanish.
+<p align="center">
+  <img alt="License" src="https://img.shields.io/badge/license-LGPL--3.0-FFC107">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Android-FFC107">
+  <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ES-FFC107">
+</p>
+
+<p align="center"><a href="README_ES.md">Leer en español</a></p>
+
+---
+
+> DivineLauncher is an unofficial project. It is not made, approved or affiliated with Mojang Studios or Microsoft.
+
+## Highlights
+
+| | |
+|---|---|
+| **Look** | Dark interface with a gold accent, rounded cards and pill tabs, in portrait and landscape. Change accent, background, sidebar and Play button colors, banner and themes. |
+| **Instances** | Own icon, color and background per instance. Tags, favorites, duplicate, export as `.zip` or `.mrpack`, import `.zip`, `.mrpack` and CurseForge packs. |
+| **Per-instance hub** | Tabs for mods (enable, disable, delete, Modrinth search, update check), worlds (manual and automatic backups), logs and look. |
+| **Bedrock** | Detects the installed game. Add-ons, textures and skins in one place. |
+| **Controls** | Touch layouts, gamepad support, button packs (normal or Bedrock style) globally or per instance, F1 hides the controls. |
+| **In game** | Movable FPS readout, quick settings drawer, built-in screen recorder (no audio). |
+| **Performance** | MobileGlues and other renderers, profiles for memory and resolution. |
+| **Skins** | Manager with 3D preview. |
+| **Languages** | English and Spanish. |
 
 ## Screenshots
-Screenshots of the real app go in `docs/screenshots/`. Add them there and link them here, for example:
 
-```
+Screenshots go in [`docs/screenshots/`](docs/screenshots). Link them here once you add them:
+
+```markdown
 ![Home](docs/screenshots/home.png)
 ```
 
-## CurseForge key
-Searching CurseForge needs an API key. Get one for free at <https://console.curseforge.com> and use it in one of these ways:
-- GitHub Actions: add a repository secret named `CURSEFORGE_API_KEY` (Settings, Secrets and variables, Actions). The workflow already passes it to the build.
-- Local build: put the key in a file called `curseforge_key.txt` next to `gradlew`, or set the `CURSEFORGE_API_KEY` environment variable.
-- In the app: Bedrock tab, Add-ons, "Key" button. A key set there is also used for the Java mod search.
+## Install
 
-Never commit the key to the repository.
+Build it from source (below) or download the APK from the GitHub Actions runs of this repository.
 
-## Getting DivineLauncher
-Build it from source (see below) or download the APK from the GitHub Actions of this repository.
+## Build
 
-## Building   
-* Build the launcher (it will automatically download all required components)
 ```
 ./gradlew :app_mojo:assembleDebug
 ```
-If you are building on Windows:
-* Replace `./gradlew` with `.\gradlew.bat`
-* Make sure `mojoexec`, `sdl`, `glfw` are symlinked into `app_pojavlauncher/src/main/jni/`
 
-## Current roadmap
-- [x] Instance system in favor of profiles
-- [x] Out-of-the box 1.21.5 support
-- [x] mrpack/CurseForge zip import
-- [x] LTW: enable compute shader/image extensions
-- [ ] LTW: resolve issues with Create
-- [ ] LTW: switch to a color-renderable format for framebuffers
-- [ ] Modpack/mod management tool
-- [ ] MMC-compatible instance import
-- [ ] Vintage Story support
-- [ ] Implement common native library standard
+On Windows use `.\gradlew.bat` and make sure `mojoexec`, `sdl` and `glfw` are symlinked into `app_pojavlauncher/src/main/jni/`.
 
-## Known Issues
-- Some physical mice may have very slow mouse speed
-- On Holy GL4ES, large texture atlases may be distorted (resulting in stretched/blocky textures in modpacks)
-- Probably more, that's why we have a bug tracker ;) 
+### CurseForge key
 
-## License
-- DivineLauncher (a fork of MojoLauncher) is licensed under [GNU LGPLv3](https://github.com/MojoLauncher/MojoLauncher/blob/v3_openjdk/LICENSE).
+Searching CurseForge needs a free API key from <https://console.curseforge.com>.
+
+- **GitHub Actions:** add a repository secret named `CURSEFORGE_API_KEY`. The workflow already passes it to the build.
+- **Local build:** put the key in `curseforge_key.txt` next to `gradlew`, or set the `CURSEFORGE_API_KEY` environment variable.
+- **In the app:** Bedrock tab, Add-ons, "Key" button. It is also used for the Java mod search.
+
+Never commit the key.
+
+## Credits and license
+
+DivineLauncher is a fork of [MojoLauncher](https://github.com/MojoLauncher/MojoLauncher), which is based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher). It is licensed under the [GNU LGPLv3](LICENSE). See [NOTICE-FORK.md](NOTICE-FORK.md).
 
 ## Contributing
-Contributions are welcome! We welcome any type of contribution, not only code. For example, you can help the wiki shape up. You can help the [translation](https://mojolauncher.ru/translate/translator.html) too!
 
-
-Any code change to this repository should be submitted as a pull request. The description should explain what the code does and give steps to execute it.
+Contributions are welcome, not only code. Submit changes as a pull request that explains what the change does and how to try it.
 
 ## Third party components, licenses and sources (when applicable)
 - [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher): [GNU LGPLv3 License](https://github.com/PojavLauncherTeam/PojavLauncher/blob/v3_openjdk/LICENSE)
