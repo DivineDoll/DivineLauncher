@@ -104,6 +104,8 @@ public class MainMenuFragment extends Fragment {
             return true;
         });
         mPlayRef = mPlayButton;
+        com.divinedoll.launcher.utils.UpdateCheck.run(requireActivity());
+        view.post(this::runSetupWizard);
         buildHomeCard(view);
         buildContentPanel(view);
         mBannerView = view.findViewById(R.id.bedrock_banner);
@@ -296,6 +298,30 @@ public class MainMenuFragment extends Fragment {
         renderNews(c);
     }
 
+    /** First start: welcome, color and button pack; then, after the screen is rebuilt, the language. */
+    private void runSetupWizard() {
+        if(!isAdded()) return;
+        Context c = requireContext();
+        android.content.SharedPreferences prefs = com.divinedoll.launcher.prefs.LauncherPreferences.DEFAULT_PREF;
+        int stage = prefs.getInt("setup_stage", 0);
+        if(stage >= 2) return;
+        if(stage == 1) {
+            prefs.edit().putInt("setup_stage", 2).apply();
+            com.divinedoll.launcher.utils.LanguagePicker.show(c, () -> requireActivity().recreate());
+            return;
+        }
+        new android.app.AlertDialog.Builder(c).setCancelable(false)
+                .setTitle(R.string.fork_setup_title).setMessage(R.string.fork_setup_message)
+                .setPositiveButton(R.string.fork_setup_start, (d, w) -> {
+                    prefs.edit().putInt("setup_stage", 1).apply();
+                    // Button pack first, then the color, then the screen is rebuilt and the language is asked
+                    com.divinedoll.launcher.utils.ControlPacks.show(c, () ->
+                            com.divinedoll.launcher.utils.AccentColor.choose(c, () -> requireActivity().recreate()));
+                })
+                .setNegativeButton(R.string.fork_setup_skip, (d, w) -> prefs.edit().putInt("setup_stage", 2).apply())
+                .show();
+    }
+
     private void renderNews(Context c) {
         if(mNews.isEmpty() || mWorldList == null) return;
         TextView title = com.divinedoll.launcher.utils.ForkUi.text(c, getString(R.string.fork_news), 12, true);
@@ -393,7 +419,7 @@ public class MainMenuFragment extends Fragment {
         texts.addView(mHomeWorld);
         card.addView(texts, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        int[] labels = {R.string.fork_home_files, R.string.fork_home_logs, R.string.fork_home_edit};
+        int[] labels = {R.string.fork_home_files, R.string.fork_home_logs, R.string.fork_home_edit, R.string.fork_home_servers};
         for(int i = 0; i < labels.length; i++) {
             final int which = i;
             Button b = com.divinedoll.launcher.utils.ForkUi.button(c, getString(labels[i]), false);
@@ -462,7 +488,9 @@ public class MainMenuFragment extends Fragment {
     private void onHomeAction(int which) {
         Context c = requireContext();
         Instance instance = Instances.loadSelectedInstance();
-        if(which == 1) {
+        if(which == 3) {
+            Tools.swapFragment(requireActivity(), ServersFragment.class, ServersFragment.TAG, null);
+        } else if(which == 1) {
             shareLog(c);
         } else if(instance == null) {
             Toast.makeText(c, R.string.no_instance, Toast.LENGTH_LONG).show();

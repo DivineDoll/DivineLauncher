@@ -27,12 +27,28 @@ public class ExtraOptions {
 
     public static void show(Context c, Runnable onChanged) {
         String[] items = {c.getString(R.string.fork_extra_switches), c.getString(R.string.fork_perf_title), c.getString(R.string.fork_diag_title),
-                c.getString(R.string.fork_autobackup_restore)};
+                c.getString(R.string.fork_autobackup_restore), c.getString(R.string.fork_sbk_title)};
         new AlertDialog.Builder(c).setTitle(R.string.fork_extra_menu).setItems(items, (d, which) -> {
             if(which == 0) switches(c, onChanged);
             else if(which == 1) performance(c);
             else if(which == 2) Diagnostics.share(c);
-            else restoreAutoBackup(c);
+            else if(which == 3) restoreAutoBackup(c);
+            else settingsBackup(c);
+        }).show();
+    }
+
+    private static void settingsBackup(Context c) {
+        CharSequence[] items = {c.getString(R.string.fork_settings_export), c.getString(R.string.fork_settings_import)};
+        new AlertDialog.Builder(c).setTitle(R.string.fork_sbk_title).setItems(items, (d, which) -> {
+            if(which == 0) {
+                try {
+                    ShareFile.send(c, SettingsBackup.write(c), false);
+                } catch(Exception e) {
+                    Toast.makeText(c, c.getString(R.string.fork_op_error, String.valueOf(e.getMessage())), Toast.LENGTH_LONG).show();
+                }
+            } else if(c instanceof com.divinedoll.launcher.LauncherActivity) {
+                ((com.divinedoll.launcher.LauncherActivity) c).importSettingsBackup();
+            }
         }).show();
     }
 

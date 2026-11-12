@@ -38,6 +38,7 @@ public class RecorderService extends Service {
     public static final String ACTION_STOP = "com.divinedoll.launcher.REC_STOP";
     public static final String EXTRA_CODE = "code";
     public static final String EXTRA_DATA = "data";
+    public static final String EXTRA_MIC = "mic";
     private static final int NOTIFICATION_ID = 40;
 
     public static volatile boolean sRecording;
@@ -80,7 +81,7 @@ public class RecorderService extends Service {
         }
 
         try {
-            begin(intent.getIntExtra(EXTRA_CODE, 0), intent.getParcelableExtra(EXTRA_DATA));
+            begin(intent.getIntExtra(EXTRA_CODE, 0), intent.getParcelableExtra(EXTRA_DATA), intent.getBooleanExtra(EXTRA_MIC, false));
             sRecording = true;
             Toast.makeText(this, R.string.fork_rec_started, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
@@ -92,7 +93,7 @@ public class RecorderService extends Service {
     }
 
     @SuppressWarnings("deprecation")
-    private void begin(int code, Intent data) throws Exception {
+    private void begin(int code, Intent data, boolean mic) throws Exception {
         MediaProjectionManager manager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         mProjection = manager.getMediaProjection(code, data);
         if(mProjection == null) throw new IllegalStateException("No permission");
@@ -115,18 +116,35 @@ public class RecorderService extends Service {
         String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(new Date());
         mFile = new File(dir, "rec-" + stamp + ".mp4");
 
+        try {
+            prepareRecorder(width, height, mic);
+        } catch(Exception e) {
+            // No microphone available: record the video without sound
+            if(!mic) throw e;
+            try { mRecorder.release(); } catch(Exception ignored) {}
+            prepareRecorder(width, height, false);
+        }
+        mDisplay = mProjection.createVirtualDisplay("MojoRecorder", width, height, dm.densityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mRecorder.getSurface(), null, null);
+        mRecorder.start();
+    }
+
+    private void prepareRecorder(int width, int height, boolean mic) throws Exception {
         mRecorder = new MediaRecorder();
+        if(mic) mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        if(mic) {
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mRecorder.setAudioEncodingBitRate(128_000);
+            mRecorder.setAudioSamplingRate(44100);
+        }
         mRecorder.setVideoSize(width, height);
         mRecorder.setVideoFrameRate(30);
         mRecorder.setVideoEncodingBitRate(8_000_000);
         mRecorder.setOutputFile(mFile.getAbsolutePath());
         mRecorder.prepare();
-        mDisplay = mProjection.createVirtualDisplay("MojoRecorder", width, height, dm.densityDpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mRecorder.getSurface(), null, null);
-        mRecorder.start();
     }
 
     private void release() {

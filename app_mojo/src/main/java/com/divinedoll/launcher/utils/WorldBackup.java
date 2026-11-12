@@ -73,6 +73,46 @@ public final class WorldBackup {
         return true;
     }
 
+    /** Backups of one world, newest first. */
+    public static File[] copiesOf(File gameDir, String worldName) {
+        String safe = worldName.replaceAll("[^A-Za-z0-9._-]", "_");
+        File[] copies = new File(gameDir, "backups").listFiles((d, n) -> n.startsWith(safe + "-") && n.endsWith(".zip"));
+        if(copies == null) return new File[0];
+        Arrays.sort(copies, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        return copies;
+    }
+
+    /** Puts a backup back in saves. The world that is there now is kept next to it with "-antes-" in its name. */
+    public static void restore(File gameDir, File zipFile) throws IOException {
+        File saves = new File(gameDir, "saves");
+        if(!saves.isDirectory() && !saves.mkdirs()) throw new IOException("saves");
+        String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
+        try(java.util.zip.ZipInputStream in = new java.util.zip.ZipInputStream(new FileInputStream(zipFile))) {
+            String top = null;
+            ZipEntry entry;
+            String canonicalSaves = saves.getCanonicalPath() + File.separator;
+            while((entry = in.getNextEntry()) != null) {
+                String name = entry.getName();
+                int slash = name.indexOf('/');
+                String first = slash < 0 ? name : name.substring(0, slash);
+                if(top == null) {
+                    top = first;
+                    File existing = new File(saves, top);
+                    if(existing.exists() && !existing.renameTo(new File(saves, top + "-antes-" + stamp))) throw new IOException("rename");
+                }
+                File out = new File(saves, name);
+                if(!out.getCanonicalPath().startsWith(canonicalSaves)) throw new IOException("bad path");
+                if(entry.isDirectory()) { out.mkdirs(); continue; }
+                out.getParentFile().mkdirs();
+                try(FileOutputStream fo = new FileOutputStream(out)) {
+                    byte[] buf = new byte[16384];
+                    int n;
+                    while((n = in.read(buf)) > 0) fo.write(buf, 0, n);
+                }
+            }
+        }
+    }
+
     private static long newest(File f) {
         long t = f.lastModified();
         File[] kids = f.listFiles();
