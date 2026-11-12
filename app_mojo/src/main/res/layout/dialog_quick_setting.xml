@@ -375,6 +375,38 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonQuickLan"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_3sdp"
+                android:layout_weight="1"
+                android:minHeight="@dimen/_34sdp"
+                android:text="@string/fork_quick_lan" />
+
+            <Button
+                android:id="@+id/buttonQuickSaver"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_3sdp"
+                android:layout_weight="1"
+                android:minHeight="@dimen/_34sdp"
+                android:text="@string/fork_quick_saver" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/checkboxQuickMic"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_34sdp"
+            android:text="@string/fork_quick_mic" />
+
     </LinearLayout>
 
 </LinearLayout>
