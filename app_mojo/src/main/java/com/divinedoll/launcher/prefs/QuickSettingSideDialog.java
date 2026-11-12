@@ -84,6 +84,24 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 cancel();
             });
         }
+        android.view.View lan = mDialogContent.findViewById(R.id.buttonQuickLan);
+        if(lan != null) lan.setOnClickListener(v -> {
+            onLanClicked();
+            cancel();
+        });
+        android.view.View saver = mDialogContent.findViewById(R.id.buttonQuickSaver);
+        if(saver != null) {
+            ((android.widget.Button) saver).setText(com.divinedoll.launcher.utils.BatterySaver.enabled() ? R.string.fork_quick_saver_on : R.string.fork_quick_saver);
+            saver.setOnClickListener(v -> {
+                onBatterySaverClicked();
+                ((android.widget.Button) saver).setText(com.divinedoll.launcher.utils.BatterySaver.enabled() ? R.string.fork_quick_saver_on : R.string.fork_quick_saver);
+            });
+        }
+        SwitchCompat mic = mDialogContent.findViewById(R.id.checkboxQuickMic);
+        if(mic != null) {
+            mic.setChecked(com.divinedoll.launcher.utils.ScreenRecorder.micEnabled());
+            mic.setOnCheckedChangeListener((b, on) -> com.divinedoll.launcher.utils.ScreenRecorder.setMicEnabled(on));
+        }
         android.view.View joystick = mDialogContent.findViewById(R.id.buttonQuickJoystick);
         if(joystick != null) joystick.setOnClickListener(v -> com.divinedoll.launcher.utils.JoystickSettings.show(mControlsParent.getContext(),
                 mControlsParent instanceof com.divinedoll.launcher.input.ControlLayout ? (com.divinedoll.launcher.input.ControlLayout) mControlsParent : null));
@@ -142,7 +160,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         }
         com.divinedoll.launcher.utils.McStyle.applyFont(mDialogContent);
         int[] tools = {R.id.buttonQuickHideControls, R.id.buttonQuickMirror, R.id.buttonQuickRecord,
-                R.id.buttonQuickJoystick, R.id.buttonQuickGamepad, R.id.buttonQuickShot};
+                R.id.buttonQuickJoystick, R.id.buttonQuickGamepad, R.id.buttonQuickShot, R.id.buttonQuickLan, R.id.buttonQuickSaver};
         for(int id : tools) {
             android.view.View b = mDialogContent.findViewById(id);
             if(b instanceof android.widget.Button) {
@@ -375,4 +393,10 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
 
     /** Called when the record button is pressed; the game activity overrides it. */
     public void onRecordClicked() {}
+
+    /** Called when LAN is pressed; the game activity opens the LAN panel. */
+    public void onLanClicked() {}
+
+    /** Called when the battery saver button is pressed. */
+    public void onBatterySaverClicked() {}
 }

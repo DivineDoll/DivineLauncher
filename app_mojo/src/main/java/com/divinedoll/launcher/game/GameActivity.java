@@ -123,9 +123,26 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
                 }
             });
 
+    private final androidx.activity.result.ActivityResultLauncher<String> mMicLauncher = registerForActivityResult(
+            new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(), granted ->
+                    mRecordLauncher.launch(com.divinedoll.launcher.utils.ScreenRecorder.permissionIntent(this)));
+
+    private final androidx.activity.result.ActivityResultLauncher<Intent> mLanVpnLauncher = registerForActivityResult(
+            new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
+                if(result.getResultCode() == RESULT_OK) {
+                    com.divinedoll.launcher.lan.TerracottaManager.get().startVpnService();
+                } else {
+                    com.divinedoll.launcher.lan.TerracottaManager.get().rejectVpn();
+                    Toast.makeText(this, R.string.fork_lan_vpn_denied, Toast.LENGTH_LONG).show();
+                }
+            });
+
     private void toggleRecording() {
         if(com.divinedoll.launcher.utils.ScreenRecorder.isRecording()) {
             com.divinedoll.launcher.utils.ScreenRecorder.stop(this);
+        } else if(com.divinedoll.launcher.utils.ScreenRecorder.micEnabled()
+                && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            mMicLauncher.launch(android.Manifest.permission.RECORD_AUDIO);
         } else {
             mRecordLauncher.launch(com.divinedoll.launcher.utils.ScreenRecorder.permissionIntent(this));
         }
@@ -361,6 +378,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     @Override
     public void onResume() {
         super.onResume();
+        com.divinedoll.launcher.utils.BatterySaver.apply(this);
         mSessionStart = System.currentTimeMillis();
         ContextExecutor.setActivity(this);
         if(PREF_ENABLE_GYRO) mGyroControl.enable();
@@ -404,6 +422,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        com.divinedoll.launcher.lan.TerracottaManager.get().setVpnPermissionHandler(null);
         ContextExecutor.clearActivity();
     }
 
@@ -496,6 +515,20 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
                 @Override
                 public void onRecordClicked() {
                     toggleRecording();
+                }
+
+                @Override
+                public void onLanClicked() {
+                    com.divinedoll.launcher.lan.TerracottaManager.get().setVpnPermissionHandler(intent -> {
+                        mLanVpnLauncher.launch(intent);
+                        return true;
+                    });
+                    com.divinedoll.launcher.utils.LanQuickDialog.show(GameActivity.this);
+                }
+
+                @Override
+                public void onBatterySaverClicked() {
+                    com.divinedoll.launcher.utils.BatterySaver.setEnabled(GameActivity.this, !com.divinedoll.launcher.utils.BatterySaver.enabled());
                 }
 
                 @Override

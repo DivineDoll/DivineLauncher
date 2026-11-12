@@ -240,6 +240,23 @@ public class LauncherActivity extends BaseActivity {
         ContextExecutor.clearActivity();
     }
 
+    private final androidx.activity.result.ActivityResultLauncher<String[]> mSettingsImport = registerForActivityResult(
+            new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(), uri -> {
+                if(uri == null) return;
+                try {
+                    int n = com.divinedoll.launcher.utils.SettingsBackup.read(this, uri);
+                    android.widget.Toast.makeText(this, getString(R.string.fork_settings_imported, n), android.widget.Toast.LENGTH_LONG).show();
+                    recreate();
+                } catch(Exception e) {
+                    android.widget.Toast.makeText(this, getString(R.string.fork_op_error, String.valueOf(e.getMessage())), android.widget.Toast.LENGTH_LONG).show();
+                }
+            });
+
+    /** Lets the user pick a settings backup file made by the export option. */
+    public void importSettingsBackup() {
+        mSettingsImport.launch(new String[]{"application/json", "text/plain", "application/octet-stream"});
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
