@@ -953,4 +953,6 @@
     <string name="fork_nav_more">Más</string>
     <string name="fork_nav_servers">Servidores</string>
     <string name="fork_nav_title">DivineLauncher</string>
+    <string name="fork_nav_installs_short">Instal.</string>
+    <string name="fork_nav_play">Jugar</string>
 </resources>

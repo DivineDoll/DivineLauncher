@@ -27,9 +27,9 @@ public final class DivineTheme {
     private DivineTheme() {}
 
     public static final int GOLD = 0xFFFFC107;
-    public static final int BG = 0xFF16181C;
-    public static final int SIDEBAR = 0xFF1B1D21;
-    private static final String PREF_APPLIED = "divine_theme_v1";
+    public static final int BG = 0xFF0F1114;
+    public static final int SIDEBAR = 0xFF16181C;
+    private static final String PREF_APPLIED = "divine_theme_v2";
 
     /** First run of this look: gold colors, rounded shapes. The user can change all of it afterwards. */
     public static void applyOnce() {

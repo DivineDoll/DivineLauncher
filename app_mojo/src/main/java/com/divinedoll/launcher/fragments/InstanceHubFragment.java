@@ -55,7 +55,7 @@ import java.util.Deque;
 public class InstanceHubFragment extends Fragment {
     public static final String TAG = "InstanceHubFragment";
     public static final String ARG_NAME = "name";
-    private static final int TAB_MODS = 0, TAB_WORLDS = 1, TAB_LOGS = 2, TAB_LOOK = 3, TAB_SHOTS = 4, TAB_PERF = 5;
+    public static final int TAB_MODS = 0, TAB_WORLDS = 1, TAB_LOGS = 2, TAB_LOOK = 3, TAB_SHOTS = 4, TAB_PERF = 5;
 
     private Instance mInstance;
     private File mGameDir;
@@ -66,8 +66,13 @@ public class InstanceHubFragment extends Fragment {
 
     /** Opens the screen for the instance with that name. */
     public static void open(androidx.fragment.app.FragmentActivity act, String name) {
+        open(act, name, TAB_MODS);
+    }
+
+    public static void open(androidx.fragment.app.FragmentActivity act, String name, int tab) {
         Bundle b = new Bundle();
         b.putString(ARG_NAME, name);
+        b.putInt("tab", tab);
         Tools.swapFragment(act, InstanceHubFragment.class, TAG, b);
     }
 
@@ -87,6 +92,7 @@ public class InstanceHubFragment extends Fragment {
     public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state) {
         Context c = requireContext();
         String name = getArguments() == null ? null : getArguments().getString(ARG_NAME);
+        if(getArguments() != null) mTab = getArguments().getInt("tab", TAB_MODS);
         try {
             mInstance = name != null ? InstanceTools.find(name) : Instances.loadSelectedInstance();
         } catch(Exception e) {
@@ -104,31 +110,8 @@ public class InstanceHubFragment extends Fragment {
         mGameDir = mInstance.getGameDirectory();
         int pad = ForkUi.dp(c, 12);
 
-        LinearLayout header = ForkUi.row(c);
-        header.setPadding(pad, pad, pad, ForkUi.dp(c, 6));
-        Button back = ForkUi.compact(ForkUi.button(c, "‹", false));
-        back.setOnClickListener(v -> Tools.removeCurrentFragment(requireActivity()));
-        header.addView(back);
-        ImageView icon = new ImageView(c);
-        icon.setImageBitmap(InstallationsFragment.iconOf(c, mInstance));
-        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(ForkUi.dp(c, 44), ForkUi.dp(c, 44));
-        ilp.setMargins(ForkUi.dp(c, 10), 0, ForkUi.dp(c, 10), 0);
-        header.addView(icon, ilp);
-        LinearLayout texts = new LinearLayout(c);
-        texts.setOrientation(LinearLayout.VERTICAL);
-        TextView title = ForkUi.text(c, String.valueOf(mInstance.name), 18, true);
-        title.setSingleLine(true);
-        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        TextView sub = ForkUi.text(c, String.valueOf(mInstance.versionId), 12, false);
-        sub.setTextColor(0xFFAAAAAA);
-        sub.setSingleLine(true);
-        sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        texts.addView(title);
-        texts.addView(sub);
-        header.addView(texts, ForkUi.weight(1f));
-        Button all = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_all_files), false));
-        all.setOnClickListener(v -> InstanceFiles.show(requireActivity(), mGameDir, mInstance.versionId));
-        header.addView(all);
+        LinearLayout header = ForkUi.screenHeader(c, requireActivity(), String.valueOf(mInstance.name), R.drawable.ic_dl_more,
+                v -> InstanceFiles.show(requireActivity(), mGameDir, mInstance.versionId));
         root.addView(header);
 
         HorizontalScrollView tabScroll = new HorizontalScrollView(c);

@@ -99,6 +99,7 @@ public class McStyle {
     /** Pixel font, white text with the game's dark drop shadow. */
     public static void text(TextView t) {
         t.setTypeface(font(t.getContext()));
+        if(UiStyle.rounded()) return;
         float d = t.getContext().getResources().getDisplayMetrics().density;
         t.setShadowLayer(1f, d, d, 0xFF3F3F3F);
     }
@@ -153,6 +154,7 @@ public class McStyle {
 
     public static void headingText(TextView t) {
         t.setTypeface(heading(t.getContext()));
+        if(UiStyle.rounded()) return;
         float d = t.getContext().getResources().getDisplayMetrics().density;
         t.setShadowLayer(1f, d, d, 0xFF3F3F3F);
     }

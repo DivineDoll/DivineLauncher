@@ -113,10 +113,40 @@ public class ForkUi {
         Tools.swapFragment(act, cls, tag, null);
     }
 
-    /** Title of a main screen. Moving between screens is done with the navigation bar and drawer. */
+    /** Rounded 30dp chip with a line icon, as in the top bars of the design. */
+    public static View iconChip(Context c, int iconRes, boolean accent, View.OnClickListener click) {
+        android.widget.FrameLayout chip = new android.widget.FrameLayout(c);
+        GradientDrawable g = new GradientDrawable();
+        g.setCornerRadius(dp(c, 10));
+        g.setColor(accent ? AccentColor.get() : ThemeColors.panel());
+        chip.setBackground(g);
+        android.widget.ImageView icon = new android.widget.ImageView(c);
+        icon.setImageResource(iconRes);
+        icon.setColorFilter(accent ? DivineTheme.onColor(AccentColor.get()) : Color.WHITE);
+        chip.addView(icon, new android.widget.FrameLayout.LayoutParams(dp(c, 18), dp(c, 18), Gravity.CENTER));
+        chip.setClickable(true);
+        if(click != null) chip.setOnClickListener(click);
+        return chip;
+    }
+
+    /** Header of a screen: back chip, title and an optional action chip. Same on every screen. */
+    public static LinearLayout screenHeader(Context c, FragmentActivity act, CharSequence title, int actionIcon, View.OnClickListener action) {
+        LinearLayout row = new LinearLayout(c);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(c, 14), dp(c, 14), dp(c, 14), dp(c, 10));
+        row.addView(iconChip(c, R.drawable.ic_dl_back, false, v -> Tools.backToMainMenu(act)), new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30)));
+        TextView t = text(c, title, 17, true);
+        t.setSingleLine(true);
+        t.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        t.setPadding(dp(c, 10), 0, dp(c, 10), 0);
+        row.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        if(action != null) row.addView(iconChip(c, actionIcon, true, action), new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30)));
+        return row;
+    }
+
+    /** Header of the main screens (Installations, Skins, Patch notes). */
     public static LinearLayout pageHeader(Context c, FragmentActivity act, int selected) {
-        LinearLayout box = new LinearLayout(c);
-        box.setOrientation(LinearLayout.VERTICAL);
         int label;
         switch (selected) {
             case TAB_INSTALLS: label = R.string.fork_installs_title; break;
@@ -124,15 +154,6 @@ public class ForkUi {
             case TAB_PATCH: label = R.string.fork_patch_title; break;
             default: label = R.string.fork_nav_home; break;
         }
-        TextView title = text(c, c.getString(label), 22, true);
-        title.setPadding(dp(c, 16), dp(c, 14), dp(c, 16), dp(c, 2));
-        box.addView(title);
-        View line = new View(c);
-        line.setBackgroundColor(AccentColor.get());
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(c, 36), dp(c, 3));
-        lp.leftMargin = dp(c, 16);
-        lp.bottomMargin = dp(c, 8);
-        box.addView(line, lp);
-        return box;
+        return screenHeader(c, act, c.getString(label), 0, null);
     }
 }

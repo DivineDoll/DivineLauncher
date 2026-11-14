@@ -10,8 +10,8 @@ public class ThemeColors {
     public static final String PREF_SIDEBAR = "sidebar_color";
     public static final String PREF_TEXT = "text_color";
     public static final int DEFAULT_TEXT = 0xFFFFFFFF;
-    public static final int DEFAULT_BACKGROUND = 0xFF16181C;
-    public static final int DEFAULT_SIDEBAR = 0xFF1B1D21;
+    public static final int DEFAULT_BACKGROUND = 0xFF0F1114;
+    public static final int DEFAULT_SIDEBAR = 0xFF16181C;
 
     private static int get(String key, int def) {
         try {
