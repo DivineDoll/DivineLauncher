@@ -113,43 +113,26 @@ public class ForkUi {
         Tools.swapFragment(act, cls, tag, null);
     }
 
-    private static TextView tab(Context c, FragmentActivity act, int label, int index, int selected) {
-        TextView t = text(c, c.getString(label), 15, false);
-        t.setTextColor(index == selected ? Color.WHITE : TAB_IDLE);
-        t.setPadding(dp(c, 14), dp(c, 8), dp(c, 14), dp(c, 8));
-        t.setGravity(Gravity.CENTER);
-        if(UiStyle.rounded()) {
-            t.setBackground(DivineTheme.tabPill(c, index == selected));
-            if(index == selected) t.setTextColor(AccentColor.light()); else t.setOnClickListener(v -> openTab(act, index));
-        } else if(index == selected) {
-            GradientDrawable underline = new GradientDrawable();
-            underline.setColor(AccentColor.get());
-            android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(
-                    new android.graphics.drawable.Drawable[]{underline});
-            layers.setLayerInset(0, dp(c, 8), dp(c, 34), dp(c, 8), 0);
-            t.setBackground(layers);
-        } else {
-            t.setOnClickListener(v -> openTab(act, index));
-        }
-        return t;
-    }
-
-    /** Title "MINECRAFT: JAVA EDITION" and the Play / Installations / Skins / Patch notes tabs, for the top bar. */
+    /** Title of a main screen. Moving between screens is done with the navigation bar and drawer. */
     public static LinearLayout pageHeader(Context c, FragmentActivity act, int selected) {
         LinearLayout box = new LinearLayout(c);
         box.setOrientation(LinearLayout.VERTICAL);
-        TextView title = text(c, c.getString(R.string.fork_header_java), 12, true);
-        title.setAllCaps(true);
-        title.setLetterSpacing(0.06f);
-        title.setPadding(dp(c, 8), dp(c, 6), 0, 0);
+        int label;
+        switch (selected) {
+            case TAB_INSTALLS: label = R.string.fork_installs_title; break;
+            case TAB_SKINS: label = R.string.fork_skin_title; break;
+            case TAB_PATCH: label = R.string.fork_patch_title; break;
+            default: label = R.string.fork_nav_home; break;
+        }
+        TextView title = text(c, c.getString(label), 22, true);
+        title.setPadding(dp(c, 16), dp(c, 14), dp(c, 16), dp(c, 2));
         box.addView(title);
-        LinearLayout tabs = new LinearLayout(c);
-        tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.addView(tab(c, act, R.string.fork_tab_play, TAB_PLAY, selected));
-        tabs.addView(tab(c, act, R.string.fork_installs_title, TAB_INSTALLS, selected));
-        tabs.addView(tab(c, act, R.string.fork_skin_title, TAB_SKINS, selected));
-        tabs.addView(tab(c, act, R.string.fork_patch_title, TAB_PATCH, selected));
-        box.addView(tabs);
+        View line = new View(c);
+        line.setBackgroundColor(AccentColor.get());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(c, 36), dp(c, 3));
+        lp.leftMargin = dp(c, 16);
+        lp.bottomMargin = dp(c, 8);
+        box.addView(line, lp);
         return box;
     }
 }
