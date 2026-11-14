@@ -72,6 +72,7 @@ DivineLauncher es un fork de [MojoLauncher](https://github.com/MojoLauncher/Mojo
 Toda ayuda es bienvenida, no solo código. Envía los cambios como pull request explicando qué hacen y cómo probarlos.
 
 ## Third party components, licenses and sources (when applicable)
+- Fuentes [Inter](https://rsms.me/inter/) y [Space Grotesk](https://github.com/floriankarsten/space-grotesk): [SIL Open Font License 1.1](https://openfontlicense.org/).
 - [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher): [GNU LGPLv3 License](https://github.com/PojavLauncherTeam/PojavLauncher/blob/v3_openjdk/LICENSE)
 - Android Support Libraries: [Apache License 2.0](https://android.googlesource.com/platform/prebuilts/maven_repo/android/+/master/NOTICE.txt).
 - [Holy GL4ES](https://github.com/artdeell/gl4es_extra_extra/): [MIT License](https://github.com/ptitSeb/gl4es/blob/master/LICENSE).<br>

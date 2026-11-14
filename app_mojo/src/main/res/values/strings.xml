@@ -1144,4 +1144,6 @@
     <string name="fork_nav_more">More</string>
     <string name="fork_nav_servers">Servers</string>
     <string name="fork_nav_title">DivineLauncher</string>
+    <string name="fork_nav_installs_short">Installs</string>
+    <string name="fork_nav_play">Play</string>
 </resources>

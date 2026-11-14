@@ -48,8 +48,8 @@ public final class NavBar {
             CONTROLS = 7, SETTINGS = 8, PATCH = 9;
     private static final int IDLE = 0xFFB8B8B8;
 
-    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, BEDROCK, SERVERS, LAN, CONTROLS, PATCH, SETTINGS};
-    private static final int[] BAR = {HOME, INSTALLS, MODS, BEDROCK};
+    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, BEDROCK, SERVERS, SETTINGS, LAN, CONTROLS, PATCH};
+    private static final int[] BAR = {HOME, INSTALLS, MODS, SKINS};
 
     private final LauncherActivity act;
     private final boolean landscape;
@@ -59,7 +59,7 @@ public final class NavBar {
     private FrameLayout overlay;
     private View scrim;
     private LinearLayout panel;
-    private TextView panelSub;
+    private TextView panelSub, panelTitle;
     private int current = HOME;
     private boolean open;
 
@@ -85,16 +85,16 @@ public final class NavBar {
 
     private static int icon(int dest) {
         switch (dest) {
-            case HOME: return R.drawable.ic_px_home;
-            case INSTALLS: return R.drawable.ic_px_java;
-            case MODS: return R.drawable.ic_user_mods;
-            case BEDROCK: return R.drawable.ic_user_bedrock;
-            case SKINS: return R.drawable.ic_px_image;
-            case SERVERS: return R.drawable.ic_px_lan_friends;
-            case LAN: return R.drawable.ic_px_lan_friends;
-            case CONTROLS: return R.drawable.ic_px_gamepad;
-            case PATCH: return R.drawable.ic_px_book;
-            default: return R.drawable.ic_px_sliders;
+            case HOME: return R.drawable.ic_dl_home;
+            case INSTALLS: return R.drawable.ic_dl_grid;
+            case MODS: return R.drawable.ic_dl_puzzle;
+            case BEDROCK: return R.drawable.ic_dl_bed;
+            case SKINS: return R.drawable.ic_dl_shirt;
+            case SERVERS: return R.drawable.ic_dl_globe;
+            case LAN: return R.drawable.ic_dl_user;
+            case CONTROLS: return R.drawable.ic_dl_cube;
+            case PATCH: return R.drawable.ic_dl_img;
+            default: return R.drawable.ic_dl_gear;
         }
     }
 
@@ -120,7 +120,12 @@ public final class NavBar {
         LinearLayout bar = new LinearLayout(act);
         bar.setId(navId);
         bar.setOrientation(landscape ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(ThemeColors.sidebar());
+        android.graphics.drawable.LayerDrawable bg = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{
+                new android.graphics.drawable.ColorDrawable(ThemeColors.sidebar()),
+                new android.graphics.drawable.ColorDrawable(0x1FFFFFFF)});
+        bg.setLayerGravity(1, landscape ? Gravity.END : Gravity.TOP);
+        if (landscape) bg.setLayerWidth(1, dp(act, 1)); else bg.setLayerHeight(1, dp(act, 1));
+        bar.setBackground(bg);
         bar.setElevation(dp(act, 6));
         bar.setGravity(landscape ? Gravity.CENTER_HORIZONTAL : Gravity.CENTER_VERTICAL);
         int pad = dp(act, landscape ? 8 : 4);
@@ -132,7 +137,7 @@ public final class NavBar {
             barItems[i] = item;
             bar.addView(item, itemParams());
         }
-        moreItem = barItemRaw(R.drawable.ic_px_alt_sliders, act.getString(R.string.fork_nav_more));
+        moreItem = barItemRaw(R.drawable.ic_dl_more, act.getString(R.string.fork_nav_more));
         moreItem.setOnClickListener(v -> {
             tap(v);
             toggleDrawer();
@@ -174,7 +179,7 @@ public final class NavBar {
     }
 
     private View barItem(int dest) {
-        View v = barItemRaw(icon(dest), act.getString(label(dest)));
+        View v = barItemRaw(icon(dest), act.getString(dest == INSTALLS ? R.string.fork_nav_installs_short : label(dest)));
         v.setOnClickListener(x -> {
             tap(x);
             go(dest);
@@ -261,18 +266,29 @@ public final class NavBar {
         LinearLayout head = new LinearLayout(act);
         head.setOrientation(LinearLayout.VERTICAL);
         head.setPadding(dp(act, 18), dp(act, 22), dp(act, 18), dp(act, 14));
-        TextView title = new TextView(act);
-        title.setText(R.string.fork_nav_title);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-        title.setTextColor(AccentColor.get());
-        title.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-        head.addView(title);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        View avatar = new View(act);
+        GradientDrawable av = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{AccentColor.get(), 0xFF7A5A00});
+        av.setShape(GradientDrawable.OVAL);
+        avatar.setBackground(av);
+        head.addView(avatar, new LinearLayout.LayoutParams(dp(act, 34), dp(act, 34)));
+        LinearLayout names = new LinearLayout(act);
+        names.setOrientation(LinearLayout.VERTICAL);
+        names.setPadding(dp(act, 12), 0, 0, 0);
+        panelTitle = new TextView(act);
+        panelTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        panelTitle.setTextColor(Color.WHITE);
+        panelTitle.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        panelTitle.setSingleLine(true);
+        names.addView(panelTitle);
+        head.addView(names, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         panelSub = new TextView(act);
         panelSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         panelSub.setTextColor(IDLE);
         panelSub.setSingleLine(true);
         panelSub.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        head.addView(panelSub);
+        names.addView(panelSub);
         panel.addView(head);
 
         View line = new View(act);
@@ -340,6 +356,13 @@ public final class NavBar {
         } catch (Exception e) {
             panelSub.setText("");
         }
+        String who = act.getString(R.string.fork_nav_title);
+        try {
+            com.divinedoll.launcher.authenticator.accounts.Account account = com.divinedoll.launcher.authenticator.accounts.Accounts.getCurrent();
+            if (account != null) who = account.username;
+        } catch (Exception ignored) {
+        }
+        panelTitle.setText(who);
         refresh();
         open = true;
         overlay.setVisibility(View.VISIBLE);
