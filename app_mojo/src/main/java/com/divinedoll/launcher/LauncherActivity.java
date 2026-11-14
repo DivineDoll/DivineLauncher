@@ -370,6 +370,9 @@ public class LauncherActivity extends BaseActivity {
     private void bindViews(){
         mFragmentView = findViewById(R.id.container_fragment);
         mSettingsButton = findViewById(R.id.setting_button);
+        mSettingsButton.setVisibility(android.view.View.GONE);
+        View spinnerView = findViewById(R.id.account_spinner);
+        if(spinnerView != null) spinnerView.setPadding(spinnerView.getPaddingLeft(), spinnerView.getPaddingTop(), 0, spinnerView.getPaddingBottom());
         android.view.View discordButton = findViewById(R.id.discord_button);
         if(discordButton != null) {
             discordButton.setOnClickListener(v -> Tools.openURL(this, getString(R.string.social_media_invite)));
