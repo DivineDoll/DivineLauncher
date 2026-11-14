@@ -949,4 +949,8 @@
     <string name="fork_setup_message">Vamos a configurarlo en unos pasos: elige tu color, tu paquete de botones y tu idioma. Después puedes cambiarlo todo en Apariencia.</string>
     <string name="fork_setup_start">Configurar</string>
     <string name="fork_setup_skip">Omitir</string>
+    <string name="fork_nav_home">Inicio</string>
+    <string name="fork_nav_more">Más</string>
+    <string name="fork_nav_servers">Servidores</string>
+    <string name="fork_nav_title">DivineLauncher</string>
 </resources>
