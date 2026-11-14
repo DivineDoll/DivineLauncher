@@ -66,7 +66,7 @@ public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
     private mcVersionSpinner mVersionSpinner;
-    private Button mPlay;
+    private View mPlay;
     private ImageView mHeroImage, mHeroIcon;
     private TextView mKicker, mHeroName, mHeroInfo;
     private LinearLayout mContinueBox, mNewsBox;
@@ -177,6 +177,69 @@ public class MainMenuFragment extends Fragment {
 
     // ------------------------------------------------------------------ screen
 
+    /** Image that never asks for height, so the card keeps the size of its content. */
+    private static class CoverImage extends ImageView {
+        CoverImage(Context c) {
+            super(c);
+            setScaleType(ScaleType.CENTER_CROP);
+        }
+
+        @Override
+        protected void onMeasure(int w, int h) {
+            int height = View.MeasureSpec.getMode(h) == View.MeasureSpec.EXACTLY ? View.MeasureSpec.getSize(h) : 0;
+            setMeasuredDimension(View.MeasureSpec.getSize(w), height);
+        }
+    }
+
+    private View mPlayFab;
+
+    private static int mix(int a, int b, float amountOfA) {
+        return android.graphics.Color.argb(255,
+                Math.round(android.graphics.Color.red(a) * amountOfA + android.graphics.Color.red(b) * (1 - amountOfA)),
+                Math.round(android.graphics.Color.green(a) * amountOfA + android.graphics.Color.green(b) * (1 - amountOfA)),
+                Math.round(android.graphics.Color.blue(a) * amountOfA + android.graphics.Color.blue(b) * (1 - amountOfA)));
+    }
+
+    /** Pill with the play icon, used in the card and as the floating button. */
+    private LinearLayout playPill(Context c) {
+        LinearLayout pill = new LinearLayout(c);
+        pill.setOrientation(LinearLayout.HORIZONTAL);
+        pill.setGravity(Gravity.CENTER);
+        pill.setPadding(dp(c, 18), dp(c, 10), dp(c, 20), dp(c, 10));
+        pill.setClickable(true);
+        ImageView icon = new ImageView(c);
+        icon.setImageResource(R.drawable.ic_dl_play);
+        pill.addView(icon, new LinearLayout.LayoutParams(dp(c, 14), dp(c, 14)));
+        TextView t = ForkUi.text(c, getString(R.string.fork_nav_play), 14, true);
+        t.setPadding(dp(c, 8), 0, 0, 0);
+        pill.addView(t);
+        stylePlay(c, pill);
+        pill.setOnClickListener(v -> {
+            try {
+                v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
+            } catch (Exception ignored) {
+            }
+            ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
+        });
+        pill.setOnLongClickListener(v -> {
+            PlayColor.choose(c, () -> {
+                stylePlay(c, mPlay);
+                if (mPlayFab != null) stylePlay(c, mPlayFab);
+            });
+            return true;
+        });
+        return pill;
+    }
+
+    private static void stylePlay(Context c, View pill) {
+        if (pill == null) return;
+        pill.setBackground(shape(c, PlayColor.get(), 0, 30));
+        int on = DivineTheme.onColor(PlayColor.get());
+        LinearLayout l = (LinearLayout) pill;
+        ((ImageView) l.getChildAt(0)).setColorFilter(on);
+        ((TextView) l.getChildAt(1)).setTextColor(on);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -187,69 +250,94 @@ public class MainMenuFragment extends Fragment {
         FrameLayout root = new FrameLayout(c);
         root.setBackgroundColor(ThemeColors.background());
 
-        View hero = buildHero(c, inflater, land);
+        LinearLayout page = new LinearLayout(c);
+        page.setOrientation(LinearLayout.VERTICAL);
+
+        // Top bar: title and settings chip
+        LinearLayout bar = new LinearLayout(c);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(c, 18), dp(c, 12), dp(c, 14), dp(c, 8));
+        TextView title = ForkUi.text(c, getString(R.string.fork_nav_home), 17, true);
+        bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        bar.addView(ForkUi.iconChip(c, R.drawable.ic_dl_gear, false, v -> Tools.swapFragment(requireActivity(),
+                com.divinedoll.launcher.prefs.screens.LauncherPreferenceFragment.class,
+                com.divinedoll.launcher.LauncherActivity.SETTING_FRAGMENT_TAG, null)), new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30)));
+        page.addView(bar);
+
+        View hero = buildHero(c, inflater);
         View tools = buildTools(c);
         LinearLayout sections = buildSections(c);
 
         if (land) {
             LinearLayout row = new LinearLayout(c);
             row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(dp(c, 12), dp(c, 4), dp(c, 12), dp(c, 12));
-            LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.1f);
-            heroLp.rightMargin = dp(c, 12);
-            row.addView(hero, heroLp);
-            LinearLayout right = new LinearLayout(c);
-            right.setOrientation(LinearLayout.VERTICAL);
-            right.addView(tools, lpMatch(c, 0));
-            right.addView(sections, lpMatch(c, 12));
+            row.setPadding(dp(c, 14), 0, dp(c, 14), dp(c, 12));
+            LinearLayout left = new LinearLayout(c);
+            left.setOrientation(LinearLayout.VERTICAL);
+            left.addView(hero, lpMatch(c, 0));
+            left.addView(tools, lpMatch(c, 12));
+            ScrollView leftScroll = new ScrollView(c);
+            leftScroll.addView(left);
+            LinearLayout.LayoutParams leftLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            leftLp.rightMargin = dp(c, 14);
+            row.addView(leftScroll, leftLp);
             ScrollView scroll = new ScrollView(c);
-            scroll.setFillViewport(false);
-            scroll.addView(right);
+            scroll.addView(sections);
             row.addView(scroll, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-            root.addView(row, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            page.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         } else {
             LinearLayout column = new LinearLayout(c);
             column.setOrientation(LinearLayout.VERTICAL);
-            column.setPadding(dp(c, 14), dp(c, 4), dp(c, 14), dp(c, 16));
-            column.addView(hero, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 320)));
-            column.addView(tools, lpMatch(c, 12));
-            column.addView(sections, lpMatch(c, 12));
+            column.setPadding(dp(c, 14), 0, dp(c, 14), dp(c, 84));
+            column.addView(hero, lpMatch(c, 0));
+            column.addView(tools, lpMatch(c, 10));
+            column.addView(sections, lpMatch(c, 10));
             ScrollView scroll = new ScrollView(c);
             scroll.addView(column);
-            root.addView(scroll, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            page.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        }
+        root.addView(page, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        if (!land) {
+            mPlayFab = playPill(c);
+            mPlayFab.setElevation(dp(c, 8));
+            FrameLayout.LayoutParams fab = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END);
+            fab.setMargins(0, 0, dp(c, 16), dp(c, 16));
+            root.addView(mPlayFab, fab);
         }
         return root;
     }
 
-    private View buildHero(Context c, LayoutInflater inflater, boolean land) {
+    private View buildHero(Context c, LayoutInflater inflater) {
+        int accent = AccentColor.get();
+        int card = ThemeColors.panel();
         FrameLayout hero = new FrameLayout(c);
-        DivineTheme.roundCorners(hero, 22);
-        hero.setBackgroundColor(ThemeColors.panel());
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                new int[]{mix(accent, card, 0.34f), card, card});
+        bg.setCornerRadius(dp(c, 20));
+        bg.setStroke(dp(c, 1), 0x1FFFFFFF);
+        hero.setBackground(bg);
+        DivineTheme.roundCorners(hero, 20);
 
-        mHeroImage = new ImageView(c);
-        mHeroImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        mHeroImage = new CoverImage(c);
+        mHeroImage.setAlpha(0.35f);
         mHeroImage.setOnClickListener(v -> BannerManager.showChooser(c, () -> mBannerPicker.launch("image/*"), this::refreshHero));
         hero.addView(mHeroImage, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        View scrim = new View(c);
-        GradientDrawable fade = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x22000000, 0x99000000, 0xF2101214});
-        scrim.setBackground(fade);
-        hero.addView(scrim, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
         LinearLayout body = new LinearLayout(c);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(c, 16), dp(c, 16), dp(c, 16), dp(c, 16));
-        FrameLayout.LayoutParams bodyLp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
-        hero.addView(body, bodyLp);
+        body.setPadding(dp(c, 14), dp(c, 14), dp(c, 14), dp(c, 14));
+        hero.addView(body, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        mKicker = ForkUi.text(c, "", 12, true);
-        mKicker.setTextColor(AccentColor.get());
+        mKicker = ForkUi.text(c, "", 11, true);
+        mKicker.setTextColor(accent);
         mKicker.setAllCaps(true);
         mKicker.setLetterSpacing(0.08f);
         mKicker.setSingleLine(true);
         mKicker.setEllipsize(TextUtils.TruncateAt.END);
+        mKicker.setPadding(0, 0, 0, dp(c, 8));
         body.addView(mKicker);
 
         LinearLayout titleRow = new LinearLayout(c);
@@ -257,43 +345,38 @@ public class MainMenuFragment extends Fragment {
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
         mHeroIcon = new ImageView(c);
         mHeroIcon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        mHeroIcon.setBackground(shape(c, 0x66000000, 0x33FFFFFF, 14));
-        mHeroIcon.setPadding(dp(c, 6), dp(c, 6), dp(c, 6), dp(c, 6));
-        titleRow.addView(mHeroIcon, new LinearLayout.LayoutParams(dp(c, 56), dp(c, 56)));
+        mHeroIcon.setBackground(shape(c, accent, 0, 14));
+        mHeroIcon.setPadding(dp(c, 7), dp(c, 7), dp(c, 7), dp(c, 7));
+        titleRow.addView(mHeroIcon, new LinearLayout.LayoutParams(dp(c, 46), dp(c, 46)));
         LinearLayout texts = new LinearLayout(c);
         texts.setOrientation(LinearLayout.VERTICAL);
         texts.setPadding(dp(c, 12), 0, 0, 0);
-        mHeroName = ForkUi.text(c, "", 22, true);
+        mHeroName = ForkUi.text(c, "", 17, true);
         mHeroName.setSingleLine(true);
         mHeroName.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(mHeroName);
         mHeroInfo = ForkUi.text(c, "", 12, false);
-        mHeroInfo.setTextColor(0xFFD0D0D0);
+        mHeroInfo.setTextColor(0xFF9AA1AD);
         mHeroInfo.setSingleLine(true);
         mHeroInfo.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(mHeroInfo);
         titleRow.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        LinearLayout.LayoutParams titleLp = lpMatch(c, 4);
-        body.addView(titleRow, titleLp);
+        body.addView(titleRow);
 
         // Installation selector: the same behavior as before, inside a pill
         LinearLayout selector = new LinearLayout(c);
         selector.setOrientation(LinearLayout.HORIZONTAL);
         selector.setGravity(Gravity.CENTER_VERTICAL);
-        selector.setBackground(shape(c, 0x99000000, 0x33FFFFFF, 24));
+        selector.setBackground(shape(c, 0x66000000, 0x1FFFFFFF, 24));
         View spinnerView = inflater.inflate(R.layout.view_instance_spinner, selector, false);
         mVersionSpinner = spinnerView instanceof mcVersionSpinner ? (mcVersionSpinner) spinnerView : null;
-        selector.addView(spinnerView, new LinearLayout.LayoutParams(0, dp(c, 48), 1f));
-        ImageView edit = new ImageView(c);
-        edit.setImageResource(R.drawable.ic_px_edit);
-        edit.setColorFilter(AccentColor.get());
-        edit.setPadding(dp(c, 12), dp(c, 12), dp(c, 12), dp(c, 12));
-        edit.setBackground(null);
-        edit.setClickable(true);
-        edit.setOnClickListener(v -> {
+        selector.addView(spinnerView, new LinearLayout.LayoutParams(0, dp(c, 44), 1f));
+        View edit = ForkUi.iconChip(c, R.drawable.ic_dl_gear, false, v -> {
             if (mVersionSpinner != null) mVersionSpinner.openProfileEditor(requireActivity());
         });
-        selector.addView(edit, new LinearLayout.LayoutParams(dp(c, 48), dp(c, 48)));
+        LinearLayout.LayoutParams editLp = new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30));
+        editLp.rightMargin = dp(c, 8);
+        selector.addView(edit, editLp);
         body.addView(selector, lpMatch(c, 12));
         if (mVersionSpinner != null) {
             mVersionSpinner.setTextColor(0xFFFFFFFF);
@@ -306,31 +389,15 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        mPlay = new Button(c);
-        mPlay.setText(R.string.main_play);
-        mPlay.setAllCaps(true);
-        McStyle.headingText(mPlay);
-        mPlay.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        mPlay.setMinHeight(dp(c, 56));
-        mPlay.setMinimumHeight(dp(c, 56));
-        mPlay.setBackground(PlayColor.background(c));
-        mPlay.setTextColor(DivineTheme.onColor(PlayColor.get()));
-        mPlay.setOnClickListener(v -> {
-            try {
-                v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
-            } catch (Exception ignored) {
-            }
-            ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
-        });
-        mPlay.setOnLongClickListener(v -> {
-            PlayColor.choose(c, () -> {
-                mPlay.setBackground(PlayColor.background(c));
-                mPlay.setTextColor(DivineTheme.onColor(PlayColor.get()));
-            });
-            return true;
-        });
-        body.addView(mPlay, lpMatch(c, 10));
+        mPlay = playPill(c);
+        body.addView(mPlay, lpWrap(c, 12));
         return hero;
+    }
+
+    private static LinearLayout.LayoutParams lpWrap(Context c, int topMarginDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(c, topMarginDp);
+        return lp;
     }
 
     private View buildTools(Context c) {
@@ -340,15 +407,17 @@ public class MainMenuFragment extends Fragment {
         row.setOrientation(LinearLayout.HORIZONTAL);
         scroll.addView(row);
         Object[][] tools = {
-                {R.drawable.ic_px_folder, R.string.fork_home_files, (Runnable) this::openInstanceFiles},
-                {R.drawable.ic_px_edit, R.string.fork_home_edit, (Runnable) this::editInstance},
-                {R.drawable.ic_px_sharelog, R.string.fork_home_logs, (Runnable) () -> shareLog(requireContext())},
-                {R.drawable.ic_px_lan_friends, R.string.fork_home_servers, (Runnable) () ->
+                {R.drawable.ic_dl_puzzle, R.string.fork_chip_mods, (Runnable) () -> openHub(InstanceHubFragment.TAB_MODS)},
+                {R.drawable.ic_dl_globe, R.string.fork_chip_worlds, (Runnable) () -> openHub(InstanceHubFragment.TAB_WORLDS)},
+                {R.drawable.ic_dl_img, R.string.fork_hub_shots, (Runnable) () -> openHub(InstanceHubFragment.TAB_SHOTS)},
+                {R.drawable.ic_dl_cube, R.string.fork_home_edit, (Runnable) this::editInstance},
+                {R.drawable.ic_dl_user, R.string.fork_home_servers, (Runnable) () ->
                         Tools.swapFragment(requireActivity(), ServersFragment.class, ServersFragment.TAG, null)},
-                {R.drawable.ic_px_gamepad, R.string.mcl_option_customcontrol, (Runnable) () ->
+                {R.drawable.ic_dl_more, R.string.fork_home_logs, (Runnable) () -> shareLog(requireContext())},
+                {R.drawable.ic_dl_plus, R.string.main_install_jar_file, (Runnable) this::installJar},
+                {R.drawable.ic_dl_gear, R.string.mcl_option_customcontrol, (Runnable) () ->
                         startActivity(new android.content.Intent(requireContext(), CustomControlsActivity.class))},
-                {R.drawable.ic_px_java_run, R.string.main_install_jar_file, (Runnable) this::installJar},
-                {R.drawable.ic_user_palette, R.string.fork_appearance_title, (Runnable) this::showAppearanceDialog},
+                {R.drawable.ic_dl_shirt, R.string.fork_appearance_title, (Runnable) this::showAppearanceDialog},
         };
         for (Object[] t : tools) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -362,7 +431,6 @@ public class MainMenuFragment extends Fragment {
         LinearLayout box = new LinearLayout(c);
         box.setOrientation(LinearLayout.VERTICAL);
 
-        box.addView(sectionTitle(c, R.string.fork_home_continue));
         mContinueBox = card(c);
         box.addView(mContinueBox, lpMatch(c, 0));
 
@@ -415,13 +483,17 @@ public class MainMenuFragment extends Fragment {
 
     private void refreshHero() {
         if (mHeroImage == null || getContext() == null) return;
-        BannerManager.apply(requireContext(), mHeroImage);
+        boolean custom = BannerManager.apply(requireContext(), mHeroImage);
         try {
             Instance selected = Instances.loadSelectedInstance();
             Bitmap own = selected == null ? null : InstanceLook.image(requireContext(), String.valueOf(selected.name));
-            if (own != null) mHeroImage.setImageBitmap(own);
+            if (own != null) {
+                mHeroImage.setImageBitmap(own);
+                custom = true;
+            }
         } catch (Exception ignored) {
         }
+        mHeroImage.setVisibility(custom ? View.VISIBLE : View.GONE);
     }
 
     private void refreshHome() {
@@ -474,7 +546,7 @@ public class MainMenuFragment extends Fragment {
                 row.setClickable(true);
                 row.setOnClickListener(v -> InstanceHubFragment.open(requireActivity(), name));
                 ImageView dot = new ImageView(c);
-                dot.setImageResource(R.drawable.ic_px_zap);
+                dot.setImageResource(R.drawable.ic_dl_globe);
                 dot.setColorFilter(i == 0 ? AccentColor.get() : 0xFF8A8F98);
                 row.addView(dot, new LinearLayout.LayoutParams(dp(c, 18), dp(c, 18)));
                 TextView t = ForkUi.text(c, worlds[i].getName(), i == 0 ? 15 : 13, i == 0);
@@ -591,14 +663,14 @@ public class MainMenuFragment extends Fragment {
         Tools.swapFragment(requireActivity(), InstanceEditorFragment.class, InstanceEditorFragment.TAG, null);
     }
 
-    private void openInstanceFiles() {
+    private void openHub(int tab) {
         Context context = requireContext();
         Instance instance = Instances.loadSelectedInstance();
         if (instance == null) {
             Toast.makeText(context, R.string.no_instance, Toast.LENGTH_LONG).show();
             return;
         }
-        InstanceHubFragment.open(requireActivity(), String.valueOf(instance.name));
+        InstanceHubFragment.open(requireActivity(), String.valueOf(instance.name), tab);
     }
 
     private void installJar() {
@@ -617,7 +689,8 @@ public class MainMenuFragment extends Fragment {
                 MainMenuFragment.this.refreshHero();
             }
             @Override public void refreshPlay() {
-                if (mPlay != null) mPlay.setBackground(PlayColor.background(c));
+                stylePlay(c, mPlay);
+                stylePlay(c, mPlayFab);
             }
             @Override public void pickThemeFile() {
                 mThemePicker.launch("*/*");
