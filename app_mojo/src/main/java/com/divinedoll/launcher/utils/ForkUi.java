@@ -100,7 +100,7 @@ public class ForkUi {
     }
 
     /** Moves to a tab of the launcher header, replacing the current tab screen instead of stacking them. */
-    private static void openTab(FragmentActivity act, int tab) {
+    public static void openTab(FragmentActivity act, int tab) {
         Class<? extends Fragment> cls;
         String tag;
         switch (tab) {

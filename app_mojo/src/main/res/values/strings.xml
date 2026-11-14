@@ -1140,4 +1140,8 @@
     <string name="fork_setup_message">Let\'s set it up in a few steps: pick your color, your button pack and your language. You can change all of it later in Appearance.</string>
     <string name="fork_setup_start">Set up</string>
     <string name="fork_setup_skip">Skip</string>
+    <string name="fork_nav_home">Home</string>
+    <string name="fork_nav_more">More</string>
+    <string name="fork_nav_servers">Servers</string>
+    <string name="fork_nav_title">DivineLauncher</string>
 </resources>
