@@ -54,6 +54,7 @@ public class LauncherActivity extends BaseActivity {
 
     private FragmentContainerView mFragmentView;
     private ImageButton mSettingsButton;
+    private com.divinedoll.launcher.utils.NavBar mNav;
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
@@ -69,6 +70,7 @@ public class LauncherActivity extends BaseActivity {
 
         @Override
         public void onFragmentResumed(@NonNull FragmentManager fm, @NonNull Fragment f) {
+            if(mNav != null && f.getId() == R.id.container_fragment) mNav.onScreen(f);
             mSettingsButton.setImageDrawable(ContextCompat.getDrawable(getBaseContext(), f instanceof MainMenuFragment
                     ? R.drawable.ic_px_sliders : R.drawable.ic_px_home));
         }
@@ -195,6 +197,7 @@ public class LauncherActivity extends BaseActivity {
 
         getWindow().setBackgroundDrawable(null);
         bindViews();
+        mNav = com.divinedoll.launcher.utils.NavBar.install(this);
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
@@ -279,6 +282,7 @@ public class LauncherActivity extends BaseActivity {
     /** Custom implementation to feel more natural when a backstack isn't present */
     @Override
     public void onBackPressed() {
+        if(mNav != null && mNav.onBack()) return;
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if(fragment != null){
             if(fragment.canGoBack()){
