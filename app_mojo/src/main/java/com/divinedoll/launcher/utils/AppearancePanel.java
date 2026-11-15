@@ -49,9 +49,10 @@ public final class AppearancePanel {
             {0xFFD14B2E, 0xFF291618, 0xFF331D1F, 0xFFD14B2E},
             {0xFFE0A526, 0xFF241F11, 0xFF2D2716, 0xFFE0A526},
             {0xFF2AA8B5, 0xFF10252A, 0xFF16303A, 0xFF2AA8B5},
-            {DivineTheme.GOLD, 0xFF000000, 0xFF0B0B0D, DivineTheme.GOLD}};
+            {DivineTheme.GOLD, 0xFF000000, 0xFF0B0B0D, DivineTheme.GOLD},
+            {0xFFC79100, 0xFFF3F4F6, 0xFFFFFFFF, 0xFFFFC107}};
     private static final int[] LOOK_NAMES = {R.string.fork_look_divine, R.string.fork_look_violet, R.string.fork_look_ocean, R.string.fork_look_emerald,
-            R.string.fork_look_ruby, R.string.fork_look_amber, R.string.fork_look_teal, R.string.fork_look_amoled};
+            R.string.fork_look_ruby, R.string.fork_look_amber, R.string.fork_look_teal, R.string.fork_look_amoled, R.string.fork_look_light};
 
     private static TextView section(Context c, int title) {
         TextView t = ForkUi.text(c, c.getString(title), 12, true);
@@ -102,6 +103,7 @@ public final class AppearancePanel {
                 .putBoolean("play_green_chosen", true)
                 .apply();
         if(look == LOOKS[0]) UiStyle.setRounded(true);
+        ThemeColors.set(ThemeColors.PREF_TEXT, look[1] == 0xFFF3F4F6 ? 0xFF1B1D21 : ThemeColors.DEFAULT_TEXT);
         ThemeColors.set(ThemeColors.PREF_BACKGROUND, look[1]);
         ThemeColors.set(ThemeColors.PREF_SIDEBAR, look[2]);
         hooks.recreate();

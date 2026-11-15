@@ -90,10 +90,8 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
     private LinearLayout card(Context context, int titleRes) {
         LinearLayout card = new LinearLayout(context);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackground(ForkUi.box(context, ThemeColors.panel(), 0xFF111111, 1));
-        View line = new View(context);
-        line.setBackgroundColor(AccentColor.get());
-        card.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(3)));
+        card.setBackground(ForkUi.box(context, ThemeColors.sidebar(), 0x14FFFFFF, 1));
+        ((android.graphics.drawable.GradientDrawable) card.getBackground()).setCornerRadius(dp(16));
         LinearLayout body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(14), dp(10), dp(14), dp(14));
@@ -114,20 +112,10 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         scroll.setBackgroundColor(ThemeColors.background());
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(12), dp(16), dp(20));
+        root.setPadding(dp(4), 0, dp(4), dp(20));
         scroll.addView(root);
 
-        LinearLayout header = new LinearLayout(context);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView icon = new ImageView(context);
-        icon.setImageResource(R.drawable.ic_px_lan_friends);
-        header.addView(icon, new LinearLayout.LayoutParams(dp(40), dp(40)));
-        TextView title = text(getString(R.string.fork_lan_title), 20, true);
-        title.setAllCaps(true);
-        title.setPadding(dp(10), 0, 0, 0);
-        header.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        root.addView(header);
+        root.addView(ForkUi.screenHeader(context, requireActivity(), getString(R.string.fork_lan_title), 0, null));
         root.addView(text(getString(R.string.fork_lan_intro), 13, false));
 
         LinearLayout columns = new LinearLayout(context);
@@ -147,7 +135,7 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         mHostCode = text("", 24, true);
         mHostCode.setGravity(Gravity.CENTER);
         mHostCode.setTextIsSelectable(true);
-        mHostCode.setBackground(ForkUi.box(context, Color.BLACK, 0xFF777777, 1));
+        mHostCode.setBackground(ForkUi.box(context, ThemeColors.background(), 0x33FFFFFF, 1));
         mHostCode.setPadding(dp(8), dp(8), dp(8), dp(8));
         mHostCode.setVisibility(View.GONE);
         host.addView(mHostCode);
@@ -170,7 +158,7 @@ public class LanFragment extends Fragment implements TerracottaManager.Listener 
         mCodeInput.setSingleLine(true);
         mCodeInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         McStyle.text(mCodeInput);
-        mCodeInput.setBackground(ForkUi.box(context, Color.BLACK, 0xFFAAAAAA, 2));
+        mCodeInput.setBackground(ForkUi.box(context, ThemeColors.background(), 0x33FFFFFF, 1));
         mCodeInput.setPadding(dp(8), 0, dp(8), 0);
         LinearLayout.LayoutParams inputLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44));
         inputLp.topMargin = dp(8);

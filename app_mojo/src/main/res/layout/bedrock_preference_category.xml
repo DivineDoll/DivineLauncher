@@ -13,10 +13,6 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/minecraft_ten"
         android:textAllCaps="true"
-        android:textSize="@dimen/_12ssp" />
-
-    <com.kdt.mcgui.AccentLine
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_2sdp"
-        android:layout_marginTop="@dimen/_3sdp" />
+        android:textSize="@dimen/_10ssp"
+        android:letterSpacing="0.1" />
 </LinearLayout>
