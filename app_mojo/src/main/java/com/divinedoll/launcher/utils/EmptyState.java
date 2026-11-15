@@ -37,10 +37,12 @@ public final class EmptyState {
         t.setGravity(Gravity.CENTER);
         t.setPadding(0, ForkUi.dp(c, 14), 0, ForkUi.dp(c, 4));
         box.addView(t);
-        TextView d = ForkUi.text(c, text.toString(), 13, false);
-        d.setGravity(Gravity.CENTER);
-        d.setTextColor(0xFF9AA1AD);
-        box.addView(d, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (text != null) {
+            TextView d = ForkUi.text(c, text.toString(), 13, false);
+            d.setGravity(Gravity.CENTER);
+            d.setTextColor(0xFF9AA1AD);
+            box.addView(d, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
 
         if (action != null && click != null) {
             TextView b = ForkUi.text(c, action.toString(), 14, true);

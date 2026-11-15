@@ -354,21 +354,36 @@ public class InstanceHubFragment extends Fragment {
         File[] videos = movies.listFiles(f -> f.isFile() && f.getName().endsWith(".mp4"));
         if(videos != null) files.addAll(Arrays.asList(videos));
         if(files.isEmpty()) {
-            mBody.addView(muted(c, getString(R.string.fork_hub_no_shots)));
+            mBody.addView(com.divinedoll.launcher.utils.EmptyState.view(c, R.drawable.ic_dl_img,
+                    getString(R.string.fork_hub_no_shots), null, null, null));
             return;
         }
         java.util.Collections.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
         final int id = mLoadId;
-        for(File file : files) {
+        LinearLayout pair = null;
+        for(int idx = 0; idx < files.size(); idx++) {
+            final File file = files.get(idx);
             boolean video = file.getName().endsWith(".mp4");
-            LinearLayout card = card(c);
+            if(idx % 2 == 0) {
+                pair = new LinearLayout(c);
+                pair.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                plp.bottomMargin = ForkUi.dp(c, 8);
+                mBody.addView(pair, plp);
+            }
+            LinearLayout cell = new LinearLayout(c);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setBackground(ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x14FFFFFF, 1));
+            ((android.graphics.drawable.GradientDrawable) cell.getBackground()).setCornerRadius(ForkUi.dp(c, 14));
+            DivineTheme.roundCorners(cell, 14);
             ImageView thumb = new ImageView(c);
             thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
             thumb.setBackgroundColor(0xFF101114);
-            if(UiStyle.rounded()) DivineTheme.roundCorners(thumb, 10);
-            card.addView(thumb, new LinearLayout.LayoutParams(ForkUi.dp(c, 96), ForkUi.dp(c, 60)));
+            cell.addView(thumb, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ForkUi.dp(c, 96)));
             if(video) {
-                thumb.setImageResource(android.R.drawable.ic_media_play);
+                thumb.setScaleType(ImageView.ScaleType.CENTER);
+                thumb.setImageResource(R.drawable.ic_dl_play);
+                thumb.setColorFilter(com.divinedoll.launcher.utils.AccentColor.get());
             } else {
                 new Thread(() -> {
                     android.graphics.BitmapFactory.Options o = new android.graphics.BitmapFactory.Options();
@@ -379,24 +394,29 @@ public class InstanceHubFragment extends Fragment {
             }
             LinearLayout texts = new LinearLayout(c);
             texts.setOrientation(LinearLayout.VERTICAL);
-            texts.setPadding(ForkUi.dp(c, 10), 0, 0, 0);
-            TextView name = ForkUi.text(c, file.getName(), 13, true);
+            texts.setPadding(ForkUi.dp(c, 10), ForkUi.dp(c, 6), ForkUi.dp(c, 10), ForkUi.dp(c, 8));
+            TextView name = ForkUi.text(c, file.getName(), 12, true);
             name.setSingleLine(true);
             name.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
-            TextView info = ForkUi.text(c, Formatter.formatShortFileSize(c, file.length()) + " · "
-                    + DateUtils.getRelativeTimeSpanString(file.lastModified(), System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS), 11, false);
-            info.setTextColor(0xFFAAAAAA);
+            TextView info = ForkUi.text(c, Formatter.formatShortFileSize(c, file.length()) + " \u00B7 "
+                    + DateUtils.getRelativeTimeSpanString(file.lastModified(), System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS), 10, false);
+            info.setTextColor(0x99FFFFFF);
             texts.addView(name);
             texts.addView(info);
-            card.addView(texts, ForkUi.weight(1f));
-            card.setOnClickListener(v -> new AlertDialog.Builder(c).setTitle(file.getName())
-                    .setItems(new CharSequence[]{getString(R.string.fork_hub_open), getString(R.string.fork_hub_share), getString(R.string.fork_hub_delete)}, (d, which) -> {
+            cell.addView(texts);
+            cell.setOnClickListener(v -> com.divinedoll.launcher.utils.BottomSheet.menu(c, file.getName(),
+                    new int[]{R.drawable.ic_dl_img, R.drawable.ic_dl_globe, R.drawable.ic_dl_more},
+                    new CharSequence[]{getString(R.string.fork_hub_open), getString(R.string.fork_hub_share), getString(R.string.fork_hub_delete)},
+                    new boolean[]{false, false, true}, which -> {
                         if(which == 0) com.divinedoll.launcher.utils.ShareFile.send(c, file, true);
                         else if(which == 1) com.divinedoll.launcher.utils.ShareFile.send(c, file, false);
                         else { file.delete(); select(TAB_SHOTS); }
-                    }).show());
-            mBody.addView(card);
+                    }));
+            LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            if(idx % 2 == 0) clp.rightMargin = ForkUi.dp(c, 4); else clp.leftMargin = ForkUi.dp(c, 4);
+            pair.addView(cell, clp);
         }
+        if(files.size() % 2 == 1 && pair != null) pair.addView(new View(c), new LinearLayout.LayoutParams(0, 1, 1f));
     }
 
     // Per-instance performance

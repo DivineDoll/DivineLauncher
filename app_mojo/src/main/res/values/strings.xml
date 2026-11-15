@@ -1042,6 +1042,7 @@
     <string name="fork_look_amber">Amber</string>
     <string name="fork_look_teal">Teal</string>
     <string name="fork_look_amoled">AMOLED</string>
+    <string name="fork_look_light">Light</string>
     <string name="fork_ap_textsize">Text size</string>
     <string name="fork_size_small">Small</string>
     <string name="fork_size_normal">Normal</string>
