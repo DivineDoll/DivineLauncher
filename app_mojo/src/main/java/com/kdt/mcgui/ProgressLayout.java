@@ -83,6 +83,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         mLinearLayout = findViewById(R.id.progress_linear_layout);
         mTaskNumberDisplayer = findViewById(R.id.progress_textview);
         mFlipArrow = findViewById(R.id.progress_flip_arrow);
+        mFlipArrow.setOnClickListener(a -> toggleList());
         android.graphics.drawable.GradientDrawable card = new android.graphics.drawable.GradientDrawable();
         card.setColor(com.divinedoll.launcher.utils.ThemeColors.sidebar());
         card.setStroke((int) (getResources().getDisplayMetrics().density), 0x22FFFFFF);
@@ -115,6 +116,16 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
 
     @Override
     public void onClick(View v) {
+        // Tapping the bar opens the downloads screen; the arrow still folds the task list.
+        android.content.Context ctx = getContext();
+        while(ctx instanceof android.content.ContextWrapper && !(ctx instanceof androidx.fragment.app.FragmentActivity))
+            ctx = ((android.content.ContextWrapper) ctx).getBaseContext();
+        if(ctx instanceof androidx.fragment.app.FragmentActivity) {
+            com.divinedoll.launcher.fragments.DownloadsFragment.open((androidx.fragment.app.FragmentActivity) ctx);
+        } else toggleList();
+    }
+
+    private void toggleList() {
         mLinearLayout.setVisibility(mLinearLayout.getVisibility() == GONE ? VISIBLE : GONE);
         mFlipArrow.setRotation(mLinearLayout.getVisibility() == GONE? 0 : 180);
     }
@@ -160,6 +171,9 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
                 if(resid != -1) textView.setText(getContext().getString(resid, va));
                 else if(va.length > 0 && va[0] != null)textView.setText((String)va[0]);
                 else textView.setText("");
+                // Collapsed bar: say what is going on and how far it is
+                if(progress >= 0 && progress <= 100 && ProgressKeeper.getTaskCount() == 1)
+                    mTaskNumberDisplayer.setText(textView.getText() + " \u00B7 " + progress + " %");
             });
         }
 
