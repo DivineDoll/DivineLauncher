@@ -98,6 +98,12 @@ public final class DivineTheme {
         if(v == null || !UiStyle.rounded()) return;
         if(v instanceof android.widget.SeekBar) {
             styleSeek((android.widget.SeekBar) v);
+        } else if(v instanceof android.widget.ProgressBar && !(v instanceof com.kdt.mcgui.TextProgressBar)) {
+            android.widget.ProgressBar pb = (android.widget.ProgressBar) v;
+            android.content.res.ColorStateList accent = android.content.res.ColorStateList.valueOf(AccentColor.get());
+            pb.setIndeterminateTintList(accent);
+            pb.setProgressTintList(accent);
+            pb.setSecondaryProgressTintList(accent);
         } else if(v instanceof androidx.appcompat.widget.SwitchCompat) {
             styleSwitch((androidx.appcompat.widget.SwitchCompat) v);
         } else if(v instanceof androidx.recyclerview.widget.RecyclerView) {
