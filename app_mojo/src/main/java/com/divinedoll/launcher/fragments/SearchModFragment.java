@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -80,8 +81,6 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     private final SearchFilters mSearchFilters;
 
     private Button mImportButton;
-    private Button mTabMods;
-    private Button mTabModpacks;
     private TaskCountListener mTaskCountListener;
 
     ActivityResultLauncher<String> mImportLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(),
@@ -172,10 +171,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         });
         Bundle fragmentArgs = getArguments();
         mSearchFilters.isModpack = fragmentArgs == null || fragmentArgs.getBoolean(ARG_MODPACK, true);
-        mTabMods = view.findViewById(R.id.search_tab_mods);
-        mTabModpacks = view.findViewById(R.id.search_tab_modpacks);
-        mTabMods.setOnClickListener(v -> selectSection(false));
-        mTabModpacks.setOnClickListener(v -> selectSection(true));
+        mSearchFilters.projectType = mSearchFilters.isModpack ? "modpack" : "mod";
+        buildTypeChips(view);
         updateSectionViews();
         mTaskCountListener = taskCount -> {
             runOnUiThread(() -> mImportButton.setEnabled(taskCount == 0));
@@ -216,18 +213,60 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         }
     }
 
-    private void selectSection(boolean modpacks) {
-        if(mSearchFilters.isModpack == modpacks) return;
-        mSearchFilters.isModpack = modpacks;
+    private static final String[] TYPES = {"mod", "modpack", "shader", "resourcepack"};
+    private static final int[] TYPE_LABELS = {R.string.fork_tab_mods, R.string.fork_tab_modpacks,
+            R.string.fork_type_shaders, R.string.fork_type_resourcepacks};
+    private final java.util.List<TextView> mTypeChips = new java.util.ArrayList<>();
+
+    /** Pills for what to search: mods, modpacks, shaders, resource and texture packs. */
+    private void buildTypeChips(View view) {
+        LinearLayout tabs = view.findViewById(R.id.search_mod_tabs);
+        tabs.removeAllViews();
+        mTypeChips.clear();
+        Context c = requireContext();
+        android.widget.HorizontalScrollView scroll = new android.widget.HorizontalScrollView(c);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout row = new LinearLayout(c);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        for(int i = 0; i < TYPES.length; i++) {
+            final String type = TYPES[i];
+            TextView chip = com.divinedoll.launcher.utils.ForkUi.text(c, getString(TYPE_LABELS[i]), 13, true);
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setPadding(com.divinedoll.launcher.utils.ForkUi.dp(c, 14), com.divinedoll.launcher.utils.ForkUi.dp(c, 8),
+                    com.divinedoll.launcher.utils.ForkUi.dp(c, 14), com.divinedoll.launcher.utils.ForkUi.dp(c, 8));
+            chip.setOnClickListener(v -> selectType(type));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = com.divinedoll.launcher.utils.ForkUi.dp(c, 6);
+            row.addView(chip, lp);
+            mTypeChips.add(chip);
+        }
+        scroll.addView(row);
+        tabs.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private void selectType(String type) {
+        if(type.equals(mSearchFilters.projectType)) return;
+        mSearchFilters.projectType = type;
+        mSearchFilters.isModpack = "modpack".equals(type);
         updateSectionViews();
         searchMods(mSearchEditText.getText().toString());
     }
 
     private void updateSectionViews() {
-        boolean modpacks = mSearchFilters.isModpack;
-        mTabMods.setEnabled(modpacks);
-        mTabModpacks.setEnabled(!modpacks);
-        mImportButton.setVisibility(modpacks ? View.VISIBLE : View.GONE);
+        Context c = getContext();
+        if(c == null) return;
+        int accent = com.divinedoll.launcher.utils.AccentColor.get();
+        for(int i = 0; i < mTypeChips.size(); i++) {
+            boolean on = TYPES[i].equals(mSearchFilters.projectType);
+            TextView chip = mTypeChips.get(i);
+            chip.setTextColor(on ? accent : com.divinedoll.launcher.utils.ThemeColors.text());
+            android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+            g.setCornerRadius(com.divinedoll.launcher.utils.ForkUi.dp(c, 20));
+            g.setColor(on ? ((accent & 0x00FFFFFF) | 0x33000000) : com.divinedoll.launcher.utils.ThemeColors.sidebar());
+            g.setStroke(com.divinedoll.launcher.utils.ForkUi.dp(c, 1), on ? ((accent & 0x00FFFFFF) | 0x66000000) : 0x22FFFFFF);
+            chip.setBackground(g);
+        }
+        mImportButton.setVisibility(mSearchFilters.isModpack ? View.VISIBLE : View.GONE);
     }
 
     private void searchMods(String name) {

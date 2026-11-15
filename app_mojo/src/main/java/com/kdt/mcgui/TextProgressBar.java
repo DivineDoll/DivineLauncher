@@ -74,6 +74,8 @@ public class TextProgressBar extends ProgressBar {
         invalidate();
     }
 
+    public final String getText() { return mText; }
+
     public final void setTextPadding(int padding){
         mTextPadding = padding;
     }

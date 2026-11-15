@@ -1175,4 +1175,6 @@
     <string name="fork_dl_none">Nothing downloading</string>
     <string name="fork_dl_done">All done</string>
     <string name="fork_dl_none_hint">Installers like Forge run here while you keep using the launcher.</string>
+    <string name="fork_type_shaders">Shaders</string>
+    <string name="fork_type_resourcepacks">Resource packs</string>
 </resources>

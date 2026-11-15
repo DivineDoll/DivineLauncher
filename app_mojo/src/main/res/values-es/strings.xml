@@ -984,4 +984,6 @@
     <string name="fork_dl_none">Nada descargando</string>
     <string name="fork_dl_done">Todo listo</string>
     <string name="fork_dl_none_hint">Los instaladores como Forge corren aquí mientras sigues usando el launcher.</string>
+    <string name="fork_type_shaders">Shaders</string>
+    <string name="fork_type_resourcepacks">Paquetes de recursos</string>
 </resources>

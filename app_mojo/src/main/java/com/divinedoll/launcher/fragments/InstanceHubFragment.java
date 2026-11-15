@@ -127,8 +127,65 @@ public class InstanceHubFragment extends Fragment {
         mBody.setPadding(pad, ForkUi.dp(c, 4), pad, pad);
         scroll.addView(mBody);
         root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        root.addView(buildPlayBar(c));
         select(mTab);
         return root;
+    }
+
+    /** Bottom bar: the instance and a Play button, always within reach. */
+    private View buildPlayBar(Context c) {
+        LinearLayout bar = new LinearLayout(c);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setBackgroundColor(ThemeColors.sidebar());
+        bar.setPadding(ForkUi.dp(c, 14), ForkUi.dp(c, 10), ForkUi.dp(c, 14), ForkUi.dp(c, 10));
+        TextView icon = ForkUi.text(c, String.valueOf(mInstance.name).substring(0, 1).toUpperCase(), 16, true);
+        icon.setGravity(Gravity.CENTER);
+        icon.setTextColor(DivineTheme.onColor(AccentColor.get()));
+        android.graphics.drawable.GradientDrawable ig = new android.graphics.drawable.GradientDrawable();
+        ig.setColor(AccentColor.get());
+        ig.setCornerRadius(ForkUi.dp(c, 12));
+        icon.setBackground(ig);
+        bar.addView(icon, new LinearLayout.LayoutParams(ForkUi.dp(c, 40), ForkUi.dp(c, 40)));
+        LinearLayout texts = new LinearLayout(c);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.setPadding(ForkUi.dp(c, 10), 0, 0, 0);
+        TextView name = ForkUi.text(c, String.valueOf(mInstance.name), 14, true);
+        name.setSingleLine(true);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        texts.addView(name);
+        TextView info = ForkUi.text(c, InstanceTools.stats(c, String.valueOf(mInstance.name)), 11, false);
+        info.setAlpha(0.7f);
+        info.setSingleLine(true);
+        texts.addView(info);
+        bar.addView(texts, ForkUi.weight(1f));
+        int playColor = com.divinedoll.launcher.utils.PlayColor.get();
+        TextView play = ForkUi.text(c, getString(R.string.fork_installs_play), 15, true);
+        play.setGravity(Gravity.CENTER);
+        play.setTextColor(DivineTheme.onColor(playColor));
+        android.graphics.drawable.GradientDrawable pg = new android.graphics.drawable.GradientDrawable();
+        pg.setColor(playColor);
+        pg.setCornerRadius(ForkUi.dp(c, 24));
+        play.setBackground(pg);
+        play.setPadding(ForkUi.dp(c, 24), 0, ForkUi.dp(c, 24), 0);
+        final String instName = String.valueOf(mInstance.name);
+        play.setOnClickListener(v -> new Thread(() -> {
+            try {
+                com.divinedoll.launcher.instances.Instances list = Instances.loadDisplay();
+                for(com.divinedoll.launcher.instances.DisplayInstance d : list.list) {
+                    if(instName.equals(String.valueOf(d.name))) {
+                        Instances.setSelectedInstance(d);
+                        break;
+                    }
+                }
+                Tools.runOnUiThread(() -> com.divinedoll.launcher.extra.ExtraCore.setValue(
+                        com.divinedoll.launcher.extra.ExtraConstants.LAUNCH_GAME, true));
+            } catch (Exception e) {
+                Tools.runOnUiThread(() -> toast(String.valueOf(e.getMessage())));
+            }
+        }).start());
+        bar.addView(play, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ForkUi.dp(c, 44)));
+        return bar;
     }
 
     private void toast(String text) {

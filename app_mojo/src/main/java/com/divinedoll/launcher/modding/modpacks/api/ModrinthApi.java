@@ -57,7 +57,7 @@ public class ModrinthApi implements ModpackApi{
         HashMap<String, Object> params = new HashMap<>();
         StringBuilder facetString = new StringBuilder();
         facetString.append("[");
-        facetString.append(String.format("[\"project_type:%s\"]", searchFilters.isModpack ? "modpack" : "mod"));
+        facetString.append(String.format("[\"project_type:%s\"]", searchFilters.type()));
         if(searchFilters.mcVersion != null && !searchFilters.mcVersion.isEmpty())
             facetString.append(String.format(",[\"versions:%s\"]", searchFilters.mcVersion));
         facetString.append("]");
@@ -76,7 +76,7 @@ public class ModrinthApi implements ModpackApi{
         ModItem[] items = new ModItem[responseHits.size()];
         for(int i=0; i<responseHits.size(); ++i){
             JsonObject hit = responseHits.get(i).getAsJsonObject();
-            items[i] = new ModItem(
+            ModItem built = new ModItem(
                     Constants.SOURCE_MODRINTH,
                     hit.get("project_type").getAsString().equals("modpack"),
                     hit.get("project_id").getAsString(),
@@ -84,6 +84,8 @@ public class ModrinthApi implements ModpackApi{
                     hit.get("description").getAsString(),
                     hit.get("icon_url") == null || hit.get("icon_url").isJsonNull() ? "" : hit.get("icon_url").getAsString()
             );
+            built.projectType = hit.get("project_type").getAsString();
+            items[i] = built;
         }
         if(modrinthSearchResult == null) modrinthSearchResult = new ModrinthSearchResult();
         modrinthSearchResult.previousOffset += responseHits.size();
