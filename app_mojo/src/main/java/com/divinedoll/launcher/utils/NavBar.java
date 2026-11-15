@@ -27,7 +27,6 @@ import com.divinedoll.launcher.CustomControlsActivity;
 import com.divinedoll.launcher.LauncherActivity;
 import com.divinedoll.launcher.R;
 import com.divinedoll.launcher.Tools;
-import com.divinedoll.launcher.fragments.BedrockFragment;
 import com.divinedoll.launcher.fragments.InstallationsFragment;
 import com.divinedoll.launcher.fragments.LanFragment;
 import com.divinedoll.launcher.fragments.MainMenuFragment;
@@ -44,11 +43,11 @@ import com.divinedoll.launcher.prefs.screens.LauncherPreferenceFragment;
  * "More" opens a side drawer with every destination.
  */
 public final class NavBar {
-    private static final int HOME = 0, INSTALLS = 1, MODS = 2, BEDROCK = 3, SKINS = 4, SERVERS = 5, LAN = 6,
+    private static final int HOME = 0, INSTALLS = 1, MODS = 2, SKINS = 4, SERVERS = 5, LAN = 6,
             CONTROLS = 7, SETTINGS = 8, PATCH = 9;
     private static final int IDLE = 0xFFB8B8B8;
 
-    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, BEDROCK, SERVERS, SETTINGS, LAN, CONTROLS, PATCH};
+    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, SERVERS, SETTINGS, LAN, CONTROLS, PATCH};
     private static final int[] BAR = {HOME, INSTALLS, MODS, SKINS};
 
     private final LauncherActivity act;
@@ -88,7 +87,6 @@ public final class NavBar {
             case HOME: return R.drawable.ic_dl_home;
             case INSTALLS: return R.drawable.ic_dl_grid;
             case MODS: return R.drawable.ic_dl_puzzle;
-            case BEDROCK: return R.drawable.ic_dl_bed;
             case SKINS: return R.drawable.ic_dl_shirt;
             case SERVERS: return R.drawable.ic_dl_globe;
             case LAN: return R.drawable.ic_dl_user;
@@ -103,7 +101,6 @@ public final class NavBar {
             case HOME: return R.string.fork_nav_home;
             case INSTALLS: return R.string.fork_installs_title;
             case MODS: return R.string.fork_mods_button;
-            case BEDROCK: return R.string.fork_bedrock_button;
             case SKINS: return R.string.fork_skin_title;
             case SERVERS: return R.string.fork_nav_servers;
             case LAN: return R.string.fork_lan_button;
@@ -404,7 +401,6 @@ public final class NavBar {
                 swap(SearchModFragment.class, SearchModFragment.TAG, args);
                 break;
             }
-            case BEDROCK: swap(BedrockFragment.class, BedrockFragment.TAG, null); break;
             case SERVERS: swap(ServersFragment.class, ServersFragment.TAG, null); break;
             case LAN: swap(LanFragment.class, LanFragment.TAG, null); break;
             case SETTINGS: swap(LauncherPreferenceFragment.class, LauncherActivity.SETTING_FRAGMENT_TAG, null); break;
@@ -424,7 +420,6 @@ public final class NavBar {
         if (f instanceof MainMenuFragment) dest = HOME;
         else if (f instanceof InstallationsFragment) dest = INSTALLS;
         else if (f instanceof SearchModFragment) dest = MODS;
-        else if (f instanceof BedrockFragment) dest = BEDROCK;
         else if (f instanceof SkinsFragment) dest = SKINS;
         else if (f instanceof ServersFragment) dest = SERVERS;
         else if (f instanceof LanFragment) dest = LAN;

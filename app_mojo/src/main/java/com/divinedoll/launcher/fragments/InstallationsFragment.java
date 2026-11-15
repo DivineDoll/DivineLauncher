@@ -112,10 +112,10 @@ public class InstallationsFragment extends Fragment {
         for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && isFavorite(instances.list.get(i))) order.add(i);
         for(int i = 0; i < instances.list.size(); i++) if(matches(instances.list.get(i)) && !isFavorite(instances.list.get(i))) order.add(i);
         if(order.isEmpty()) {
-            TextView empty = ForkUi.text(c, getString(R.string.fork_installs_empty), 14, false);
-            empty.setGravity(Gravity.CENTER);
-            empty.setPadding(0, ForkUi.dp(c, 24), 0, 0);
-            mList.addView(empty, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            mList.addView(com.divinedoll.launcher.utils.EmptyState.view(c, R.drawable.ic_dl_grid,
+                    getString(R.string.fork_installs_empty), getString(R.string.fork_installs_hint),
+                    getString(R.string.fork_installs_new), v -> Tools.swapFragment(requireActivity(),
+                            ProfileTypeSelectFragment.class, ProfileTypeSelectFragment.TAG, null)));
         }
         for(int i : order) {
             DisplayInstance instance = instances.list.get(i);
@@ -125,9 +125,9 @@ public class InstallationsFragment extends Fragment {
             int own = com.divinedoll.launcher.utils.InstanceLook.color(String.valueOf(instance.name));
             int accent = own != 0 ? own : com.divinedoll.launcher.utils.AccentColor.get();
             row.setBackground(selected
-                    ? ForkUi.box(c, (accent & 0x00FFFFFF) | 0x22000000, accent, 2)
-                    : ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), own != 0 ? (own & 0x00FFFFFF) | 0x88000000 : 0x22FFFFFF, own != 0 ? 2 : 1));
-            row.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 8), ForkUi.dp(c, 10));
+                    ? ForkUi.box(c, (accent & 0x00FFFFFF) | 0x22000000, accent, 1)
+                    : ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), own != 0 ? (own & 0x00FFFFFF) | 0x88000000 : 0x14FFFFFF, 1));
+            row.setPadding(ForkUi.dp(c, 12), ForkUi.dp(c, 12), ForkUi.dp(c, 10), ForkUi.dp(c, 12));
 
             android.widget.ImageView icon = new android.widget.ImageView(c);
             icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
@@ -175,17 +175,30 @@ public class InstallationsFragment extends Fragment {
                 show(instances);
             });
             row.addView(star);
-            Button edit = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_installs_edit), false));
-            edit.setOnClickListener(v -> {
+            LinearLayout play = ForkUi.row(c);
+            play.setGravity(Gravity.CENTER);
+            play.setBackground(ForkUi.box(c, com.divinedoll.launcher.utils.PlayColor.get(), 0, 0));
+            ((android.graphics.drawable.GradientDrawable) play.getBackground()).setCornerRadius(ForkUi.dp(c, 20));
+            play.setPadding(ForkUi.dp(c, 12), 0, ForkUi.dp(c, 14), 0);
+            int onPlay = com.divinedoll.launcher.utils.DivineTheme.onColor(com.divinedoll.launcher.utils.PlayColor.get());
+            android.widget.ImageView playIc = new android.widget.ImageView(c);
+            playIc.setImageResource(R.drawable.ic_dl_play);
+            playIc.setColorFilter(onPlay);
+            play.addView(playIc, new LinearLayout.LayoutParams(ForkUi.dp(c, 14), ForkUi.dp(c, 14)));
+            TextView playTx = ForkUi.text(c, getString(R.string.fork_installs_play), 13, true);
+            playTx.setTextColor(onPlay);
+            playTx.setPadding(ForkUi.dp(c, 5), 0, 0, 0);
+            play.addView(playTx);
+            play.setOnClickListener(v -> {
                 Instances.setSelectedInstance(instance);
-                Tools.swapFragment(requireActivity(), InstanceEditorFragment.class, InstanceEditorFragment.TAG, null);
+                com.divinedoll.launcher.extra.ExtraCore.setValue(com.divinedoll.launcher.extra.ExtraConstants.LAUNCH_GAME, true);
             });
-            row.addView(edit);
-            Button more = ForkUi.compact(ForkUi.button(c, "\u22EE", false));
-            more.setOnClickListener(v -> showMenu(c, instance));
-            LinearLayout.LayoutParams moreLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            moreLp.leftMargin = ForkUi.dp(c, 4);
-            row.addView(more, moreLp);
+            LinearLayout.LayoutParams playLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ForkUi.dp(c, 36));
+            playLp.leftMargin = ForkUi.dp(c, 4);
+            row.addView(play, playLp);
+            LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(ForkUi.dp(c, 36), ForkUi.dp(c, 36));
+            chipLp.leftMargin = ForkUi.dp(c, 6);
+            row.addView(ForkUi.iconChip(c, R.drawable.ic_dl_more, false, v -> showMenu(c, instance)), chipLp);
             row.setOnLongClickListener(v -> { showMenu(c, instance); return true; });
 
             row.setOnClickListener(v -> {
@@ -251,11 +264,16 @@ public class InstallationsFragment extends Fragment {
             });
 
     private void showMenu(Context c, DisplayInstance instance) {
-        String[] items = {getString(R.string.fork_menu_files), getString(R.string.fork_menu_duplicate),
+        CharSequence[] items = {getString(R.string.fork_installs_edit), getString(R.string.fork_menu_files), getString(R.string.fork_menu_duplicate),
                 getString(R.string.fork_menu_export), getString(R.string.fork_menu_tag), getString(R.string.fork_menu_mrpack)};
-        new androidx.appcompat.app.AlertDialog.Builder(c)
-                .setTitle(String.valueOf(instance.name))
-                .setItems(items, (d, which) -> {
+        int[] icons = {R.drawable.ic_dl_gear, R.drawable.ic_dl_cube, R.drawable.ic_dl_grid, R.drawable.ic_dl_img, R.drawable.ic_dl_puzzle, R.drawable.ic_dl_globe};
+        com.divinedoll.launcher.utils.BottomSheet.menu(c, String.valueOf(instance.name), icons, items, null, pick -> {
+                    int which = pick - 1;
+                    if(pick == 0) {
+                        Instances.setSelectedInstance(instance);
+                        Tools.swapFragment(requireActivity(), InstanceEditorFragment.class, InstanceEditorFragment.TAG, null);
+                        return;
+                    }
                     String name = String.valueOf(instance.name);
                     if(which == 3) { chooseTag(c, name); return; }
                     new Thread(() -> {
@@ -284,9 +302,7 @@ public class InstallationsFragment extends Fragment {
                             Tools.runOnUiThread(() -> android.widget.Toast.makeText(c, getString(R.string.fork_op_error, String.valueOf(e.getMessage())), android.widget.Toast.LENGTH_LONG).show());
                         }
                     }).start();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+        });
     }
 
     private void chooseTag(Context c, String name) {

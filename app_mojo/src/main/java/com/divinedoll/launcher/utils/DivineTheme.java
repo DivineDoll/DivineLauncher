@@ -167,43 +167,4 @@ public final class DivineTheme {
         sw.setThumbDrawable(new InsetDrawable(thumb, ForkUi.dp(c, 3)));
     }
 
-    /** Bedrock screen: same rounded banner, pill sidebar and flat bottom bar as the Java one. */
-    public static void styleBedrock(View root, TextView playButton) {
-        if(!UiStyle.rounded()) return;
-        Context c = root.getContext();
-        View bar = root.findViewById(R.id.bd_sidebar_scroll);
-        if(bar != null) bar.setBackground(new ColorDrawable(ThemeColors.sidebar()));
-        if(bar instanceof android.widget.FrameLayout && ((android.widget.FrameLayout) bar).getChildCount() > 0
-                && ((android.widget.FrameLayout) bar).getChildAt(0) instanceof ViewGroup) {
-            ViewGroup list = (ViewGroup) ((android.widget.FrameLayout) bar).getChildAt(0);
-            boolean chips = bar instanceof android.widget.HorizontalScrollView;
-            for(int i = 0; i < list.getChildCount(); i++) {
-                View item = list.getChildAt(i);
-                if(chips && item instanceof TextView) {
-                    TextView t = (TextView) item;
-                    t.setBackground(tabPill(c, false));
-                    t.setPaddingRelative(ForkUi.dp(c, 12), 0, ForkUi.dp(c, 14), 0);
-                    t.setCompoundDrawablePadding(ForkUi.dp(c, 8));
-                    t.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
-                    ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) t.getLayoutParams();
-                    lp.setMarginEnd(ForkUi.dp(c, 6));
-                    t.setLayoutParams(lp);
-                } else {
-                    item.setBackground(sideItem(c, false));
-                }
-            }
-        }
-        View banner = root.findViewById(R.id.bd_banner);
-        if(banner != null) {
-            roundCorners(banner, 16);
-            if(banner.getLayoutParams() instanceof ConstraintLayout.LayoutParams) {
-                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) banner.getLayoutParams();
-                lp.setMargins(ForkUi.dp(c, 12), ForkUi.dp(c, 4), ForkUi.dp(c, 12), ForkUi.dp(c, 8));
-                banner.setLayoutParams(lp);
-            }
-        }
-        View bottom = root.findViewById(R.id._background_display_view);
-        if(bottom != null) bottom.setBackground(new ColorDrawable(ThemeColors.sidebar()));
-        if(playButton != null) playButton.setTextColor(onColor(PlayColor.get()));
-    }
 }

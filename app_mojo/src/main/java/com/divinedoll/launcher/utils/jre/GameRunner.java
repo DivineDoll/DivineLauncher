@@ -466,7 +466,9 @@ public class GameRunner {
         if(versionInfo.minecraftArguments != null){
             clientArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments));
         }
-        return JSONUtils.insertJSONValueList(clientArgs, varArgMap);
+        List<String> result = JSONUtils.insertJSONValueList(clientArgs, varArgMap);
+        com.divinedoll.launcher.utils.QuickJoin.addArgs(result, versionName);
+        return result;
     }
 
     private static List<String> splitAndFilterEmpty(String argStr) {
