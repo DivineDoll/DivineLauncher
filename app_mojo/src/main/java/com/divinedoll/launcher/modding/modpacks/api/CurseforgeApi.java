@@ -63,7 +63,14 @@ public class CurseforgeApi implements ModpackApi{
 
         HashMap<String, Object> params = new HashMap<>();
         params.put("gameId", CURSEFORGE_MC_GAME_ID);
-        params.put("classId", searchFilters.isModpack ? CURSEFORGE_MODPACK_CLASS_ID : CURSEFORGE_MOD_CLASS_ID);
+        int classId;
+        switch (searchFilters.type()) {
+            case "modpack": classId = CURSEFORGE_MODPACK_CLASS_ID; break;
+            case "shader": classId = 6552; break;
+            case "resourcepack": classId = 12; break;
+            default: classId = CURSEFORGE_MOD_CLASS_ID; break;
+        }
+        params.put("classId", classId);
         params.put("searchFilter", searchFilters.name);
         params.put("sortField", CURSEFORGE_SORT_RELEVANCY);
         params.put("sortOrder", "desc");
@@ -93,6 +100,7 @@ public class CurseforgeApi implements ModpackApi{
                     dataElement.get("name").getAsString(),
                     dataElement.get("summary").getAsString(),
                     dataElement.get("logo") == null || dataElement.get("logo").isJsonNull() ? "" : dataElement.getAsJsonObject("logo").get("thumbnailUrl").getAsString());
+            modItem.projectType = searchFilters.type();
             modItemList.add(modItem);
         }
         if(curseforgeSearchResult == null) curseforgeSearchResult = new CurseforgeSearchResult();

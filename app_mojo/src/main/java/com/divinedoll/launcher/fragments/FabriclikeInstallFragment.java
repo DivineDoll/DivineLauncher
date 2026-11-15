@@ -104,14 +104,24 @@ public abstract class FabriclikeInstallFragment extends Fragment implements Modl
         proxy.attachListener(this);
         setListenerProxy(proxy);
         mStartButton.setEnabled(false);
-        MojoApplication.sExecutorService.execute(this::performInstallation);
+        com.kdt.mcgui.ProgressLayout.setProgress(com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK, 0, R.string.global_waiting);
+        MojoApplication.sExecutorService.execute(() -> performInstallation(proxy));
+        // The install keeps running in the background and is shown on the downloads screen.
+        proxy.detachListener();
+        setListenerProxy(null);
+        proxy.attachListener(new ModloaderDownloadListener() {
+            @Override public void onDownloadFinished(File downloadedFile) {}
+            @Override public void onDataNotAvailable() { Tools.showErrorRemote(new IOException(getString(R.string.fork_dl_none))); }
+            @Override public void onDownloadError(Exception e) { Tools.showErrorRemote(e); }
+        });
+        DownloadsFragment.open(requireActivity());
     }
 
-    private void performInstallation() {
+    private void performInstallation(ModloaderListenerProxy proxy) {
         try {
             String versionId = mFabriclikeUtils.install(mSelectedGameVersion, mSelectedLoaderVersion);
             if(versionId == null) {
-                getListenerProxy().onDataNotAvailable();
+                proxy.onDataNotAvailable();
                 return;
             }
             Instances.createInstance((i)->{
@@ -119,9 +129,11 @@ public abstract class FabriclikeInstallFragment extends Fragment implements Modl
                 i.icon = mFabriclikeUtils.getIconName();
                 i.versionId = versionId;
             }, versionId);
-            getListenerProxy().onDownloadFinished(null);
+            proxy.onDownloadFinished(null);
         }catch (IOException e) {
             Tools.showErrorRemote(e);
+        } finally {
+            com.kdt.mcgui.ProgressLayout.clearProgress(com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK);
         }
     }
 

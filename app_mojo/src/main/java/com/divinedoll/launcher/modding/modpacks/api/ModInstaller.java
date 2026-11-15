@@ -38,8 +38,11 @@ public class ModInstaller {
                     toast(R.string.fork_mod_no_download);
                     return;
                 }
-                File modsDirectory = new File(instance.getGameDirectory(), "mods");
-                if(!FileUtils.ensureDirectorySilently(modsDirectory)) throw new IOException("Failed to create the mods directory");
+                String folder = "mods";
+                if("shader".equals(modDetail.projectType)) folder = "shaderpacks";
+                else if("resourcepack".equals(modDetail.projectType)) folder = "resourcepacks";
+                File modsDirectory = new File(instance.getGameDirectory(), folder);
+                if(!FileUtils.ensureDirectorySilently(modsDirectory)) throw new IOException("Failed to create the " + folder + " directory");
 
                 String fileName = url.substring(url.lastIndexOf('/') + 1);
                 int queryStart = fileName.indexOf('?');
