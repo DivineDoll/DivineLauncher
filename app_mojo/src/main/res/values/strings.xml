@@ -621,6 +621,7 @@
     <string name="fork_installs_count">%d installations</string>
     <string name="fork_installs_empty">No installations match your search</string>
     <string name="fork_installs_edit">Edit</string>
+    <string name="fork_installs_play">Play</string>
     <string name="fork_installs_selected">In use</string>
     <string name="fork_installs_hint">Tap an installation to select it.</string>
     <string name="fork_patch_title">Patch notes</string>
@@ -1040,6 +1041,11 @@
     <string name="fork_look_ruby">Ruby</string>
     <string name="fork_look_amber">Amber</string>
     <string name="fork_look_teal">Teal</string>
+    <string name="fork_look_amoled">AMOLED</string>
+    <string name="fork_ap_textsize">Text size</string>
+    <string name="fork_size_small">Small</string>
+    <string name="fork_size_normal">Normal</string>
+    <string name="fork_size_large">Large</string>
     <string name="fork_look_divine">Divine gold</string>
     <string name="fork_ap_rail">Icons-only sidebar</string>
     <string name="fork_inst_icon_gallery">Choose from gallery</string>
@@ -1146,4 +1152,15 @@
     <string name="fork_nav_title">DivineLauncher</string>
     <string name="fork_nav_installs_short">Installs</string>
     <string name="fork_nav_play">Play</string>
+    <string name="fork_servers_join">Join</string>
+    <string name="fork_servers_instance">Installation</string>
+    <string name="fork_servers_add">Add server</string>
+    <string name="fork_servers_edit">Edit</string>
+    <string name="fork_servers_delete">Delete</string>
+    <string name="fork_servers_save">Save</string>
+    <string name="fork_servers_empty_title">No servers yet</string>
+    <string name="fork_servers_join_fail">That installation no longer exists. Edit the server and pick another one.</string>
+    <string name="fork_play_on">Play on…</string>
+    <string name="fork_play_menu">Main menu</string>
+    <string name="fork_servers_quick">Quick join</string>
 </resources>

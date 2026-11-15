@@ -118,6 +118,7 @@ public class Instances {
      * @param instance new selected instance
      */
     public static void setSelectedInstance(DisplayInstance instance) {
+        com.divinedoll.launcher.utils.QuickJoin.clear();
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putString(
                         LauncherPreferences.PREF_KEY_CURRENT_INSTANCE,

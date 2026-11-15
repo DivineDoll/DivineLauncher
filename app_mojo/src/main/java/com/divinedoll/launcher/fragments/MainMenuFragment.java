@@ -146,7 +146,7 @@ public class MainMenuFragment extends Fragment {
         icon.setImageResource(iconRes);
         icon.setColorFilter(AccentColor.get());
         pill.addView(icon, new LinearLayout.LayoutParams(dp(c, 18), dp(c, 18)));
-        TextView t = ForkUi.text(c, getString(label), 13, false);
+        TextView t = ForkUi.text(c, label == 0 ? "" : getString(label), 13, false);
         t.setPadding(dp(c, 8), 0, 0, 0);
         pill.addView(t);
         pill.setOnClickListener(v -> action.run());
@@ -192,6 +192,9 @@ public class MainMenuFragment extends Fragment {
     }
 
     private View mPlayFab;
+    private LinearLayout mServersRow;
+    private TextView mServersTitle;
+    private View mServersScroll;
 
     private static int mix(int a, int b, float amountOfA) {
         return android.graphics.Color.argb(255,
@@ -219,16 +222,44 @@ public class MainMenuFragment extends Fragment {
                 v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
             } catch (Exception ignored) {
             }
+            com.divinedoll.launcher.utils.QuickJoin.clear();
             ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
         });
         pill.setOnLongClickListener(v -> {
-            PlayColor.choose(c, () -> {
-                stylePlay(c, mPlay);
-                if (mPlayFab != null) stylePlay(c, mPlayFab);
-            });
+            showPlayMenu(c);
             return true;
         });
         return pill;
+    }
+
+    /** Long press on Play: pick a server to join, the main menu, or the button color. */
+    private void showPlayMenu(Context c) {
+        List<ServersFragment.Entry> servers = ServersFragment.all();
+        int n = servers.size();
+        CharSequence[] labels = new CharSequence[n + 2];
+        int[] icons = new int[n + 2];
+        for (int i = 0; i < n; i++) {
+            ServersFragment.Entry e = servers.get(i);
+            labels[i] = e.name + (e.instance.isEmpty() ? "" : "  ·  " + e.instance);
+            icons[i] = R.drawable.ic_dl_globe;
+        }
+        labels[n] = getString(R.string.fork_play_menu);
+        icons[n] = R.drawable.ic_dl_play;
+        labels[n + 1] = getString(R.string.fork_play_color_title);
+        icons[n + 1] = R.drawable.ic_dl_shirt;
+        com.divinedoll.launcher.utils.BottomSheet.menu(c, getString(R.string.fork_play_on), icons, labels, null, pick -> {
+            if (pick < n) {
+                ServersFragment.join(requireActivity(), servers.get(pick));
+            } else if (pick == n) {
+                com.divinedoll.launcher.utils.QuickJoin.clear();
+                ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
+            } else {
+                PlayColor.choose(c, () -> {
+                    stylePlay(c, mPlay);
+                    stylePlay(c, mPlayFab);
+                });
+            }
+        });
     }
 
     private static void stylePlay(Context c, View pill) {
@@ -431,6 +462,18 @@ public class MainMenuFragment extends Fragment {
         LinearLayout box = new LinearLayout(c);
         box.setOrientation(LinearLayout.VERTICAL);
 
+        mServersTitle = sectionTitle(c, R.string.fork_servers_quick);
+        mServersTitle.setVisibility(View.GONE);
+        box.addView(mServersTitle);
+        HorizontalScrollView serversScroll = new HorizontalScrollView(c);
+        serversScroll.setHorizontalScrollBarEnabled(false);
+        mServersRow = new LinearLayout(c);
+        mServersRow.setOrientation(LinearLayout.HORIZONTAL);
+        serversScroll.addView(mServersRow);
+        mServersScroll = serversScroll;
+        serversScroll.setVisibility(View.GONE);
+        box.addView(serversScroll, lpMatch(c, 0));
+
         mContinueBox = card(c);
         box.addView(mContinueBox, lpMatch(c, 0));
 
@@ -509,6 +552,7 @@ public class MainMenuFragment extends Fragment {
         }
         mKicker.setText(kicker);
 
+        fillServers(c);
         Instance instance = Instances.loadSelectedInstance();
         mContinueBox.removeAllViews();
         if (instance == null) {
@@ -563,6 +607,24 @@ public class MainMenuFragment extends Fragment {
         }
         loadNews();
         renderNews(c);
+    }
+
+    /** Quick join pills for the saved servers. */
+    private void fillServers(Context c) {
+        if (mServersRow == null) return;
+        mServersRow.removeAllViews();
+        List<ServersFragment.Entry> servers = ServersFragment.all();
+        int vis = servers.isEmpty() ? View.GONE : View.VISIBLE;
+        mServersTitle.setVisibility(vis);
+        mServersScroll.setVisibility(vis);
+        for (ServersFragment.Entry e : servers) {
+            View pill = toolPill(c, R.drawable.ic_dl_globe, 0, () -> ServersFragment.join(requireActivity(), e));
+            ((TextView) ((LinearLayout) pill).getChildAt(1)).setText(e.name);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = dp(c, 8);
+            mServersRow.addView(pill, lp);
+        }
+        mServersRow.setPadding(0, 0, 0, servers.isEmpty() ? 0 : dp(c, 12));
     }
 
     private void addEmpty(Context c, String message) {
