@@ -58,7 +58,7 @@ public class ForkUi {
         TextView t = new TextView(c);
         t.setText(content);
         t.setTextColor(Color.WHITE);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp * TextScale.factor());
         if(bold) McStyle.headingText(t); else McStyle.text(t);
         return t;
     }

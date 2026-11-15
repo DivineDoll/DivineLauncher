@@ -48,9 +48,10 @@ public final class AppearancePanel {
             {0xFF4CAF50, ThemeColors.DEFAULT_BACKGROUND, ThemeColors.DEFAULT_SIDEBAR, 0xFF3C8527},
             {0xFFD14B2E, 0xFF291618, 0xFF331D1F, 0xFFD14B2E},
             {0xFFE0A526, 0xFF241F11, 0xFF2D2716, 0xFFE0A526},
-            {0xFF2AA8B5, 0xFF10252A, 0xFF16303A, 0xFF2AA8B5}};
+            {0xFF2AA8B5, 0xFF10252A, 0xFF16303A, 0xFF2AA8B5},
+            {DivineTheme.GOLD, 0xFF000000, 0xFF0B0B0D, DivineTheme.GOLD}};
     private static final int[] LOOK_NAMES = {R.string.fork_look_divine, R.string.fork_look_violet, R.string.fork_look_ocean, R.string.fork_look_emerald,
-            R.string.fork_look_ruby, R.string.fork_look_amber, R.string.fork_look_teal};
+            R.string.fork_look_ruby, R.string.fork_look_amber, R.string.fork_look_teal, R.string.fork_look_amoled};
 
     private static TextView section(Context c, int title) {
         TextView t = ForkUi.text(c, c.getString(title), 12, true);
@@ -168,6 +169,25 @@ public final class AppearancePanel {
         box.addView(row(c, c.getString(R.string.fork_text_color_title), null, ThemeColors.text(), () ->
                 ColorPicker.show(c, R.string.fork_text_color_title, ThemeColors.text(), ThemeColors.DEFAULT_TEXT,
                         color -> { ThemeColors.set(ThemeColors.PREF_TEXT, color); hooks.recreate(); })));
+
+        // ---- text size
+        box.addView(section(c, R.string.fork_ap_textsize));
+        LinearLayout sizes = ForkUi.row(c);
+        int[] sizeNames = {R.string.fork_size_small, R.string.fork_size_normal, R.string.fork_size_large};
+        for(int i = 0; i < 3; i++) {
+            final int level = i;
+            boolean on = TextScale.level() == i;
+            TextView chip = ForkUi.text(c, c.getString(sizeNames[i]), 13, true);
+            chip.setGravity(Gravity.CENTER);
+            chip.setTextColor(on ? DivineTheme.onColor(AccentColor.get()) : 0xFFFFFFFF);
+            chip.setBackground(ForkUi.box(c, on ? AccentColor.get() : ThemeColors.sidebar(), on ? 0 : 0x22FFFFFF, 1));
+            ((GradientDrawable) chip.getBackground()).setCornerRadius(ForkUi.dp(c, 18));
+            chip.setOnClickListener(v -> { TextScale.set(level); hooks.recreate(); });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ForkUi.dp(c, 38), 1f);
+            lp.rightMargin = ForkUi.dp(c, 6);
+            sizes.addView(chip, lp);
+        }
+        box.addView(sizes);
 
         // ---- style
         box.addView(section(c, R.string.fork_ap_style));

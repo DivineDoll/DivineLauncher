@@ -430,6 +430,7 @@
     <string name="fork_installs_count">%d instalaciones</string>
     <string name="fork_installs_empty">Ninguna instalación coincide con tu búsqueda</string>
     <string name="fork_installs_edit">Editar</string>
+    <string name="fork_installs_play">Jugar</string>
     <string name="fork_installs_selected">En uso</string>
     <string name="fork_installs_hint">Toca una instalación para elegirla.</string>
     <string name="fork_patch_title">Notas del parche</string>
@@ -849,6 +850,11 @@
     <string name="fork_look_ruby">Rubí</string>
     <string name="fork_look_amber">Ámbar</string>
     <string name="fork_look_teal">Turquesa</string>
+    <string name="fork_look_amoled">AMOLED</string>
+    <string name="fork_ap_textsize">Tamaño del texto</string>
+    <string name="fork_size_small">Pequeño</string>
+    <string name="fork_size_normal">Normal</string>
+    <string name="fork_size_large">Grande</string>
     <string name="fork_look_divine">Oro divino</string>
     <string name="fork_ap_rail">Barra lateral solo iconos</string>
     <string name="fork_inst_icon_gallery">Elegir de la galería</string>
@@ -955,4 +961,15 @@
     <string name="fork_nav_title">DivineLauncher</string>
     <string name="fork_nav_installs_short">Instal.</string>
     <string name="fork_nav_play">Jugar</string>
+    <string name="fork_servers_join">Entrar</string>
+    <string name="fork_servers_instance">Instalación</string>
+    <string name="fork_servers_add">Añadir servidor</string>
+    <string name="fork_servers_edit">Editar</string>
+    <string name="fork_servers_delete">Eliminar</string>
+    <string name="fork_servers_save">Guardar</string>
+    <string name="fork_servers_empty_title">Aún no hay servidores</string>
+    <string name="fork_servers_join_fail">Esa instalación ya no existe. Edita el servidor y elige otra.</string>
+    <string name="fork_play_on">Jugar en…</string>
+    <string name="fork_play_menu">Menú principal</string>
+    <string name="fork_servers_quick">Entrada rápida</string>
 </resources>
