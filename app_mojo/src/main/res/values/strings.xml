@@ -1164,4 +1164,15 @@
     <string name="fork_play_on">Play on…</string>
     <string name="fork_play_menu">Main menu</string>
     <string name="fork_servers_quick">Quick join</string>
+    <string name="fork_dl_title">Downloads</string>
+    <string name="fork_dl_game">Minecraft</string>
+    <string name="fork_dl_install">Installing</string>
+    <string name="fork_dl_modpack">Modpack</string>
+    <string name="fork_dl_unpack">Unpacking files</string>
+    <string name="fork_dl_versions">Version list</string>
+    <string name="fork_dl_login">Signing in</string>
+    <string name="fork_dl_other">Task</string>
+    <string name="fork_dl_none">Nothing downloading</string>
+    <string name="fork_dl_done">All done</string>
+    <string name="fork_dl_none_hint">Installers like Forge run here while you keep using the launcher.</string>
 </resources>

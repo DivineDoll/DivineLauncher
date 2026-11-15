@@ -44,10 +44,10 @@ import com.divinedoll.launcher.prefs.screens.LauncherPreferenceFragment;
  */
 public final class NavBar {
     private static final int HOME = 0, INSTALLS = 1, MODS = 2, SKINS = 4, SERVERS = 5, LAN = 6,
-            CONTROLS = 7, SETTINGS = 8, PATCH = 9;
+            CONTROLS = 7, SETTINGS = 8, PATCH = 9, DOWNLOADS = 10;
     private static final int IDLE = 0xFFB8B8B8;
 
-    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, SERVERS, SETTINGS, LAN, CONTROLS, PATCH};
+    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, SERVERS, DOWNLOADS, SETTINGS, LAN, CONTROLS, PATCH};
     private static final int[] BAR = {HOME, INSTALLS, MODS, SKINS};
 
     private final LauncherActivity act;
@@ -89,6 +89,7 @@ public final class NavBar {
             case MODS: return R.drawable.ic_dl_puzzle;
             case SKINS: return R.drawable.ic_dl_shirt;
             case SERVERS: return R.drawable.ic_dl_globe;
+            case DOWNLOADS: return R.drawable.ic_dl_grid;
             case LAN: return R.drawable.ic_dl_user;
             case CONTROLS: return R.drawable.ic_dl_cube;
             case PATCH: return R.drawable.ic_dl_img;
@@ -103,6 +104,7 @@ public final class NavBar {
             case MODS: return R.string.fork_mods_button;
             case SKINS: return R.string.fork_skin_title;
             case SERVERS: return R.string.fork_nav_servers;
+            case DOWNLOADS: return R.string.fork_dl_title;
             case LAN: return R.string.fork_lan_button;
             case CONTROLS: return R.string.mcl_option_customcontrol;
             case PATCH: return R.string.fork_patch_title;
@@ -402,6 +404,7 @@ public final class NavBar {
                 break;
             }
             case SERVERS: swap(ServersFragment.class, ServersFragment.TAG, null); break;
+            case DOWNLOADS: swap(com.divinedoll.launcher.fragments.DownloadsFragment.class, com.divinedoll.launcher.fragments.DownloadsFragment.TAG, null); break;
             case LAN: swap(LanFragment.class, LanFragment.TAG, null); break;
             case SETTINGS: swap(LauncherPreferenceFragment.class, LauncherActivity.SETTING_FRAGMENT_TAG, null); break;
             case CONTROLS: act.startActivity(new Intent(act, CustomControlsActivity.class)); break;
@@ -423,6 +426,7 @@ public final class NavBar {
         else if (f instanceof SkinsFragment) dest = SKINS;
         else if (f instanceof ServersFragment) dest = SERVERS;
         else if (f instanceof LanFragment) dest = LAN;
+        else if (f instanceof com.divinedoll.launcher.fragments.DownloadsFragment) dest = DOWNLOADS;
         else if (f instanceof LauncherPreferenceFragment) dest = SETTINGS;
         else if (f instanceof com.divinedoll.launcher.fragments.PatchNotesFragment) dest = PATCH;
         else dest = -1; // sub screens keep no selection

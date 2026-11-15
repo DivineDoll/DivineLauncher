@@ -44,7 +44,8 @@ public class InstallationsFragment extends Fragment {
         root.setBackgroundColor(com.divinedoll.launcher.utils.ThemeColors.background());
         root.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 12), ForkUi.dp(c, 16), ForkUi.dp(c, 12));
 
-        root.addView(ForkUi.pageHeader(c, requireActivity(), ForkUi.TAB_INSTALLS));
+        root.addView(ForkUi.screenHeader(c, requireActivity(), getString(R.string.fork_installs_title), R.drawable.ic_dl_plus,
+                v -> Tools.swapFragment(requireActivity(), ProfileTypeSelectFragment.class, ProfileTypeSelectFragment.TAG, null)));
         root.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         LinearLayout header = ForkUi.row(c);
@@ -60,12 +61,8 @@ public class InstallationsFragment extends Fragment {
             }
         });
         header.addView(search, ForkUi.weight(1f));
-        Button create = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_installs_new), true));
-        create.setOnClickListener(v -> Tools.swapFragment(requireActivity(), ProfileTypeSelectFragment.class,
-                ProfileTypeSelectFragment.TAG, null));
         LinearLayout.LayoutParams createParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         createParams.leftMargin = ForkUi.dp(c, 8);
-        header.addView(create, createParams);
         Button importButton = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_import_button), false));
         importButton.setOnClickListener(v -> mImport.launch(new String[]{"application/zip", "application/octet-stream", "*/*"}));
         header.addView(importButton, createParams);
