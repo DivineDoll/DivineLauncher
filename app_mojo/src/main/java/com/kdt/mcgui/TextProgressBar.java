@@ -34,7 +34,19 @@ public class TextProgressBar extends ProgressBar {
     private String mText = "";
 
     private void init(){
-        setProgressDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.view_text_progressbar, null));
+        float d = getResources().getDisplayMetrics().density;
+        int accent = com.divinedoll.launcher.utils.AccentColor.get();
+        android.graphics.drawable.GradientDrawable back = new android.graphics.drawable.GradientDrawable();
+        back.setColor(0x33FFFFFF);
+        back.setCornerRadius(8 * d);
+        android.graphics.drawable.GradientDrawable front = new android.graphics.drawable.GradientDrawable();
+        front.setColor(accent);
+        front.setCornerRadius(8 * d);
+        android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{
+                back, new android.graphics.drawable.ClipDrawable(front, android.view.Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL)});
+        layers.setId(0, android.R.id.background);
+        layers.setId(1, android.R.id.progress);
+        setProgressDrawable(layers);
         setProgress(35);
         mTextPaint = new Paint();
         mTextPaint.setColor(Color.WHITE);
