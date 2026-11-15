@@ -107,8 +107,16 @@ public abstract class ModVersionListFragment<T> extends Fragment implements Runn
         Runnable downloadTask = createDownloadTask(forgeVersion, taskProxy);
         setTaskProxy(taskProxy);
         taskProxy.attachListener(this);
-        mExpandableListView.setEnabled(false);
         new Thread(downloadTask).start();
+        // The installer keeps running in the background; show it on the downloads screen.
+        taskProxy.detachListener();
+        setTaskProxy(null);
+        taskProxy.attachListener(new com.divinedoll.launcher.modding.ModloaderDownloadListener() {
+            @Override public void onDownloadFinished(File downloadedFile) {}
+            @Override public void onDataNotAvailable() {}
+            @Override public void onDownloadError(Exception e) { Tools.showErrorRemote(e); }
+        });
+        DownloadsFragment.open(requireActivity());
         return true;
     }
 

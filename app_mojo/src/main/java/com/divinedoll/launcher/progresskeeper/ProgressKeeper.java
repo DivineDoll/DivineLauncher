@@ -45,6 +45,21 @@ public class ProgressKeeper {
         }
     }
 
+    /** Current tasks as {key, progress, text} rows, for the downloads screen. */
+    public static synchronized List<Object[]> snapshot(android.content.Context c) {
+        List<Object[]> rows = new ArrayList<>();
+        for(java.util.Map.Entry<String, ProgressState> e : sProgressStates.entrySet()) {
+            ProgressState st = e.getValue();
+            String text = "";
+            try {
+                if(st.resid != -1) text = c.getString(st.resid, st.varArg == null ? new Object[0] : st.varArg);
+                else if(st.varArg != null && st.varArg.length > 0 && st.varArg[0] != null) text = String.valueOf(st.varArg[0]);
+            } catch (Exception ignored) {}
+            rows.add(new Object[]{e.getKey(), st.progress, text});
+        }
+        return rows;
+    }
+
     public static synchronized boolean hasProgressKey(String key) {
         return sProgressStates.get(key) != null;
     }
