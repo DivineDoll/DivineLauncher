@@ -147,12 +147,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
     /** Cards with an accent border, accent titles and themed tool buttons. */
     private void styleSections() {
         android.content.Context ctx = mDialogContent.getContext();
-        int border = (com.divinedoll.launcher.utils.AccentColor.get() & 0x00FFFFFF) | 0x99000000;
         int[] cards = {R.id.quickCard1, R.id.quickCard2, R.id.quickCard3, R.id.quickCard4, R.id.quickCard5};
         int[] titles = {R.id.quickTitle1, R.id.quickTitle2, R.id.quickTitle3, R.id.quickTitle4, R.id.quickTitle5};
         for(int id : cards) {
             android.view.View card = mDialogContent.findViewById(id);
-            if(card != null) card.setBackground(com.divinedoll.launcher.utils.ForkUi.box(ctx, 0x40000000, border, 1));
+            if(card != null) card.setBackground(com.divinedoll.launcher.utils.ForkUi.box(ctx, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x14FFFFFF, 1));
         }
         for(int id : titles) {
             android.widget.TextView title = mDialogContent.findViewById(id);

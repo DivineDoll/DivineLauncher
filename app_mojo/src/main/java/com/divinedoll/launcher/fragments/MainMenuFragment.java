@@ -44,6 +44,7 @@ import com.divinedoll.launcher.instances.Instances;
 import com.divinedoll.launcher.progresskeeper.ProgressKeeper;
 import com.divinedoll.launcher.utils.AccentColor;
 import com.divinedoll.launcher.utils.AppearancePanel;
+import com.divinedoll.launcher.utils.BottomSheet;
 import com.divinedoll.launcher.utils.BannerManager;
 import com.divinedoll.launcher.utils.DivineTheme;
 import com.divinedoll.launcher.utils.FileUtils;
@@ -706,15 +707,57 @@ public class MainMenuFragment extends Fragment {
             com.divinedoll.launcher.utils.LanguagePicker.show(c, () -> requireActivity().recreate());
             return;
         }
-        new android.app.AlertDialog.Builder(c).setCancelable(false)
-                .setTitle(R.string.fork_setup_title).setMessage(R.string.fork_setup_message)
-                .setPositiveButton(R.string.fork_setup_start, (d, w) -> {
-                    prefs.edit().putInt("setup_stage", 1).apply();
-                    com.divinedoll.launcher.utils.ControlPacks.show(c, () ->
-                            AccentColor.choose(c, () -> requireActivity().recreate()));
-                })
-                .setNegativeButton(R.string.fork_setup_skip, (d, w) -> prefs.edit().putInt("setup_stage", 2).apply())
-                .show();
+        LinearLayout box = new LinearLayout(c);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER_HORIZONTAL);
+        box.setPadding(dp(c, 10), dp(c, 8), dp(c, 10), dp(c, 4));
+        ImageView logo = new ImageView(c);
+        logo.setImageResource(R.drawable.ic_dl_play);
+        logo.setColorFilter(DivineTheme.onColor(AccentColor.get()));
+        logo.setPadding(dp(c, 18), dp(c, 18), dp(c, 18), dp(c, 18));
+        logo.setBackground(shape(c, AccentColor.get(), 0, 24));
+        box.addView(logo, new LinearLayout.LayoutParams(dp(c, 72), dp(c, 72)));
+        TextView t = ForkUi.text(c, getString(R.string.fork_setup_title), 20, true);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(0, dp(c, 14), 0, dp(c, 6));
+        box.addView(t);
+        TextView m = ForkUi.text(c, getString(R.string.fork_setup_message), 13, false);
+        m.setGravity(Gravity.CENTER);
+        m.setAlpha(0.7f);
+        box.addView(m);
+        LinearLayout dots = new LinearLayout(c);
+        dots.setGravity(Gravity.CENTER);
+        dots.setPadding(0, dp(c, 14), 0, dp(c, 14));
+        for (int i = 0; i < 3; i++) {
+            View dot = new View(c);
+            dot.setBackground(shape(c, i == 0 ? AccentColor.get() : 0x33FFFFFF, 0, 4));
+            LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(dp(c, i == 0 ? 18 : 8), dp(c, 8));
+            dlp.leftMargin = dlp.rightMargin = dp(c, 3);
+            dots.addView(dot, dlp);
+        }
+        box.addView(dots);
+        TextView start = ForkUi.text(c, getString(R.string.fork_setup_start), 15, true);
+        start.setGravity(Gravity.CENTER);
+        start.setTextColor(DivineTheme.onColor(AccentColor.get()));
+        start.setBackground(shape(c, AccentColor.get(), 0, 30));
+        box.addView(start, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 48)));
+        TextView skip = ForkUi.text(c, getString(R.string.fork_setup_skip), 13, false);
+        skip.setGravity(Gravity.CENTER);
+        skip.setAlpha(0.7f);
+        skip.setPadding(0, dp(c, 14), 0, dp(c, 8));
+        box.addView(skip);
+        final android.app.Dialog sheet = BottomSheet.show(c, box);
+        sheet.setCancelable(false);
+        start.setOnClickListener(v -> {
+            sheet.dismiss();
+            prefs.edit().putInt("setup_stage", 1).apply();
+            com.divinedoll.launcher.utils.ControlPacks.show(c, () ->
+                    AccentColor.choose(c, () -> requireActivity().recreate()));
+        });
+        skip.setOnClickListener(v -> {
+            sheet.dismiss();
+            prefs.edit().putInt("setup_stage", 2).apply();
+        });
     }
 
     private void editInstance() {

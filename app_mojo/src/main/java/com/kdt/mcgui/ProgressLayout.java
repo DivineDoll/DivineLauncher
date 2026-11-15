@@ -83,7 +83,11 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         mLinearLayout = findViewById(R.id.progress_linear_layout);
         mTaskNumberDisplayer = findViewById(R.id.progress_textview);
         mFlipArrow = findViewById(R.id.progress_flip_arrow);
-        setBackgroundColor(getResources().getColor(R.color.background_bottom_bar));
+        android.graphics.drawable.GradientDrawable card = new android.graphics.drawable.GradientDrawable();
+        card.setColor(com.divinedoll.launcher.utils.ThemeColors.sidebar());
+        card.setStroke((int) (getResources().getDisplayMetrics().density), 0x22FFFFFF);
+        card.setCornerRadius(16 * getResources().getDisplayMetrics().density);
+        setBackground(card);
         setOnClickListener(this);
     }
 

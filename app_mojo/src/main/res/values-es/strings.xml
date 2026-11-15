@@ -851,6 +851,7 @@
     <string name="fork_look_amber">Ámbar</string>
     <string name="fork_look_teal">Turquesa</string>
     <string name="fork_look_amoled">AMOLED</string>
+    <string name="fork_look_light">Claro</string>
     <string name="fork_ap_textsize">Tamaño del texto</string>
     <string name="fork_size_small">Pequeño</string>
     <string name="fork_size_normal">Normal</string>
