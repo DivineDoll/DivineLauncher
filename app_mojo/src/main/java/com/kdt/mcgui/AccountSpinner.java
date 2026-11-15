@@ -127,7 +127,7 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         setOnItemSelectedListener(this);
         reload();
 
-        setBackgroundColor(getResources().getColor(R.color.background_status_bar));
+        setBackgroundColor(com.divinedoll.launcher.utils.ThemeColors.background());
         mLoginBarPaint.setColor(com.divinedoll.launcher.utils.AccentColor.get());
         mLoginBarPaint.setStrokeWidth(getResources().getDimensionPixelOffset(R.dimen._2sdp));
         mLoginStepAnimator.addUpdateListener(this);
@@ -195,6 +195,14 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         super.onDraw(canvas);
         float bottom = getHeight() - mLoginBarPaint.getStrokeWidth()/2;
         float lineFillPercent = (mLoginStep / mMaxSteps);
+        if(lineFillPercent >= 1f) {
+            // idle: only a faint divider, the accent line is for login progress
+            android.graphics.Paint idle = new android.graphics.Paint();
+            idle.setColor(0x1AFFFFFF);
+            idle.setStrokeWidth(getResources().getDisplayMetrics().density);
+            canvas.drawLine(0, getHeight() - idle.getStrokeWidth() / 2, getWidth(), getHeight() - idle.getStrokeWidth() / 2, idle);
+            return;
+        }
         canvas.drawLine(0, bottom, lineFillPercent * getWidth(), bottom, mLoginBarPaint);
     }
 

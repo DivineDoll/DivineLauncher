@@ -569,7 +569,7 @@ public class MainMenuFragment extends Fragment {
             return;
         }
         mHeroIcon.setImageBitmap(InstallationsFragment.iconOf(c, instance));
-        mHeroName.setText(String.valueOf(instance.name));
+        mHeroName.setText(instance.name == null || String.valueOf(instance.name).equals("null") ? String.valueOf(instance.versionId) : String.valueOf(instance.name));
         mHeroInfo.setText(instance.versionId + "  ·  " + com.divinedoll.launcher.utils.InstanceTools.stats(c, String.valueOf(instance.name)));
 
         File dir = instance.getGameDirectory();

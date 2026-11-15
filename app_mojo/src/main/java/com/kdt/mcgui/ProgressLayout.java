@@ -88,6 +88,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         card.setStroke((int) (getResources().getDisplayMetrics().density), 0x22FFFFFF);
         card.setCornerRadius(16 * getResources().getDisplayMetrics().density);
         setBackground(card);
+        com.divinedoll.launcher.utils.DivineTheme.styleTree(this);
         setOnClickListener(this);
     }
 
