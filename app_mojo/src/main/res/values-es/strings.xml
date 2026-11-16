@@ -988,4 +988,5 @@
     <string name="fork_type_resourcepacks">Paquetes de recursos</string>
     <string name="fork_discord_title">Discord</string>
     <string name="fork_discord_soon">El servidor de Discord llegará pronto</string>
+    <string name="fork_theme_dark">Oscuro</string>
 </resources>

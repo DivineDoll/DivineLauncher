@@ -96,6 +96,23 @@ public final class AppearancePanel {
         return r;
     }
 
+    /** Dark = 0, AMOLED = 1, Light = 2. */
+    public static int currentMode() {
+        int bg = ThemeColors.background();
+        return bg == 0xFF000000 ? 1 : bg == 0xFFF3F4F6 ? 2 : 0;
+    }
+
+    public static void applyMode(int mode, Runnable recreate) {
+        int[] look = mode == 1 ? LOOKS[7] : mode == 2 ? LOOKS[8] : LOOKS[0];
+        applyLook(look, new Hooks() {
+            public void pickBanner() {}
+            public void refreshBanner() {}
+            public void refreshPlay() {}
+            public void pickThemeFile() {}
+            public void recreate() { recreate.run(); }
+        });
+    }
+
     private static void applyLook(int[] look, Hooks hooks) {
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putInt(AccentColor.PREF, look[0])
