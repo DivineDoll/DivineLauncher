@@ -70,6 +70,7 @@ public class MainMenuFragment extends Fragment {
     private View mPlay;
     private ImageView mHeroImage, mHeroIcon;
     private TextView mKicker, mHeroName, mHeroInfo;
+    private ImageView mHead;
     private LinearLayout mContinueBox, mNewsBox;
     private TextView mChipMods, mChipWorlds, mChipPacks;
     private List<String[]> mNews = new ArrayList<>();
@@ -292,9 +293,8 @@ public class MainMenuFragment extends Fragment {
         bar.setPadding(dp(c, 18), dp(c, 12), dp(c, 14), dp(c, 8));
         TextView title = ForkUi.text(c, getString(R.string.fork_nav_home), 17, true);
         bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        bar.addView(ForkUi.iconChip(c, R.drawable.ic_dl_gear, false, v -> Tools.swapFragment(requireActivity(),
-                com.divinedoll.launcher.prefs.screens.LauncherPreferenceFragment.class,
-                com.divinedoll.launcher.LauncherActivity.SETTING_FRAGMENT_TAG, null)), new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30)));
+        bar.addView(ForkUi.iconChip(c, R.drawable.ic_dl_discord, false, v ->
+                com.divinedoll.launcher.utils.NavBar.openDiscord(c)), new LinearLayout.LayoutParams(dp(c, 30), dp(c, 30)));
         page.addView(bar);
 
         View hero = buildHero(c, inflater);
@@ -369,8 +369,18 @@ public class MainMenuFragment extends Fragment {
         mKicker.setLetterSpacing(0.08f);
         mKicker.setSingleLine(true);
         mKicker.setEllipsize(TextUtils.TruncateAt.END);
-        mKicker.setPadding(0, 0, 0, dp(c, 8));
-        body.addView(mKicker);
+        LinearLayout kickerRow = new LinearLayout(c);
+        kickerRow.setOrientation(LinearLayout.HORIZONTAL);
+        kickerRow.setGravity(Gravity.CENTER_VERTICAL);
+        kickerRow.setPadding(0, 0, 0, dp(c, 8));
+        mHead = new ImageView(c);
+        mHead.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        mHead.setVisibility(View.GONE);
+        LinearLayout.LayoutParams headLp = new LinearLayout.LayoutParams(dp(c, 22), dp(c, 22));
+        headLp.rightMargin = dp(c, 7);
+        kickerRow.addView(mHead, headLp);
+        kickerRow.addView(mKicker, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        body.addView(kickerRow);
 
         LinearLayout titleRow = new LinearLayout(c);
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -549,6 +559,7 @@ public class MainMenuFragment extends Fragment {
         try {
             com.divinedoll.launcher.authenticator.accounts.Account account = com.divinedoll.launcher.authenticator.accounts.Accounts.getCurrent();
             if (account != null) kicker = kicker + "  ·  " + getString(R.string.fork_playing_as, account.username);
+            com.divinedoll.launcher.utils.AccountHead.load(mHead, account);
         } catch (Exception ignored) {
         }
         mKicker.setText(kicker);

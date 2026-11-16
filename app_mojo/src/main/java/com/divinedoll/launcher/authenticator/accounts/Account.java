@@ -37,6 +37,7 @@ public class Account {
 
     public void updateSkinFace() {
         String skinFaceUrlTemplate = authType.skinUrl;
+        if(skinFaceUrlTemplate == null && authType == AuthType.LOCAL) skinFaceUrlTemplate = "https://mineskin.eu/skin/%s";
         if(skinFaceUrlTemplate == null) return;
         String skinFaceUrl = String.format(skinFaceUrlTemplate, username);
         try {
@@ -52,6 +53,7 @@ public class Account {
             try(FileOutputStream fileOutputStream = new FileOutputStream(skinFile)) {
                 skinFace.compress(Bitmap.CompressFormat.WEBP, 90, fileOutputStream);
             }
+            mFaceCache = null;
             Log.i("SkinLoader", "Update skin face success");
         } catch (IOException e) {
             // Skin refresh limit, no internet connection, etc...
@@ -81,7 +83,6 @@ public class Account {
      }
 
     public Bitmap getSkinFace(){
-        if(isLocal()) return null;
         File skinFaceFile = getSkinFaceFile();
         if(!skinFaceFile.exists()) return null;
         if(mFaceCache == null) {
@@ -91,6 +92,6 @@ public class Account {
     }
 
     private File getSkinFaceFile() {
-        return new File(Tools.DIR_CACHE,  "skin-face-" + profileId +"-"+authType.name() + ".webp");
+        return new File(Tools.DIR_CACHE,  "skin-face-" + (authType == AuthType.LOCAL ? username : profileId) + "-" + authType.name() + ".webp");
     }
 }

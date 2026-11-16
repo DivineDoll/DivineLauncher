@@ -93,7 +93,7 @@ public final class NavBar {
             case LAN: return R.drawable.ic_dl_user;
             case CONTROLS: return R.drawable.ic_dl_cube;
             case PATCH: return R.drawable.ic_dl_img;
-            case DISCORD: return R.drawable.ic_dl_user;
+            case DISCORD: return R.drawable.ic_dl_discord;
             default: return R.drawable.ic_dl_gear;
         }
     }
@@ -390,6 +390,21 @@ public final class NavBar {
 
     // ---- going places ----
 
+    public static void openDiscord(android.content.Context c) {
+        String url = c.getString(R.string.fork_discord_url);
+        if (url.startsWith("https://")) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                c.startActivity(i);
+            } catch (Exception e) {
+                android.widget.Toast.makeText(c, url, android.widget.Toast.LENGTH_LONG).show();
+            }
+        } else {
+            android.widget.Toast.makeText(c, R.string.fork_discord_soon, android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void go(int dest) {
         FragmentManager fm = act.getSupportFragmentManager();
         if (fm.isStateSaved()) return;
@@ -410,16 +425,7 @@ public final class NavBar {
             case LAN: swap(LanFragment.class, LanFragment.TAG, null); break;
             case SETTINGS: swap(LauncherPreferenceFragment.class, LauncherActivity.SETTING_FRAGMENT_TAG, null); break;
             case CONTROLS: act.startActivity(new Intent(act, CustomControlsActivity.class)); break;
-            case DISCORD: {
-                String url = act.getString(R.string.fork_discord_url);
-                if (url.startsWith("https://")) {
-                    try { act.startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))); }
-                    catch (Exception e) { android.widget.Toast.makeText(act, url, android.widget.Toast.LENGTH_LONG).show(); }
-                } else {
-                    android.widget.Toast.makeText(act, R.string.fork_discord_soon, android.widget.Toast.LENGTH_SHORT).show();
-                }
-                break;
-            }
+            case DISCORD: openDiscord(act); break;
             default: break;
         }
     }
