@@ -101,10 +101,41 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat impleme
     public void onCreatePreferences(Bundle b, String str) {
         mVisibilityUpdater = this::updateVisibility;
         addPreferencesFromResource(R.xml.pref_main);
+        addThemeModePreference();
         setupNotificationRequestPreference();
         setupBannerPreference();
         setupSkinPreference();
         setupCreditsPreference();
+    }
+
+    private void addThemeModePreference() {
+        Preference p = new Preference(requireContext()) {
+            @Override
+            public void onBindViewHolder(androidx.preference.PreferenceViewHolder h) {
+                super.onBindViewHolder(h);
+                int[] ids = {R.id.tm_dark, R.id.tm_amoled, R.id.tm_light};
+                int cur = com.divinedoll.launcher.utils.AppearancePanel.currentMode();
+                int accent = com.divinedoll.launcher.utils.AccentColor.get();
+                for(int i = 0; i < ids.length; i++) {
+                    final int mode = i;
+                    android.widget.TextView t = (android.widget.TextView) h.findViewById(ids[i]);
+                    boolean on = i == cur;
+                    android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+                    g.setCornerRadius(t.getResources().getDisplayMetrics().density * 12);
+                    g.setColor(on ? accent : 0x33888888);
+                    t.setBackground(g);
+                    t.setTextColor(on ? 0xFF1B1D21 : 0xFFE6E6E6);
+                    t.setOnClickListener(v -> {
+                        if(mode == com.divinedoll.launcher.utils.AppearancePanel.currentMode()) return;
+                        com.divinedoll.launcher.utils.AppearancePanel.applyMode(mode, () -> requireActivity().recreate());
+                    });
+                }
+            }
+        };
+        p.setLayoutResource(R.layout.pref_theme_mode);
+        p.setSelectable(false);
+        p.setOrder(-100);
+        getPreferenceScreen().addPreference(p);
     }
 
     private void setupCreditsPreference() {
