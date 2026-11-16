@@ -44,10 +44,10 @@ import com.divinedoll.launcher.prefs.screens.LauncherPreferenceFragment;
  */
 public final class NavBar {
     private static final int HOME = 0, INSTALLS = 1, MODS = 2, SKINS = 4, SERVERS = 5, LAN = 6,
-            CONTROLS = 7, SETTINGS = 8, PATCH = 9, DOWNLOADS = 10;
+            CONTROLS = 7, SETTINGS = 8, PATCH = 9, DOWNLOADS = 10, DISCORD = 11;
     private static final int IDLE = 0xFFB8B8B8;
 
-    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, SERVERS, DOWNLOADS, SETTINGS, LAN, CONTROLS, PATCH};
+    private static final int[] DRAWER = {HOME, INSTALLS, MODS, SKINS, SERVERS, DOWNLOADS, SETTINGS, LAN, CONTROLS, PATCH, DISCORD};
     private static final int[] BAR = {HOME, INSTALLS, MODS, SKINS};
 
     private final LauncherActivity act;
@@ -93,6 +93,7 @@ public final class NavBar {
             case LAN: return R.drawable.ic_dl_user;
             case CONTROLS: return R.drawable.ic_dl_cube;
             case PATCH: return R.drawable.ic_dl_img;
+            case DISCORD: return R.drawable.ic_dl_user;
             default: return R.drawable.ic_dl_gear;
         }
     }
@@ -108,6 +109,7 @@ public final class NavBar {
             case LAN: return R.string.fork_lan_button;
             case CONTROLS: return R.string.mcl_option_customcontrol;
             case PATCH: return R.string.fork_patch_title;
+            case DISCORD: return R.string.fork_discord_title;
             default: return R.string.fork_settings_title;
         }
     }
@@ -408,6 +410,16 @@ public final class NavBar {
             case LAN: swap(LanFragment.class, LanFragment.TAG, null); break;
             case SETTINGS: swap(LauncherPreferenceFragment.class, LauncherActivity.SETTING_FRAGMENT_TAG, null); break;
             case CONTROLS: act.startActivity(new Intent(act, CustomControlsActivity.class)); break;
+            case DISCORD: {
+                String url = act.getString(R.string.fork_discord_url);
+                if (url.startsWith("https://")) {
+                    try { act.startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))); }
+                    catch (Exception e) { android.widget.Toast.makeText(act, url, android.widget.Toast.LENGTH_LONG).show(); }
+                } else {
+                    android.widget.Toast.makeText(act, R.string.fork_discord_soon, android.widget.Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
             default: break;
         }
     }

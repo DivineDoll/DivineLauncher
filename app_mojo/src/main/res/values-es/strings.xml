@@ -986,4 +986,6 @@
     <string name="fork_dl_none_hint">Los instaladores como Forge corren aquí mientras sigues usando el launcher.</string>
     <string name="fork_type_shaders">Shaders</string>
     <string name="fork_type_resourcepacks">Paquetes de recursos</string>
+    <string name="fork_discord_title">Discord</string>
+    <string name="fork_discord_soon">El servidor de Discord llegará pronto</string>
 </resources>
