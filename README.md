@@ -1,79 +1,80 @@
-<H1 align="center">MojoLauncher (a.k.a. MJLauncher)</H1>
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="DivineLauncher icon">
+</p>
 
-<a href="./README_RU.md">Readme на русском</a>
+<h1 align="center">DivineLauncher</h1>
 
-<img src="./app_mojo/src/main/assets/mojo.png" align="left" width="150" height="150" alt="MojoLauncher logo">
+<p align="center">
+  A Minecraft launcher for Android with a golden, Modrinth-inspired look.<br>
+  Java Edition and Bedrock in one app, fully customizable.
+</p>
 
-[![Android CI](https://github.com/MojoLauncher/MojoLauncher/workflows/Android%20CI/badge.svg)](https://github.com/MojoLauncher/MojoLauncher/actions)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/MojoLauncher/MojoLauncher)](https://github.com/MojoLauncher/MojoLauncher/actions)
-[![Discord](https://img.shields.io/discord/1365346109131722753.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/VHdwQFsaGX)
+<p align="center">
+  <img alt="License" src="https://img.shields.io/badge/license-LGPL--3.0-FFC107">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Android-FFC107">
+  <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ES-FFC107">
+</p>
 
-* MojoLauncher is a launcher, based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher), that allows you to play Minecraft: Java Edition on your Android device!
+<p align="center"><a href="README_ES.md">Leer en español</a></p>
 
-* It can run almost every version of Minecraft, allowing you to use .jar only installers to install modloaders such as [Forge](https://files.minecraftforge.net/) and [Fabric](http://fabricmc.net/) and mods like [OptiFine](https://optifine.net).
+---
 
-## Navigation
-- [Introduction](#introduction)
-- [Getting MojoLauncher](#getting-mojolauncher)
-- [Building](#building) 
-- [Current roadmap](#current-roadmap) 
-- [License](#license) 
-- [Contributing](#contributing) 
-- [Credits & Third party components and their licenses](#credits--third-party-components-and-their-licenses-if-available)
+> DivineLauncher is an unofficial project. It is not made, approved or affiliated with Mojang Studios or Microsoft.
 
-## Introduction 
-* MojoLauncher is a Minecraft: Java Edition launcher for Android based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher)
-* This launcher can launch almost all available Minecraft versions ranging from rd-132211 to 26.x snapshots (including Combat Test versions). 
-* Modding via Forge and Fabric are also supported. 
+## Highlights
 
-## Getting MojoLauncher
+| | |
+|---|---|
+| **Look** | Dark interface with a gold accent, rounded cards and pill tabs, in portrait and landscape. Change accent, background, sidebar and Play button colors, banner and themes. |
+| **Instances** | Own icon, color and background per instance. Tags, favorites, duplicate, export as `.zip` or `.mrpack`, import `.zip`, `.mrpack` and CurseForge packs. |
+| **Per-instance hub** | Tabs for mods (enable, disable, delete, Modrinth search, update check), worlds (manual and automatic backups), logs and look. |
+| **Bedrock** | Detects the installed game. Add-ons, textures and skins in one place. |
+| **Controls** | Touch layouts, gamepad support, button packs (normal or Bedrock style) globally or per instance, F1 hides the controls. |
+| **In game** | Movable FPS readout, quick settings drawer, built-in screen recorder (no audio). |
+| **Performance** | MobileGlues and other renderers, profiles for memory and resolution. |
+| **Skins** | Manager with 3D preview. |
+| **Languages** | English and Spanish. |
 
-You can get MojoLauncher via four methods:
+## Screenshots
 
-1. You can get the prebuilt app from the [releases section](http://github.com/mojolauncher/mojolauncher/releases).
+Screenshots go in [`docs/screenshots/`](docs/screenshots). Link them here once you add them:
 
-2. You can get it from Google Play by clicking on this badge:
-[![Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=git.artdeell.mjlaunch)
+```markdown
+![Home](docs/screenshots/home.png)
+```
 
-3. You can get early builds from [Github Actions](http://github.com/mojolauncher/mojolauncher/actions).
+## Install
 
-4. You can [build](#building) from source.
-## Building   
-* Build the launcher (it will automatically download all required components)
+Build it from source (below) or download the APK from the GitHub Actions runs of this repository.
+
+## Build
+
 ```
 ./gradlew :app_mojo:assembleDebug
 ```
-If you are building on Windows:
-* Replace `./gradlew` with `.\gradlew.bat`
-* Make sure `mojoexec`, `sdl`, `glfw` are symlinked into `app_pojavlauncher/src/main/jni/`
 
-## Current roadmap
-- [x] Instance system in favor of profiles
-- [x] Out-of-the box 1.21.5 support
-- [x] mrpack/CurseForge zip import
-- [x] LTW: enable compute shader/image extensions
-- [ ] LTW: resolve issues with Create
-- [ ] LTW: switch to a color-renderable format for framebuffers
-- [ ] Modpack/mod management tool
-- [ ] MMC-compatible instance import
-- [ ] Vintage Story support
-- [ ] Implement common native library standard
+On Windows use `.\gradlew.bat` and make sure `mojoexec`, `sdl` and `glfw` are symlinked into `app_pojavlauncher/src/main/jni/`.
 
-## Known Issues
-- Some physical mice may have very slow mouse speed
-- On Holy GL4ES, large texture atlases may be distorted (resulting in stretched/blocky textures in modpacks)
-- Probably more, that's why we have a bug tracker ;) 
+### CurseForge key
 
-## License
-- MojoLauncher is licensed under [GNU LGPLv3](https://github.com/MojoLauncher/MojoLauncher/blob/v3_openjdk/LICENSE).
+Searching CurseForge needs a free API key from <https://console.curseforge.com>.
+
+- **GitHub Actions:** add a repository secret named `CURSEFORGE_API_KEY`. The workflow already passes it to the build.
+- **Local build:** put the key in `curseforge_key.txt` next to `gradlew`, or set the `CURSEFORGE_API_KEY` environment variable.
+- **In the app:** Bedrock tab, Add-ons, "Key" button. It is also used for the Java mod search.
+
+Never commit the key.
+
+## Credits and license
+
+DivineLauncher is a fork of [MojoLauncher](https://github.com/MojoLauncher/MojoLauncher), which is based on [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher). It is licensed under the [GNU LGPLv3](LICENSE). See [NOTICE-FORK.md](NOTICE-FORK.md).
 
 ## Contributing
-Contributions are welcome! We welcome any type of contribution, not only code. For example, you can help the wiki shape up. You can help the [translation](https://mojolauncher.ru/translate/translator.html) too!
 
-
-Any code change to this repository should be submitted as a pull request. The description should explain what the code does and give steps to execute it.
+Contributions are welcome, not only code. Submit changes as a pull request that explains what the change does and how to try it.
 
 ## Third party components, licenses and sources (when applicable)
+- [Inter](https://rsms.me/inter/) and [Space Grotesk](https://github.com/floriankarsten/space-grotesk) fonts: [SIL Open Font License 1.1](https://openfontlicense.org/).
 - [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher): [GNU LGPLv3 License](https://github.com/PojavLauncherTeam/PojavLauncher/blob/v3_openjdk/LICENSE)
 - Android Support Libraries: [Apache License 2.0](https://android.googlesource.com/platform/prebuilts/maven_repo/android/+/master/NOTICE.txt).
 - [Holy GL4ES](https://github.com/artdeell/gl4es_extra_extra/): [MIT License](https://github.com/ptitSeb/gl4es/blob/master/LICENSE).<br>

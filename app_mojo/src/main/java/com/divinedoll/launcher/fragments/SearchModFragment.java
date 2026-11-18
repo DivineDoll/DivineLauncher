@@ -1,0 +1,343 @@
+package com.divinedoll.launcher.fragments;
+
+import static com.divinedoll.launcher.Tools.runOnUiThread;
+
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.math.MathUtils;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.kdt.mcgui.ProgressLayout;
+
+import com.divinedoll.launcher.R;
+
+import com.divinedoll.launcher.MojoApplication;
+import com.divinedoll.launcher.Tools;
+import com.divinedoll.launcher.modding.modpacks.ModItemAdapter;
+import com.divinedoll.launcher.modding.modpacks.api.CommonApi;
+import com.divinedoll.launcher.modding.modpacks.api.ModpackApi;
+import com.divinedoll.launcher.modding.modpacks.models.SearchFilters;
+import com.divinedoll.launcher.utils.profiles.VersionSelectorDialog;
+import com.divinedoll.launcher.progresskeeper.ProgressKeeper;
+import com.divinedoll.launcher.progresskeeper.TaskCountListener;
+
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+
+public class SearchModFragment extends Fragment implements ModItemAdapter.SearchResultCallback {
+    /** The key the user set in the app, or the one built into the launcher. */
+    static String curseforgeKey(Context context) {
+        String key = com.divinedoll.launcher.utils.BedrockContent.apiKey(context);
+        return key == null || key.isEmpty() ? "DUMMY" : key;
+    }
+
+
+    public static final String TAG = "SearchModFragment";
+    public static final String ARG_MODPACK = "modpack";
+    private View mOverlay;
+    private float mOverlayTopCache; // Padding cache reduce resource lookup
+
+    private final RecyclerView.OnScrollListener mOverlayPositionListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            mOverlay.setY(MathUtils.clamp(mOverlay.getY() - dy, -mOverlay.getHeight(), mOverlayTopCache));
+        }
+    };
+
+    private EditText mSearchEditText;
+    private ImageButton mFilterButton;
+    private RecyclerView mRecyclerview;
+    private ModItemAdapter mModItemAdapter;
+    private ProgressBar mSearchProgressBar;
+    private TextView mStatusTextView;
+    private ColorStateList mDefaultTextColor;
+    private ModpackApi modpackApi;
+
+    private final SearchFilters mSearchFilters;
+
+    private Button mImportButton;
+    private TaskCountListener mTaskCountListener;
+
+    ActivityResultLauncher<String> mImportLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(),
+            uri -> {
+                if (uri == null) return;
+                Context context = getContext();
+                ContentResolver contentResolver = getContext().getContentResolver();
+                MojoApplication.sExecutorService.execute(() -> {
+                    performLocalInstall(uri, context, contentResolver);
+                });
+            });
+
+    public void performLocalInstall(Uri uri, Context context, ContentResolver contentResolver) {
+            String fileName = Tools.getFileName(context, uri);
+            if (fileName == null) return;
+            File outFile = new File(Tools.DIR_CACHE, fileName + ".cf");
+            ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, R.string.multirt_progress_caching);
+            try (InputStream inputStream = contentResolver.openInputStream(uri);
+                 OutputStream outputStream = new FileOutputStream(outFile)) {
+                if (inputStream == null) return;
+                IOUtils.copy(inputStream, outputStream);
+                outputStream.flush();
+            } catch (IOException e) {
+                Tools.showErrorRemote("Error", e);
+                ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
+                return;
+            }
+            try {
+                modpackApi.installLocalModpack(fileName, outFile, null);
+            } catch (IOException e) {
+                Tools.showErrorRemote("Error", e);
+            } finally {
+                outFile.delete();
+                ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
+            }
+    }
+
+    public SearchModFragment(){
+        super(R.layout.fragment_mod_search);
+        mSearchFilters = new SearchFilters();
+        mSearchFilters.isModpack = true;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        modpackApi = new CommonApi(curseforgeKey(context));
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        // You can only access resources after attaching to current context
+        mModItemAdapter = new ModItemAdapter(getResources(), modpackApi, this);
+        ProgressKeeper.addTaskCountListener(mModItemAdapter);
+        mOverlayTopCache = getResources().getDimension(R.dimen.fragment_padding_medium);
+
+        mOverlay = view.findViewById(R.id.search_mod_overlay);
+        view.setBackgroundColor(com.divinedoll.launcher.utils.ThemeColors.background());
+        ((android.widget.ImageButton) view.findViewById(R.id.search_mod_filter))
+                .setColorFilter(com.divinedoll.launcher.utils.ThemeColors.text());
+        mSearchEditText = view.findViewById(R.id.search_mod_edittext);
+        mSearchProgressBar = view.findViewById(R.id.search_mod_progressbar);
+        mRecyclerview = view.findViewById(R.id.search_mod_list);
+        mStatusTextView = view.findViewById(R.id.search_mod_status_text);
+        mFilterButton = view.findViewById(R.id.search_mod_filter);
+
+        mDefaultTextColor = mStatusTextView.getTextColors();
+
+        mRecyclerview.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerview.setAdapter(mModItemAdapter);
+
+        mRecyclerview.addOnScrollListener(mOverlayPositionListener);
+
+        mSearchEditText.setOnEditorActionListener((v, actionId, event) -> {
+            searchMods(mSearchEditText.getText().toString());
+            mSearchEditText.clearFocus();
+            return false;
+        });
+
+        mOverlay.post(()->{
+           int overlayHeight = mOverlay.getHeight();
+           mRecyclerview.setPadding(mRecyclerview.getPaddingLeft(),
+                   mRecyclerview.getPaddingTop() + overlayHeight,
+                   mRecyclerview.getPaddingRight(),
+                   mRecyclerview.getPaddingBottom());
+        });
+        mFilterButton.setOnClickListener(v -> displayFilterDialog());
+        mImportButton = view.findViewById(R.id.mineButton_import_local_modpack);
+        mImportButton.setOnClickListener(v -> {
+            mImportLauncher.launch("*/*");
+        });
+        Bundle fragmentArgs = getArguments();
+        mSearchFilters.isModpack = fragmentArgs == null || fragmentArgs.getBoolean(ARG_MODPACK, true);
+        mSearchFilters.projectType = mSearchFilters.isModpack ? "modpack" : "mod";
+        buildTypeChips(view);
+        updateSectionViews();
+        mTaskCountListener = taskCount -> {
+            runOnUiThread(() -> mImportButton.setEnabled(taskCount == 0));
+            return false;
+        };
+        ProgressKeeper.addTaskCountListener(mTaskCountListener);
+
+        searchMods(null);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ProgressKeeper.removeTaskCountListener(mModItemAdapter);
+        com.divinedoll.launcher.modding.modpacks.InstalledMods.sListener = null;
+        mSkeleton = null;
+        mRecyclerview.removeOnScrollListener(mOverlayPositionListener);
+        if (mTaskCountListener != null) { ProgressKeeper.removeTaskCountListener(mTaskCountListener); }
+    }
+
+    @Override
+    public void onSearchFinished() {
+        setSkeleton(false);
+        mSearchProgressBar.setVisibility(View.GONE);
+        mStatusTextView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onSearchError(int error) {
+        setSkeleton(false);
+        mSearchProgressBar.setVisibility(View.GONE);
+        mStatusTextView.setVisibility(View.VISIBLE);
+        switch (error) {
+            case ERROR_INTERNAL:
+                mStatusTextView.setTextColor(Color.RED);
+                mStatusTextView.setText(R.string.search_modpack_error);
+                break;
+            case ERROR_NO_RESULTS:
+                mStatusTextView.setTextColor(mDefaultTextColor);
+                mStatusTextView.setText(R.string.search_modpack_no_result);
+                break;
+        }
+    }
+
+    private static final String[] TYPES = {"mod", "modpack", "shader", "resourcepack"};
+    private static final int[] TYPE_LABELS = {R.string.fork_tab_mods, R.string.fork_tab_modpacks,
+            R.string.fork_type_shaders, R.string.fork_type_resourcepacks};
+    private final java.util.List<TextView> mTypeChips = new java.util.ArrayList<>();
+
+    /** Pills for what to search: mods, modpacks, shaders, resource and texture packs. */
+    private void buildTypeChips(View view) {
+        LinearLayout tabs = view.findViewById(R.id.search_mod_tabs);
+        tabs.removeAllViews();
+        mTypeChips.clear();
+        Context c = requireContext();
+        android.widget.HorizontalScrollView scroll = new android.widget.HorizontalScrollView(c);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout row = new LinearLayout(c);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        for(int i = 0; i < TYPES.length; i++) {
+            final String type = TYPES[i];
+            TextView chip = com.divinedoll.launcher.utils.ForkUi.text(c, getString(TYPE_LABELS[i]), 13, true);
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setPadding(com.divinedoll.launcher.utils.ForkUi.dp(c, 14), com.divinedoll.launcher.utils.ForkUi.dp(c, 8),
+                    com.divinedoll.launcher.utils.ForkUi.dp(c, 14), com.divinedoll.launcher.utils.ForkUi.dp(c, 8));
+            chip.setOnClickListener(v -> selectType(type));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = com.divinedoll.launcher.utils.ForkUi.dp(c, 6);
+            row.addView(chip, lp);
+            mTypeChips.add(chip);
+        }
+        scroll.setHorizontalFadingEdgeEnabled(true);
+        scroll.setFadingEdgeLength(com.divinedoll.launcher.utils.ForkUi.dp(c, 28));
+        scroll.addView(row);
+        tabs.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private void selectType(String type) {
+        if(type.equals(mSearchFilters.projectType)) return;
+        mSearchFilters.projectType = type;
+        mSearchFilters.isModpack = "modpack".equals(type);
+        updateSectionViews();
+        searchMods(mSearchEditText.getText().toString());
+    }
+
+    private void updateSectionViews() {
+        Context c = getContext();
+        if(c == null) return;
+        int accent = com.divinedoll.launcher.utils.AccentColor.get();
+        for(int i = 0; i < mTypeChips.size(); i++) {
+            boolean on = TYPES[i].equals(mSearchFilters.projectType);
+            TextView chip = mTypeChips.get(i);
+            chip.setTextColor(on ? accent : com.divinedoll.launcher.utils.ThemeColors.text());
+            android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+            g.setCornerRadius(com.divinedoll.launcher.utils.ForkUi.dp(c, 20));
+            g.setColor(on ? ((accent & 0x00FFFFFF) | 0x33000000) : com.divinedoll.launcher.utils.ThemeColors.sidebar());
+            g.setStroke(com.divinedoll.launcher.utils.ForkUi.dp(c, 1), on ? ((accent & 0x00FFFFFF) | 0x66000000) : 0x22FFFFFF);
+            chip.setBackground(g);
+        }
+        int hint = R.string.fork_hint_mod;
+        if("modpack".equals(mSearchFilters.projectType)) hint = R.string.fork_hint_modpack;
+        else if("shader".equals(mSearchFilters.projectType)) hint = R.string.fork_hint_shader;
+        else if("resourcepack".equals(mSearchFilters.projectType)) hint = R.string.fork_hint_resourcepack;
+        mSearchEditText.setHint(hint);
+        mImportButton.setVisibility(mSearchFilters.isModpack ? View.VISIBLE : View.GONE);
+    }
+
+    private View mSkeleton;
+
+    private void setSkeleton(boolean show) {
+        View root = getView();
+        if(!(root instanceof ViewGroup)) return;
+        if(mSkeleton == null) {
+            if(!show) return;
+            mSkeleton = com.divinedoll.launcher.utils.Skeleton.rows(requireContext(), 7);
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams lp =
+                    new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topToTop = R.id.search_mod_list;
+            lp.startToStart = R.id.search_mod_list;
+            lp.endToEnd = R.id.search_mod_list;
+            ((ViewGroup) root).addView(mSkeleton, lp);
+        }
+        mSkeleton.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void searchMods(String name) {
+        setSkeleton(true);
+        mSearchProgressBar.setVisibility(View.VISIBLE);
+        mSearchFilters.name = name == null ? "" : name;
+        mModItemAdapter.performSearchQuery(mSearchFilters);
+    }
+
+    private void displayFilterDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(R.layout.dialog_mod_filters)
+                .create();
+
+        // setup the view behavior
+        dialog.setOnShowListener(dialogInterface -> {
+            TextView mSelectedVersion = dialog.findViewById(R.id.search_mod_selected_mc_version_textview);
+            Button mSelectVersionButton = dialog.findViewById(R.id.search_mod_mc_version_button);
+            Button mApplyButton = dialog.findViewById(R.id.search_mod_apply_filters);
+
+            assert mSelectVersionButton != null;
+            assert mSelectedVersion != null;
+            assert mApplyButton != null;
+
+            // Setup the expendable list behavior
+            mSelectVersionButton.setOnClickListener(v -> VersionSelectorDialog.open(v.getContext(), true, (id, snapshot)-> mSelectedVersion.setText(id)));
+
+            // Apply visually all the current settings
+            mSelectedVersion.setText(mSearchFilters.mcVersion);
+
+            // Apply the new settings
+            mApplyButton.setOnClickListener(v -> {
+                mSearchFilters.mcVersion = mSelectedVersion.getText().toString();
+                searchMods(mSearchEditText.getText().toString());
+                dialogInterface.dismiss();
+            });
+        });
+
+        dialog.show();
+    }
+}

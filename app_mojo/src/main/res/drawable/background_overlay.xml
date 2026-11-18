@@ -6,5 +6,6 @@
         android:left="@dimen/padding_small"
         android:right="@dimen/padding_small"
         android:top="@dimen/padding_small" />
-    <solid android:color="@color/background_overlay" />
+    <solid android:color="#F20F1114" />
+    <corners android:radius="18dp" />
 </shape>

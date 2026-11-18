@@ -20,19 +20,19 @@ import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import git.artdeell.mojo.R;
+import com.divinedoll.launcher.R;
 
-import git.artdeell.mojo.MojoApplication;
-import git.artdeell.mojo.Tools;
-import git.artdeell.mojo.extra.ExtraConstants;
-import git.artdeell.mojo.extra.ExtraCore;
-import git.artdeell.mojo.extra.ExtraListener;
-import git.artdeell.mojo.fragments.InstanceEditorFragment;
-import git.artdeell.mojo.fragments.ProfileTypeSelectFragment;
-import git.artdeell.mojo.instances.DisplayInstance;
-import git.artdeell.mojo.instances.Instances;
-import git.artdeell.mojo.instances.InstanceAdapter;
-import git.artdeell.mojo.instances.InstanceAdapterExtra;
+import com.divinedoll.launcher.MojoApplication;
+import com.divinedoll.launcher.Tools;
+import com.divinedoll.launcher.extra.ExtraConstants;
+import com.divinedoll.launcher.extra.ExtraCore;
+import com.divinedoll.launcher.extra.ExtraListener;
+import com.divinedoll.launcher.fragments.InstanceEditorFragment;
+import com.divinedoll.launcher.fragments.ProfileTypeSelectFragment;
+import com.divinedoll.launcher.instances.DisplayInstance;
+import com.divinedoll.launcher.instances.Instances;
+import com.divinedoll.launcher.instances.InstanceAdapter;
+import com.divinedoll.launcher.instances.InstanceAdapterExtra;
 
 import java.io.IOException;
 
@@ -153,6 +153,12 @@ public class mcVersionSpinner extends ExtendedTextView {
     private void getPopupWindow(){
         mListView = (ListView) inflate(getContext(), R.layout.spinner_mc_version, null);
         mListView.setAdapter(mProfileAdapter);
+        float dens = getResources().getDisplayMetrics().density;
+        mListView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        mListView.setPadding(0, (int)(8 * dens), 0, (int)(8 * dens));
+        mListView.setClipToPadding(false);
+        mListView.setDivider(new android.graphics.drawable.ColorDrawable(0x22888888));
+        mListView.setDividerHeight((int)(1 * dens));
         mListView.setOnItemClickListener((parent, view, position, id) -> {
             Object item = mProfileAdapter.getItem(position);
             if(item instanceof DisplayInstance) {
@@ -165,7 +171,13 @@ public class mcVersionSpinner extends ExtendedTextView {
         });
 
         mPopupWindow = new PopupWindow(mListView, MATCH_PARENT, getContext().getResources().getDimensionPixelOffset(R.dimen._184sdp));
-        mPopupWindow.setElevation(5);
+        mPopupWindow.setElevation(12);
+        android.graphics.drawable.GradientDrawable popupBg = new android.graphics.drawable.GradientDrawable();
+        popupBg.setColor(com.divinedoll.launcher.utils.ThemeColors.panel());
+        popupBg.setStroke((int) dens, 0x33888888);
+        popupBg.setCornerRadius(16 * dens);
+        mPopupWindow.setBackgroundDrawable(new android.graphics.drawable.InsetDrawable(popupBg,
+                (int)(10 * dens), (int)(4 * dens), (int)(10 * dens), (int)(4 * dens)));
         mPopupWindow.setClippingEnabled(false);
 
         // Block clicking outside of the popup window

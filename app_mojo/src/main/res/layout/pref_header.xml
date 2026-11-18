@@ -29,24 +29,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/minecraft_ten"
-            android:shadowColor="#3F3F3F"
-            android:shadowDx="3"
-            android:shadowDy="3"
-            android:shadowRadius="1"
             android:textAllCaps="true"
             android:textSize="@dimen/_20ssp" />
-
-        <com.kdt.mcgui.AccentLine
-            android:layout_width="@dimen/_72sdp"
-            android:layout_height="@dimen/_3sdp"
-            android:layout_marginTop="@dimen/_3sdp"
-            android:layout_marginBottom="@dimen/_3sdp" />
 
         <TextView
             android:id="@android:id/summary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#CFCFCF"
+            android:textColor="#99FFFFFF"
             android:textSize="@dimen/_10ssp" />
     </LinearLayout>
 </LinearLayout>

@@ -1,0 +1,633 @@
+package com.divinedoll.launcher.fragments;
+
+import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.format.DateUtils;
+import android.text.format.Formatter;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.fragment.app.Fragment;
+
+import com.divinedoll.launcher.R;
+import com.divinedoll.launcher.Tools;
+import com.divinedoll.launcher.instances.Instance;
+import com.divinedoll.launcher.instances.Instances;
+import com.divinedoll.launcher.utils.AccentColor;
+import com.divinedoll.launcher.utils.ColorPicker;
+import com.divinedoll.launcher.utils.DivineTheme;
+import com.divinedoll.launcher.utils.ForkUi;
+import com.divinedoll.launcher.utils.InstanceFiles;
+import com.divinedoll.launcher.utils.InstanceLook;
+import com.divinedoll.launcher.utils.InstanceTools;
+import com.divinedoll.launcher.utils.Modrinth;
+import com.divinedoll.launcher.utils.ThemeColors;
+import com.divinedoll.launcher.utils.UiStyle;
+import com.divinedoll.launcher.utils.WorldBackup;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+
+/** One screen per instance with tabs: mods, worlds, logs and look. */
+public class InstanceHubFragment extends Fragment {
+    public static final String TAG = "InstanceHubFragment";
+    public static final String ARG_NAME = "name";
+    public static final int TAB_MODS = 0, TAB_WORLDS = 1, TAB_LOGS = 2, TAB_LOOK = 3, TAB_SHOTS = 4, TAB_PERF = 5;
+
+    private Instance mInstance;
+    private File mGameDir;
+    private LinearLayout mTabs;
+    private LinearLayout mBody;
+    private int mTab = TAB_MODS;
+    private int mLoadId = 0;
+
+    /** Opens the screen for the instance with that name. */
+    public static void open(androidx.fragment.app.FragmentActivity act, String name) {
+        open(act, name, TAB_MODS);
+    }
+
+    public static void open(androidx.fragment.app.FragmentActivity act, String name, int tab) {
+        Bundle b = new Bundle();
+        b.putString(ARG_NAME, name);
+        b.putInt("tab", tab);
+        Tools.swapFragment(act, InstanceHubFragment.class, TAG, b);
+    }
+
+    private final ActivityResultLauncher<String> mImagePicker =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), (Uri uri) -> {
+                if(uri == null || mInstance == null || !isAdded()) return;
+                try {
+                    InstanceLook.setImage(requireContext(), String.valueOf(mInstance.name), uri);
+                    select(TAB_LOOK);
+                } catch(Exception e) {
+                    toast(getString(R.string.fork_op_error, String.valueOf(e.getMessage())));
+                }
+            });
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull android.view.LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state) {
+        Context c = requireContext();
+        String name = getArguments() == null ? null : getArguments().getString(ARG_NAME);
+        if(getArguments() != null) mTab = getArguments().getInt("tab", TAB_MODS);
+        try {
+            mInstance = name != null ? InstanceTools.find(name) : Instances.loadSelectedInstance();
+        } catch(Exception e) {
+            mInstance = Instances.loadSelectedInstance();
+        }
+        LinearLayout root = new LinearLayout(c);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(ThemeColors.background());
+        if(mInstance == null) {
+            TextView none = ForkUi.text(c, getString(R.string.no_instance), 16, false);
+            none.setPadding(ForkUi.dp(c, 16), ForkUi.dp(c, 16), 0, 0);
+            root.addView(none);
+            return root;
+        }
+        mGameDir = mInstance.getGameDirectory();
+        int pad = ForkUi.dp(c, 12);
+
+        LinearLayout header = ForkUi.screenHeader(c, requireActivity(), String.valueOf(mInstance.name), R.drawable.ic_dl_more,
+                v -> InstanceFiles.show(requireActivity(), mGameDir, mInstance.versionId));
+        root.addView(header);
+
+        HorizontalScrollView tabScroll = new HorizontalScrollView(c);
+        tabScroll.setHorizontalScrollBarEnabled(false);
+        mTabs = new LinearLayout(c);
+        mTabs.setPadding(pad, 0, pad, ForkUi.dp(c, 6));
+        tabScroll.addView(mTabs);
+        root.addView(tabScroll);
+
+        ScrollView scroll = new ScrollView(c);
+        mBody = new LinearLayout(c);
+        mBody.setOrientation(LinearLayout.VERTICAL);
+        mBody.setPadding(pad, ForkUi.dp(c, 4), pad, pad);
+        scroll.addView(mBody);
+        root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        root.addView(buildPlayBar(c));
+        select(mTab);
+        return root;
+    }
+
+    /** Bottom bar: the instance and a Play button, always within reach. */
+    private View buildPlayBar(Context c) {
+        LinearLayout bar = new LinearLayout(c);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setBackgroundColor(ThemeColors.sidebar());
+        bar.setPadding(ForkUi.dp(c, 14), ForkUi.dp(c, 10), ForkUi.dp(c, 14), ForkUi.dp(c, 10));
+        TextView icon = ForkUi.text(c, String.valueOf(mInstance.name).substring(0, 1).toUpperCase(), 16, true);
+        icon.setGravity(Gravity.CENTER);
+        icon.setTextColor(DivineTheme.onColor(AccentColor.get()));
+        android.graphics.drawable.GradientDrawable ig = new android.graphics.drawable.GradientDrawable();
+        ig.setColor(AccentColor.get());
+        ig.setCornerRadius(ForkUi.dp(c, 12));
+        icon.setBackground(ig);
+        bar.addView(icon, new LinearLayout.LayoutParams(ForkUi.dp(c, 40), ForkUi.dp(c, 40)));
+        LinearLayout texts = new LinearLayout(c);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.setPadding(ForkUi.dp(c, 10), 0, 0, 0);
+        TextView name = ForkUi.text(c, String.valueOf(mInstance.name), 14, true);
+        name.setSingleLine(true);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        texts.addView(name);
+        TextView info = ForkUi.text(c, InstanceTools.stats(c, String.valueOf(mInstance.name)), 11, false);
+        info.setAlpha(0.7f);
+        info.setSingleLine(true);
+        texts.addView(info);
+        bar.addView(texts, ForkUi.weight(1f));
+        int playColor = com.divinedoll.launcher.utils.PlayColor.get();
+        TextView play = ForkUi.text(c, getString(R.string.fork_installs_play), 15, true);
+        play.setGravity(Gravity.CENTER);
+        play.setTextColor(DivineTheme.onColor(playColor));
+        android.graphics.drawable.GradientDrawable pg = new android.graphics.drawable.GradientDrawable();
+        pg.setColor(playColor);
+        pg.setCornerRadius(ForkUi.dp(c, 24));
+        play.setBackground(pg);
+        play.setPadding(ForkUi.dp(c, 24), 0, ForkUi.dp(c, 24), 0);
+        final String instName = String.valueOf(mInstance.name);
+        play.setOnClickListener(v -> new Thread(() -> {
+            try {
+                com.divinedoll.launcher.instances.Instances list = Instances.loadDisplay();
+                for(com.divinedoll.launcher.instances.DisplayInstance d : list.list) {
+                    if(instName.equals(String.valueOf(d.name))) {
+                        Instances.setSelectedInstance(d);
+                        break;
+                    }
+                }
+                Tools.runOnUiThread(() -> com.divinedoll.launcher.extra.ExtraCore.setValue(
+                        com.divinedoll.launcher.extra.ExtraConstants.LAUNCH_GAME, true));
+            } catch (Exception e) {
+                Tools.runOnUiThread(() -> toast(String.valueOf(e.getMessage())));
+            }
+        }).start());
+        bar.addView(play, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ForkUi.dp(c, 44)));
+        return bar;
+    }
+
+    private void toast(String text) {
+        if(isAdded()) Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show();
+    }
+
+    private void select(int tab) {
+        if(!isAdded() || mInstance == null) return;
+        mTab = tab;
+        mLoadId++;
+        Context c = requireContext();
+        mTabs.removeAllViews();
+        int[] labels = {R.string.fork_hub_mods, R.string.fork_hub_worlds, R.string.fork_hub_logs, R.string.fork_hub_look, R.string.fork_hub_shots, R.string.fork_hub_perf};
+        for(int i = 0; i < labels.length; i++) {
+            final int index = i;
+            TextView t = ForkUi.text(c, getString(labels[i]), 14, false);
+            t.setGravity(Gravity.CENTER);
+            t.setPadding(ForkUi.dp(c, 14), ForkUi.dp(c, 8), ForkUi.dp(c, 14), ForkUi.dp(c, 8));
+            t.setBackground(DivineTheme.tabPill(c, i == tab));
+            t.setTextColor(i == tab ? AccentColor.light() : ForkUi.TAB_IDLE);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMarginEnd(ForkUi.dp(c, 6));
+            t.setLayoutParams(lp);
+            if(i != tab) t.setOnClickListener(v -> select(index));
+            mTabs.addView(t);
+        }
+        mBody.removeAllViews();
+        if(tab == TAB_MODS) buildMods(c);
+        else if(tab == TAB_WORLDS) buildWorlds(c);
+        else if(tab == TAB_LOGS) buildLogs(c);
+        else if(tab == TAB_SHOTS) buildShots(c);
+        else if(tab == TAB_PERF) buildPerf(c);
+        else buildLook(c);
+        DivineTheme.styleTree(mBody);
+    }
+
+    private LinearLayout card(Context c) {
+        LinearLayout card = new LinearLayout(c);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setBackground(ForkUi.box(c, ThemeColors.sidebar(), 0x22FFFFFF, 1));
+        int p = ForkUi.dp(c, 12);
+        card.setPadding(p, p, p, p);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.bottomMargin = ForkUi.dp(c, 8);
+        card.setLayoutParams(lp);
+        return card;
+    }
+
+    private TextView muted(Context c, String text) {
+        TextView t = ForkUi.text(c, text, 13, false);
+        t.setTextColor(0xFFBBBBBB);
+        t.setPadding(0, ForkUi.dp(c, 4), 0, ForkUi.dp(c, 8));
+        return t;
+    }
+
+    // Mods
+
+    private void buildMods(Context c) {
+        LinearLayout bar = ForkUi.row(c);
+        Button add = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_add), true));
+        add.setOnClickListener(v -> Modrinth.search(requireActivity(), mGameDir, mInstance.versionId, "mod", "mods", () -> select(TAB_MODS)));
+        Button update = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_update_all), false));
+        update.setOnClickListener(v -> Modrinth.updateAll(requireActivity(), mGameDir, mInstance.versionId, () -> select(TAB_MODS)));
+        bar.addView(add);
+        bar.addView(update);
+        mBody.addView(bar);
+
+        TextView status = muted(c, getString(R.string.fork_hub_checking));
+        mBody.addView(status);
+        final int id = mLoadId;
+        new Thread(() -> {
+            int n = Modrinth.countUpdates(mGameDir, mInstance.versionId);
+            Tools.runOnUiThread(() -> {
+                if(!isAdded() || id != mLoadId) return;
+                if(n < 0) status.setText(R.string.fork_hub_check_failed);
+                else if(n == 0) status.setText(R.string.fork_hub_uptodate);
+                else {
+                    status.setText(getString(R.string.fork_hub_updates_n, n));
+                    status.setTextColor(AccentColor.light());
+                }
+            });
+        }).start();
+
+        File[] files = new File(mGameDir, "mods").listFiles(f -> f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".jar.disabled")));
+        if(files == null || files.length == 0) {
+            mBody.addView(muted(c, getString(R.string.fork_hub_no_mods)));
+            return;
+        }
+        Arrays.sort(files, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        for(File mod : files) {
+            boolean enabled = mod.getName().endsWith(".jar");
+            LinearLayout card = card(c);
+            LinearLayout texts = new LinearLayout(c);
+            texts.setOrientation(LinearLayout.VERTICAL);
+            String shown = mod.getName().replace(".jar.disabled", "").replace(".jar", "");
+            TextView name = ForkUi.text(c, shown, 14, true);
+            name.setSingleLine(true);
+            name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            name.setAlpha(enabled ? 1f : 0.5f);
+            TextView size = ForkUi.text(c, Formatter.formatShortFileSize(c, mod.length()), 11, false);
+            size.setTextColor(0xFFAAAAAA);
+            texts.addView(name);
+            texts.addView(size);
+            card.addView(texts, ForkUi.weight(1f));
+            SwitchCompat sw = new SwitchCompat(c);
+            sw.setChecked(enabled);
+            sw.setOnCheckedChangeListener((b, on) -> {
+                File target = new File(mod.getParentFile(), on ? shown + ".jar" : shown + ".jar.disabled");
+                if(!mod.renameTo(target)) toast(getString(R.string.fork_op_error, "rename"));
+                select(TAB_MODS);
+            });
+            card.addView(sw);
+            Button del = ForkUi.compact(ForkUi.button(c, "✕", false));
+            del.setOnClickListener(v -> new AlertDialog.Builder(c)
+                    .setMessage(getString(R.string.fork_hub_delete_confirm, shown))
+                    .setPositiveButton(android.R.string.ok, (d, w) -> { mod.delete(); select(TAB_MODS); })
+                    .setNegativeButton(android.R.string.cancel, null).show());
+            card.addView(del);
+            mBody.addView(card);
+        }
+    }
+
+    // Worlds
+
+    private static long sizeOf(File f) {
+        if(f.isFile()) return f.length();
+        long n = 0;
+        File[] kids = f.listFiles();
+        if(kids != null) for(File k : kids) n += sizeOf(k);
+        return n;
+    }
+
+    private void buildWorlds(Context c) {
+        LinearLayout autoRow = card(c);
+        TextView label = ForkUi.text(c, getString(R.string.fork_hub_auto_backup), 14, true);
+        autoRow.addView(label, ForkUi.weight(1f));
+        SwitchCompat sw = new SwitchCompat(c);
+        sw.setChecked(WorldBackup.enabled());
+        sw.setOnCheckedChangeListener((b, on) -> WorldBackup.setEnabled(on));
+        autoRow.addView(sw);
+        mBody.addView(autoRow);
+
+        File[] worlds = new File(mGameDir, "saves").listFiles(File::isDirectory);
+        if(worlds == null || worlds.length == 0) {
+            mBody.addView(muted(c, getString(R.string.fork_no_worlds)));
+            return;
+        }
+        Arrays.sort(worlds, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        for(File world : worlds) {
+            LinearLayout card = card(c);
+            LinearLayout texts = new LinearLayout(c);
+            texts.setOrientation(LinearLayout.VERTICAL);
+            TextView name = ForkUi.text(c, world.getName(), 14, true);
+            name.setSingleLine(true);
+            name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            String safe = world.getName().replaceAll("[^A-Za-z0-9._-]", "_");
+            File[] copies = new File(mGameDir, "backups").listFiles((d, n) -> n.startsWith(safe + "-") && n.endsWith(".zip"));
+            TextView info = ForkUi.text(c, Formatter.formatShortFileSize(c, sizeOf(world)) + " · "
+                    + DateUtils.getRelativeTimeSpanString(world.lastModified(), System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+                    + " · " + getString(R.string.fork_hub_backups_n, copies == null ? 0 : copies.length), 11, false);
+            info.setTextColor(0xFFAAAAAA);
+            texts.addView(name);
+            texts.addView(info);
+            card.addView(texts, ForkUi.weight(1f));
+            Button save = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_backup), false));
+            save.setOnClickListener(v -> {
+                save.setEnabled(false);
+                new Thread(() -> {
+                    String msg;
+                    try {
+                        WorldBackup.backup(mGameDir, world, true);
+                        msg = getString(R.string.fork_hub_backup_done, world.getName());
+                    } catch(Exception e) {
+                        msg = getString(R.string.fork_op_error, String.valueOf(e.getMessage()));
+                    }
+                    final String text = msg;
+                    Tools.runOnUiThread(() -> { toast(text); select(TAB_WORLDS); });
+                }).start();
+            });
+            card.addView(save);
+            if(copies != null && copies.length > 0) {
+                Button restore = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_restore), false));
+                restore.setOnClickListener(v -> chooseRestore(c, world));
+                card.addView(restore);
+            }
+            mBody.addView(card);
+        }
+    }
+
+    private void chooseRestore(Context c, File world) {
+        File[] copies = WorldBackup.copiesOf(mGameDir, world.getName());
+        if(copies.length == 0) return;
+        String[] labels = new String[copies.length];
+        for(int i = 0; i < copies.length; i++) {
+            labels[i] = DateUtils.getRelativeTimeSpanString(copies[i].lastModified(), System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+                    + " · " + Formatter.formatShortFileSize(c, copies[i].length());
+        }
+        new AlertDialog.Builder(c).setTitle(R.string.fork_hub_restore).setItems(labels, (d, which) ->
+                new AlertDialog.Builder(c).setMessage(getString(R.string.fork_hub_restore_confirm, world.getName()))
+                        .setPositiveButton(android.R.string.ok, (d2, w) -> new Thread(() -> {
+                            String msg;
+                            try {
+                                WorldBackup.restore(mGameDir, copies[which]);
+                                msg = getString(R.string.fork_hub_restore_done, world.getName());
+                            } catch(Exception e) {
+                                msg = getString(R.string.fork_op_error, String.valueOf(e.getMessage()));
+                            }
+                            final String text = msg;
+                            Tools.runOnUiThread(() -> { toast(text); select(TAB_WORLDS); });
+                        }).start())
+                        .setNegativeButton(android.R.string.cancel, null).show())
+                .setNegativeButton(android.R.string.cancel, null).show();
+    }
+
+    // Screenshots and recordings
+
+    private void buildShots(Context c) {
+        java.util.List<File> files = new java.util.ArrayList<>();
+        File[] shots = new File(mGameDir, "screenshots").listFiles(f -> f.isFile() && f.getName().toLowerCase().endsWith(".png"));
+        if(shots != null) files.addAll(Arrays.asList(shots));
+        File movies = new File(c.getExternalFilesDir(android.os.Environment.DIRECTORY_MOVIES), "DivineLauncher");
+        File[] videos = movies.listFiles(f -> f.isFile() && f.getName().endsWith(".mp4"));
+        if(videos != null) files.addAll(Arrays.asList(videos));
+        if(files.isEmpty()) {
+            mBody.addView(com.divinedoll.launcher.utils.EmptyState.view(c, R.drawable.ic_dl_img,
+                    getString(R.string.fork_hub_no_shots), null, null, null));
+            return;
+        }
+        java.util.Collections.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        final int id = mLoadId;
+        LinearLayout pair = null;
+        for(int idx = 0; idx < files.size(); idx++) {
+            final File file = files.get(idx);
+            boolean video = file.getName().endsWith(".mp4");
+            if(idx % 2 == 0) {
+                pair = new LinearLayout(c);
+                pair.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                plp.bottomMargin = ForkUi.dp(c, 8);
+                mBody.addView(pair, plp);
+            }
+            LinearLayout cell = new LinearLayout(c);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setBackground(ForkUi.box(c, com.divinedoll.launcher.utils.ThemeColors.sidebar(), 0x14FFFFFF, 1));
+            ((android.graphics.drawable.GradientDrawable) cell.getBackground()).setCornerRadius(ForkUi.dp(c, 14));
+            DivineTheme.roundCorners(cell, 14);
+            ImageView thumb = new ImageView(c);
+            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.setBackgroundColor(0xFF101114);
+            cell.addView(thumb, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ForkUi.dp(c, 96)));
+            if(video) {
+                thumb.setScaleType(ImageView.ScaleType.CENTER);
+                thumb.setImageResource(R.drawable.ic_dl_play);
+                thumb.setColorFilter(com.divinedoll.launcher.utils.AccentColor.get());
+            } else {
+                new Thread(() -> {
+                    android.graphics.BitmapFactory.Options o = new android.graphics.BitmapFactory.Options();
+                    o.inSampleSize = 4;
+                    android.graphics.Bitmap bmp = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath(), o);
+                    if(bmp != null) Tools.runOnUiThread(() -> { if(isAdded() && id == mLoadId) thumb.setImageBitmap(bmp); });
+                }).start();
+            }
+            LinearLayout texts = new LinearLayout(c);
+            texts.setOrientation(LinearLayout.VERTICAL);
+            texts.setPadding(ForkUi.dp(c, 10), ForkUi.dp(c, 6), ForkUi.dp(c, 10), ForkUi.dp(c, 8));
+            TextView name = ForkUi.text(c, file.getName(), 12, true);
+            name.setSingleLine(true);
+            name.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
+            TextView info = ForkUi.text(c, Formatter.formatShortFileSize(c, file.length()) + " \u00B7 "
+                    + DateUtils.getRelativeTimeSpanString(file.lastModified(), System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS), 10, false);
+            info.setTextColor(0x99FFFFFF);
+            texts.addView(name);
+            texts.addView(info);
+            cell.addView(texts);
+            cell.setOnClickListener(v -> com.divinedoll.launcher.utils.BottomSheet.menu(c, file.getName(),
+                    new int[]{R.drawable.ic_dl_img, R.drawable.ic_dl_globe, R.drawable.ic_dl_more},
+                    new CharSequence[]{getString(R.string.fork_hub_open), getString(R.string.fork_hub_share), getString(R.string.fork_hub_delete)},
+                    new boolean[]{false, false, true}, which -> {
+                        if(which == 0) com.divinedoll.launcher.utils.ShareFile.send(c, file, true);
+                        else if(which == 1) com.divinedoll.launcher.utils.ShareFile.send(c, file, false);
+                        else { file.delete(); select(TAB_SHOTS); }
+                    }));
+            LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            if(idx % 2 == 0) clp.rightMargin = ForkUi.dp(c, 4); else clp.leftMargin = ForkUi.dp(c, 4);
+            pair.addView(cell, clp);
+        }
+        if(files.size() % 2 == 1 && pair != null) pair.addView(new View(c), new LinearLayout.LayoutParams(0, 1, 1f));
+    }
+
+    // Per-instance performance
+
+    private void buildPerf(Context c) {
+        final int current = com.divinedoll.launcher.utils.GameOptions.getInt(mGameDir, "renderDistance", 12);
+        LinearLayout row = card(c);
+        row.setOrientation(LinearLayout.VERTICAL);
+        TextView label = ForkUi.text(c, getString(R.string.fork_hub_render_distance, current), 14, true);
+        row.addView(label);
+        android.widget.SeekBar seek = new android.widget.SeekBar(c);
+        seek.setMax(30);
+        seek.setProgress(Math.max(0, Math.min(30, current - 2)));
+        seek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar s, int p, boolean user) {
+                label.setText(getString(R.string.fork_hub_render_distance, p + 2));
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar s) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar s) {
+                writeOptions(String.valueOf(s.getProgress() + 2), null);
+            }
+        });
+        row.addView(seek, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        mBody.addView(row);
+
+        TextView title = ForkUi.text(c, getString(R.string.fork_hub_profile), 14, true);
+        title.setTextColor(AccentColor.light());
+        title.setPadding(0, ForkUi.dp(c, 6), 0, ForkUi.dp(c, 6));
+        mBody.addView(title);
+        String[] names = {getString(R.string.fork_pp_saver), getString(R.string.fork_pp_balanced), getString(R.string.fork_pp_max)};
+        int[] distance = {6, 10, 16};
+        String[] fps = {"30", "60", "120"};
+        LinearLayout bar = ForkUi.row(c);
+        for(int i = 0; i < 3; i++) {
+            final int index = i;
+            Button b = ForkUi.compact(ForkUi.button(c, names[i], i == 1));
+            b.setOnClickListener(v -> {
+                writeOptions(String.valueOf(distance[index]), fps[index]);
+                select(TAB_PERF);
+            });
+            bar.addView(b);
+        }
+        mBody.addView(bar);
+        Button global = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_profile_global), false));
+        LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        glp.topMargin = ForkUi.dp(c, 10);
+        global.setLayoutParams(glp);
+        global.setOnClickListener(v -> com.divinedoll.launcher.utils.PerformanceProfiles.show(c, null));
+        mBody.addView(global);
+        mBody.addView(muted(c, getString(R.string.fork_hub_perf_help)));
+    }
+
+    private void writeOptions(String renderDistance, String maxFps) {
+        try {
+            java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
+            values.put("renderDistance", renderDistance);
+            if(maxFps != null) values.put("maxFps", maxFps);
+            com.divinedoll.launcher.utils.GameOptions.set(mGameDir, values);
+        } catch(Exception e) {
+            toast(getString(R.string.fork_op_error, String.valueOf(e.getMessage())));
+        }
+    }
+
+    // Logs
+
+    private void buildLogs(Context c) {
+        File log = new File(mGameDir, "logs/latest.log");
+        if(!log.isFile()) {
+            mBody.addView(muted(c, getString(R.string.fork_hub_no_logs)));
+            return;
+        }
+        final String text = tail(log, 250);
+        LinearLayout bar = ForkUi.row(c);
+        Button copy = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_copy), true));
+        copy.setOnClickListener(v -> {
+            ClipboardManager cm = (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE);
+            if(cm != null) cm.setPrimaryClip(ClipData.newPlainText("latest.log", text));
+            toast(getString(R.string.fork_hub_copied));
+        });
+        bar.addView(copy);
+        mBody.addView(bar);
+        TextView t = new TextView(c);
+        t.setText(text);
+        t.setTypeface(Typeface.MONOSPACE);
+        t.setTextSize(11);
+        t.setTextColor(0xFFD0D0D0);
+        t.setTextIsSelectable(true);
+        int p = ForkUi.dp(c, 10);
+        t.setPadding(p, p, p, p);
+        t.setBackground(ForkUi.box(c, 0xFF101114, 0x22FFFFFF, 1));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = ForkUi.dp(c, 8);
+        mBody.addView(t, lp);
+        File[] crashes = new File(mGameDir, "crash-reports").listFiles();
+        if(crashes != null && crashes.length > 0) mBody.addView(muted(c, getString(R.string.fork_hub_crashes_n, crashes.length)));
+    }
+
+    private static String tail(File file, int lines) {
+        Deque<String> last = new ArrayDeque<>();
+        try(BufferedReader in = new BufferedReader(new FileReader(file))) {
+            String line;
+            while((line = in.readLine()) != null) {
+                last.addLast(line);
+                if(last.size() > lines) last.removeFirst();
+            }
+        } catch(Exception e) {
+            return String.valueOf(e.getMessage());
+        }
+        StringBuilder sb = new StringBuilder();
+        for(String l : last) sb.append(l).append('\n');
+        return sb.toString();
+    }
+
+    // Look
+
+    private void buildLook(Context c) {
+        final String name = String.valueOf(mInstance.name);
+        LinearLayout colorRow = card(c);
+        int current = InstanceLook.color(name);
+        View swatch = new View(c);
+        swatch.setBackground(ForkUi.box(c, current == 0 ? AccentColor.get() : current, Color.WHITE, 1));
+        colorRow.addView(swatch, new LinearLayout.LayoutParams(ForkUi.dp(c, 28), ForkUi.dp(c, 28)));
+        TextView label = ForkUi.text(c, getString(R.string.fork_hub_color), 14, true);
+        label.setPadding(ForkUi.dp(c, 12), 0, 0, 0);
+        colorRow.addView(label, ForkUi.weight(1f));
+        Button pick = ForkUi.compact(ForkUi.button(c, getString(R.string.global_select), false));
+        pick.setOnClickListener(v -> ColorPicker.show(c, R.string.fork_hub_color, current == 0 ? AccentColor.get() : current, AccentColor.get(),
+                color -> { InstanceLook.setColor(name, color); select(TAB_LOOK); }));
+        colorRow.addView(pick);
+        Button reset = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_reset), false));
+        reset.setOnClickListener(v -> { InstanceLook.setColor(name, 0); select(TAB_LOOK); });
+        colorRow.addView(reset);
+        mBody.addView(colorRow);
+
+        LinearLayout imgRow = card(c);
+        TextView il = ForkUi.text(c, getString(R.string.fork_hub_image), 14, true);
+        imgRow.addView(il, ForkUi.weight(1f));
+        Button choose = ForkUi.compact(ForkUi.button(c, getString(R.string.global_select), false));
+        choose.setOnClickListener(v -> mImagePicker.launch("image/*"));
+        imgRow.addView(choose);
+        if(InstanceLook.hasImage(c, name)) {
+            Button off = ForkUi.compact(ForkUi.button(c, getString(R.string.fork_hub_reset), false));
+            off.setOnClickListener(v -> { InstanceLook.clearImage(c, name); select(TAB_LOOK); });
+            imgRow.addView(off);
+        }
+        mBody.addView(imgRow);
+        android.graphics.Bitmap bg = InstanceLook.image(c, name);
+        if(bg != null) {
+            ImageView preview = new ImageView(c);
+            preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            preview.setImageBitmap(bg);
+            if(UiStyle.rounded()) DivineTheme.roundCorners(preview, 14);
+            mBody.addView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ForkUi.dp(c, 150)));
+        }
+        mBody.addView(muted(c, getString(R.string.fork_hub_look_help)));
+    }
+}

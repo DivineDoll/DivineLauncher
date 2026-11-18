@@ -2,9 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app2="http://schemas.android.com/apk/res-auto">
 
-    <git.artdeell.mojo.prefs.BackButtonPreference />
+    <com.divinedoll.launcher.prefs.BackButtonPreference />
 
     <PreferenceCategory android:title="@string/preference_category_video" >
+        <Preference
+            android:key="performanceProfile"
+            android:title="@string/fork_pp_title"
+            android:summary="@string/fork_pp_summary" />
         <androidx.preference.ListPreference
             android:title="@string/mcl_setting_category_renderer"
             android:key="renderer"
@@ -16,6 +20,12 @@
             android:key="import_renderer"
             android:title="@string/fork_renderer_import_title"
             android:summary="@string/fork_renderer_import_summary"
+            android:icon="@drawable/ic_px_image_renderer" />
+
+        <Preference
+            android:key="mobileglues_plugin"
+            android:title="@string/fork_mg_title"
+            android:summary="@string/fork_mg_summary"
             android:icon="@drawable/ic_px_image_renderer" />
 
         <Preference
@@ -32,7 +42,7 @@
             android:icon="@drawable/ic_px_viewport_expand"
             />
 
-        <git.artdeell.mojo.prefs.CustomSeekBarPreference
+        <com.divinedoll.launcher.prefs.CustomSeekBarPreference
             android:key="resolutionRatio"
             android:summary="@string/mcl_setting_subtitle_resolution_scaler"
             android:title="@string/mcl_setting_title_resolution_scaler"

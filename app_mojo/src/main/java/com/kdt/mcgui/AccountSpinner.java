@@ -27,24 +27,24 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
-import git.artdeell.mojo.MojoApplication;
-import git.artdeell.mojo.Tools;
-import git.artdeell.mojo.authenticator.AuthType;
-import git.artdeell.mojo.authenticator.BackgroundLogin;
-import git.artdeell.mojo.authenticator.accounts.Accounts;
-import git.artdeell.mojo.authenticator.accounts.Account;
-import git.artdeell.mojo.authenticator.listener.LoginListener;
-import git.artdeell.mojo.extra.ExtraConstants;
-import git.artdeell.mojo.extra.ExtraCore;
-import git.artdeell.mojo.extra.ExtraListener;
-import git.artdeell.mojo.progresskeeper.ProgressKeeper;
+import com.divinedoll.launcher.MojoApplication;
+import com.divinedoll.launcher.Tools;
+import com.divinedoll.launcher.authenticator.AuthType;
+import com.divinedoll.launcher.authenticator.BackgroundLogin;
+import com.divinedoll.launcher.authenticator.accounts.Accounts;
+import com.divinedoll.launcher.authenticator.accounts.Account;
+import com.divinedoll.launcher.authenticator.listener.LoginListener;
+import com.divinedoll.launcher.extra.ExtraConstants;
+import com.divinedoll.launcher.extra.ExtraCore;
+import com.divinedoll.launcher.extra.ExtraListener;
+import com.divinedoll.launcher.progresskeeper.ProgressKeeper;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
 import fr.spse.extended_view.ExtendedTextView;
-import git.artdeell.mojo.R;
+import com.divinedoll.launcher.R;
 
 public class AccountSpinner extends AppCompatSpinner implements LoginListener, AdapterView.OnItemSelectedListener, ValueAnimator.AnimatorUpdateListener {
     private Adapter mAdapter;
@@ -63,7 +63,7 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
 
         @Override
         public boolean onValueSet(String key, @NonNull String value) {
-            mLoginBarPaint.setColor(git.artdeell.mojo.utils.AccentColor.get());
+            mLoginBarPaint.setColor(com.divinedoll.launcher.utils.AccentColor.get());
             BackgroundLogin backgroundLogin = mAuthType.createAuth();
             backgroundLogin.createAccount(AccountSpinner.this, value);
             return false;
@@ -127,8 +127,15 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         setOnItemSelectedListener(this);
         reload();
 
-        setBackgroundColor(getResources().getColor(R.color.background_status_bar));
-        mLoginBarPaint.setColor(git.artdeell.mojo.utils.AccentColor.get());
+        setBackgroundColor(com.divinedoll.launcher.utils.ThemeColors.background());
+        float dens = getResources().getDisplayMetrics().density;
+        android.graphics.drawable.GradientDrawable popupBg = new android.graphics.drawable.GradientDrawable();
+        popupBg.setColor(com.divinedoll.launcher.utils.ThemeColors.panel());
+        popupBg.setStroke((int) dens, 0x33888888);
+        popupBg.setCornerRadius(16 * dens);
+        setPopupBackgroundDrawable(new android.graphics.drawable.InsetDrawable(popupBg,
+                (int)(8 * dens), (int)(4 * dens), (int)(8 * dens), (int)(4 * dens)));
+        mLoginBarPaint.setColor(com.divinedoll.launcher.utils.AccentColor.get());
         mLoginBarPaint.setStrokeWidth(getResources().getDimensionPixelOffset(R.dimen._2sdp));
         mLoginStepAnimator.addUpdateListener(this);
         mLoginStep = mMaxSteps;
@@ -195,6 +202,14 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         super.onDraw(canvas);
         float bottom = getHeight() - mLoginBarPaint.getStrokeWidth()/2;
         float lineFillPercent = (mLoginStep / mMaxSteps);
+        if(lineFillPercent >= 1f) {
+            // idle: only a faint divider, the accent line is for login progress
+            android.graphics.Paint idle = new android.graphics.Paint();
+            idle.setColor(0x1AFFFFFF);
+            idle.setStrokeWidth(getResources().getDisplayMetrics().density);
+            canvas.drawLine(0, getHeight() - idle.getStrokeWidth() / 2, getWidth(), getHeight() - idle.getStrokeWidth() / 2, idle);
+            return;
+        }
         canvas.drawLine(0, bottom, lineFillPercent * getWidth(), bottom, mLoginBarPaint);
     }
 
@@ -297,10 +312,16 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
 
             ExtendedTextView textview = view.findViewById(R.id.account_item);
             ImageView deleteButton = view.findViewById(R.id.delete_account_button);
+            textview.setTextColor(com.divinedoll.launcher.utils.ThemeColors.text());
+            deleteButton.setColorFilter((com.divinedoll.launcher.utils.ThemeColors.text() & 0x00FFFFFF) | 0x99000000);
 
             if(position == 0) {
                 // "Add account" button
                 Drawable plusDrawable = ResourcesCompat.getDrawable(resources, R.drawable.ic_add, theme);
+                if(plusDrawable != null) {
+                    plusDrawable = plusDrawable.mutate();
+                    plusDrawable.setTint(com.divinedoll.launcher.utils.AccentColor.get());
+                }
                 textview.setCompoundDrawables(plusDrawable, null, null, null);
                 textview.setText(R.string.main_add_account);
                 deleteButton.setVisibility(View.GONE);
@@ -336,14 +357,14 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         /** Face of the account: downloaded for online accounts, drawn from the chosen skin file for offline ones. */
         private BitmapDrawable headFor(Account account, Resources resources) {
             java.io.File offlineSkin = account.isLocal()
-                    ? git.artdeell.mojo.authenticator.accounts.OfflineSkin.getSkinFile(getContext(), account) : null;
+                    ? com.divinedoll.launcher.authenticator.accounts.OfflineSkin.getSkinFile(getContext(), account) : null;
             int key = System.identityHashCode(account) * 31 + (offlineSkin != null ? Long.hashCode(offlineSkin.lastModified()) : 0);
             BitmapDrawable head = mSkinHeadCache.get(key);
             if(head != null) return head;
             Bitmap face;
             if(offlineSkin != null) {
-                Bitmap skin = git.artdeell.mojo.authenticator.accounts.SkinLibrary.loadFile(offlineSkin);
-                face = skin == null ? null : new git.artdeell.mojo.authenticator.accounts.SkinHeadRenderer().render(100, skin);
+                Bitmap skin = com.divinedoll.launcher.authenticator.accounts.SkinLibrary.loadFile(offlineSkin);
+                face = skin == null ? null : new com.divinedoll.launcher.authenticator.accounts.SkinHeadRenderer().render(100, skin);
             } else {
                 face = account.getSkinFace();
             }

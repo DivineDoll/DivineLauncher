@@ -1,0 +1,176 @@
+package com.divinedoll.launcher.utils;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Outline;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.StateListDrawable;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
+import android.widget.TextView;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+import com.divinedoll.launcher.R;
+import com.divinedoll.launcher.prefs.LauncherPreferences;
+
+/**
+ * "Divine" look: flat dark surfaces, rounded cards, pill tabs and a gold accent, in the spirit of
+ * modern mod managers. Everything is customizable from Appearance; this class only holds the
+ * defaults and the shape helpers.
+ */
+public final class DivineTheme {
+    private DivineTheme() {}
+
+    public static final int GOLD = 0xFFFFC107;
+    public static final int BG = 0xFF0F1114;
+    public static final int SIDEBAR = 0xFF16181C;
+    private static final String PREF_APPLIED = "divine_theme_v2";
+
+    /** First run of this look: gold colors, rounded shapes. The user can change all of it afterwards. */
+    public static void applyOnce() {
+        try {
+            if(LauncherPreferences.DEFAULT_PREF.getBoolean(PREF_APPLIED, false)) return;
+            LauncherPreferences.DEFAULT_PREF.edit()
+                    .putInt(AccentColor.PREF, GOLD)
+                    .putInt(PlayColor.PREF, GOLD)
+                    .putInt(ThemeColors.PREF_BACKGROUND, BG)
+                    .putInt(ThemeColors.PREF_SIDEBAR, SIDEBAR)
+                    .putBoolean(UiStyle.PREF, true)
+                    .putBoolean(PREF_APPLIED, true)
+                    .apply();
+        } catch (Exception ignored) {}
+    }
+
+    /** Black or white, whichever reads better on top of the given color. */
+    public static int onColor(int bg) {
+        double lum = (0.299 * Color.red(bg) + 0.587 * Color.green(bg) + 0.114 * Color.blue(bg)) / 255.0;
+        return lum > 0.6 ? 0xFF1B1D21 : 0xFFFFFFFF;
+    }
+
+    private static GradientDrawable pill(Context c, int fill, int radiusDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(fill);
+        g.setCornerRadius(ForkUi.dp(c, radiusDp));
+        return g;
+    }
+
+    /** Sidebar entry: transparent, accent tint when pressed, stronger tint when it is the current one. */
+    public static Drawable sideItem(Context c, boolean selected) {
+        int accent = AccentColor.get() & 0x00FFFFFF;
+        StateListDrawable s = new StateListDrawable();
+        s.addState(new int[]{android.R.attr.state_pressed}, inset(c, pill(c, accent | 0x55000000, 12)));
+        s.addState(new int[]{}, inset(c, pill(c, selected ? (accent | 0x30000000) : Color.TRANSPARENT, 12)));
+        return s;
+    }
+
+    private static Drawable inset(Context c, Drawable d) {
+        return new InsetDrawable(d, ForkUi.dp(c, 6), ForkUi.dp(c, 2), ForkUi.dp(c, 6), ForkUi.dp(c, 2));
+    }
+
+    /** Tab pill: filled with a soft accent when selected. */
+    public static Drawable tabPill(Context c, boolean selected) {
+        return pill(c, selected ? ((AccentColor.get() & 0x00FFFFFF) | 0x33000000) : Color.TRANSPARENT, 18);
+    }
+
+    public static void roundCorners(View v, int radiusDp) {
+        final float r = ForkUi.dp(v.getContext(), radiusDp);
+        v.setOutlineProvider(new ViewOutlineProvider() {
+            @Override public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), r);
+            }
+        });
+        v.setClipToOutline(true);
+    }
+
+    public static boolean isPortrait(Context c) {
+        return c.getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT;
+    }
+
+    // ------------------------------------------------------------------ widgets
+
+    /** Slim sliders with an accent fill and a round thumb; round switches. Applied to a whole view tree. */
+    public static void styleTree(View v) {
+        if(v == null || !UiStyle.rounded()) return;
+        if(v instanceof android.widget.SeekBar) {
+            styleSeek((android.widget.SeekBar) v);
+        } else if(v instanceof android.widget.ProgressBar && !(v instanceof com.kdt.mcgui.TextProgressBar)) {
+            android.widget.ProgressBar pb = (android.widget.ProgressBar) v;
+            android.content.res.ColorStateList accent = android.content.res.ColorStateList.valueOf(AccentColor.get());
+            pb.setIndeterminateTintList(accent);
+            pb.setProgressTintList(accent);
+            pb.setSecondaryProgressTintList(accent);
+        } else if(v instanceof androidx.appcompat.widget.SwitchCompat) {
+            styleSwitch((androidx.appcompat.widget.SwitchCompat) v);
+        } else if(v instanceof androidx.recyclerview.widget.RecyclerView) {
+            hookRecycler((androidx.recyclerview.widget.RecyclerView) v);
+        }
+        if(v instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) v;
+            for(int i = 0; i < group.getChildCount(); i++) styleTree(group.getChildAt(i));
+        }
+    }
+
+    private static void hookRecycler(androidx.recyclerview.widget.RecyclerView list) {
+        if(list.getTag(R.id.divine_styled) != null) return;
+        list.setTag(R.id.divine_styled, Boolean.TRUE);
+        list.addOnChildAttachStateChangeListener(new androidx.recyclerview.widget.RecyclerView.OnChildAttachStateChangeListener() {
+            @Override public void onChildViewAttachedToWindow(View view) { styleTree(view); }
+            @Override public void onChildViewDetachedFromWindow(View view) {}
+        });
+    }
+
+    private static GradientDrawable bar(Context c, int color, int heightDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(color);
+        g.setCornerRadius(ForkUi.dp(c, heightDp) / 2f);
+        g.setSize(1, ForkUi.dp(c, heightDp));
+        return g;
+    }
+
+    private static void styleSeek(android.widget.SeekBar seek) {
+        Context c = seek.getContext();
+        int accent = AccentColor.get();
+        android.graphics.drawable.ClipDrawable fill = new android.graphics.drawable.ClipDrawable(
+                bar(c, accent, 4), android.view.Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+        android.graphics.drawable.LayerDrawable track = new android.graphics.drawable.LayerDrawable(
+                new Drawable[]{bar(c, 0x33FFFFFF, 4), fill});
+        track.setId(0, android.R.id.background);
+        track.setId(1, android.R.id.progress);
+        GradientDrawable thumb = new GradientDrawable();
+        thumb.setShape(GradientDrawable.OVAL);
+        thumb.setColor(accent);
+        thumb.setStroke(ForkUi.dp(c, 2), 0xFFFFFFFF);
+        thumb.setSize(ForkUi.dp(c, 20), ForkUi.dp(c, 20));
+        seek.setProgressDrawable(track);
+        seek.setThumb(thumb);
+        seek.setSplitTrack(false);
+    }
+
+    private static void styleSwitch(androidx.appcompat.widget.SwitchCompat sw) {
+        Context c = sw.getContext();
+        int accent = AccentColor.get();
+        GradientDrawable on = new GradientDrawable();
+        on.setColor(accent);
+        on.setCornerRadius(ForkUi.dp(c, 12));
+        on.setSize(ForkUi.dp(c, 44), ForkUi.dp(c, 24));
+        GradientDrawable off = new GradientDrawable();
+        off.setColor(0x44FFFFFF);
+        off.setCornerRadius(ForkUi.dp(c, 12));
+        off.setSize(ForkUi.dp(c, 44), ForkUi.dp(c, 24));
+        StateListDrawable track = new StateListDrawable();
+        track.addState(new int[]{android.R.attr.state_checked}, on);
+        track.addState(new int[]{}, off);
+        GradientDrawable thumb = new GradientDrawable();
+        thumb.setShape(GradientDrawable.OVAL);
+        thumb.setColor(0xFFFFFFFF);
+        thumb.setSize(ForkUi.dp(c, 18), ForkUi.dp(c, 18));
+        sw.setTrackDrawable(track);
+        sw.setThumbDrawable(new InsetDrawable(thumb, ForkUi.dp(c, 3)));
+    }
+
+}

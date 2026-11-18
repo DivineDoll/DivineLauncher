@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.res.ResourcesCompat;
 
-import git.artdeell.mojo.R;
+import com.divinedoll.launcher.R;
 
 /**
  * The base class for side dialog views
@@ -98,6 +98,7 @@ public abstract class SideDialogView {
 
         LayoutInflater.from(mParent.getContext()).inflate(mLayoutId, mScrollView, true);
         mDialogContent = mScrollView.getChildAt(0);
+        com.divinedoll.launcher.utils.DivineTheme.styleTree(mDialogContent);
 
         // Attach layouts
         mParent.addView(mDialogLayout);
@@ -109,7 +110,12 @@ public abstract class SideDialogView {
         mDialogLayout.setTranslationZ(10);
 
         mDialogLayout.setVisibility(View.VISIBLE);
-        mDialogLayout.setBackground(ResourcesCompat.getDrawable(mDialogLayout.getResources(), R.drawable.background_control_editor, null));
+        mDialogLayout.setBackground(com.divinedoll.launcher.utils.ForkUi.box(mDialogLayout.getContext(),
+                com.divinedoll.launcher.utils.ThemeColors.panel(), com.divinedoll.launcher.utils.AccentColor.get(), 2));
+        com.divinedoll.launcher.utils.McStyle.applyFont(mDialogLayout);
+        com.divinedoll.launcher.utils.McStyle.button(mStartButton, false);
+        com.divinedoll.launcher.utils.McStyle.button(mEndButton, true);
+        mTitleTextview.setTextColor(com.divinedoll.launcher.utils.AccentColor.light());
 
         //TODO offset better according to view width
         mDialogLayout.setX(-mDialogLayout.getResources().getDimensionPixelOffset(R.dimen._280sdp));

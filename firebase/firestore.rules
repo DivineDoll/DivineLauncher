@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+
+    // Profile: only you write yours; everybody signed in can read names.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'nameLower', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3 && request.resource.data.name.size() <= 16;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Unique usernames: first come, first served.
+    match /usernames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn() && name.size() >= 3 && name.size() <= 16
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Friend requests, id = fromUid_toUid
+    match /requests/{id} {
+      allow read: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.to
+        && request.resource.data.fromName is string && request.resource.data.fromName.size() <= 16;
+      allow delete: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+    }
+
+    // Friend lists. Accepting a request writes both sides in one batch.
+    match /friends/{uid}/list/{fid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && (
+        (request.auth.uid == uid && exists(/databases/$(database)/documents/requests/$(fid + '_' + uid))) ||
+        (request.auth.uid == fid && exists(/databases/$(database)/documents/requests/$(uid + '_' + fid))));
+      allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == fid);
+    }
+
+    // Chat: only the two friends, up to 500 characters, server time.
+    match /chats/{chatId}/messages/{mid} {
+      allow read: if signedIn() && request.auth.uid in chatId.split('_');
+      allow create: if signedIn() && request.auth.uid in chatId.split('_')
+        && request.resource.data.keys().hasOnly(['from', 'text', 'ts'])
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 500
+        && request.resource.data.ts == request.time
+        && exists(/databases/$(database)/documents/friends/$(request.auth.uid)/list/$(
+             chatId.split('_')[0] == request.auth.uid ? chatId.split('_')[1] : chatId.split('_')[0]));
+    }
+
+    // Reports: write only, you read them in the Firebase console.
+    match /reports/{id} {
+      allow create: if signedIn() && request.resource.data.reporter == request.auth.uid
+        && request.resource.data.text is string && request.resource.data.text.size() <= 500;
+    }
+  }
+}

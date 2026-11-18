@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.kdt.mcgui.mcVersionSpinner
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mc_version_spinner"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:background="@android:color/transparent"
+    android:drawableEnd="@drawable/spinner_arrow"
+    app:drawableEndPadding="@dimen/_1sdp"
+    app:drawableEndSize="@dimen/_12sdp"
+    app:drawableStartIntegerScaling="true"
+    app:drawableStartSize="32dp" />
